@@ -20,7 +20,7 @@ const availability = p.availability === 'OUT_OF_STOCK' ? (p.preorder ? 'Pre-orde
 ---
 <article class:list={['ui-product-card', `ui-product-card--${size}`, className]}>
   <div class="ui-product-card__media">
-    <a href={href} tabindex="-1" aria-hidden="true">
+    <a href={href} class="ui-product-card__link" tabindex="-1" aria-hidden="true">
       <Photo src={p.imageUrl} alt="" sizes={size === 'feature' ? '(min-width: 768px) 30vw, 78vw' : '(min-width: 768px) 22vw, 45vw'} className={`ui-product-card__image ui-tone--${tone}`} />
     </a>
     {p.ribbons.length > 0 && (
