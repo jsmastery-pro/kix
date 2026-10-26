@@ -27,7 +27,10 @@ const { id, title, text, className = '' } = Astro.props;
     form.addEventListener('submit', (event) => {
       event.preventDefault();
       const status = form.querySelector<HTMLElement>('[data-newsletter-status]');
-      if (status) status.textContent = 'Sign-ups open soon.';
+      if (!status) return;
+      // Clear first so a repeat submit is announced again.
+      status.textContent = '';
+      requestAnimationFrame(() => { status.textContent = 'Sign-ups open soon.'; });
     });
   });
 </script>

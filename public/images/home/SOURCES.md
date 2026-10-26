@@ -14,6 +14,6 @@ Free Pexels photographs used as placeholder product and editorial images on the 
 
 Reused from `public/images/design-system/` (credits in that folder's `SOURCES.md`): `studio-white.jpg` (KIX MERIDIAN PREMIUM card, banner slide 3), `pink-slip-ons.jpg` (KIX ORBIT HIGH card, banner slide 4), `black-training.jpg` (Training tile, banner slide 1), `white-sneakers.jpg` (Lifestyle tile).
 
-Rejected after inspection: 7873486 (emblem logo), 9666619 (branded side stripe and heel text), 7916058 (logo on insole), 7193634 (shoes cut off at the frame edge), and every search result showing Nike, Jordan, Converse, Vans, Puma, Yeezy, New Balance or Louis Vuitton marks or designs.
+Rejected after inspection: 7873486 (emblem logo), 9666619 (branded side stripe and heel text), 7916058 (logo on insole), 7193634 (shoes cut off at the frame edge), and every search result showing third-party brand marks or recognizable branded designs.
 
 Pexels license: https://www.pexels.com/license/ . Replace these with Kix product photos when Wix catalog content exists.

@@ -35,9 +35,12 @@ const { label, count, arrows = false, dots = 'start', className = '' } = Astro.p
     const dots = Array.from(carousel.querySelectorAll<HTMLButtonElement>('[data-carousel-go]'));
     let current = 0;
     const show = (index: number) => {
+      // Hiding the slide that holds focus would drop focus to <body>; hand it to the new slide's dot.
+      const hadFocus = slides[current]?.contains(document.activeElement);
       current = (index + slides.length) % slides.length;
       slides.forEach((slide, i) => { slide.hidden = i !== current; slide.inert = i !== current; });
       dots.forEach((dot, i) => { if (i === current) dot.setAttribute('aria-current', 'true'); else dot.removeAttribute('aria-current'); });
+      if (hadFocus) dots[current]?.focus();
     };
     dots.forEach((dot) => dot.addEventListener('click', () => show(Number(dot.dataset.carouselGo))));
     carousel.querySelectorAll<HTMLButtonElement>('[data-carousel-step]').forEach((button) => {
