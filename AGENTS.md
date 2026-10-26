@@ -22,6 +22,8 @@ npm run preview                   # wix preview → shareable preview URL (backe
 npm run release                   # wix release → live site. Ask the user first
 npm run wix env set -- --key K --value V   # then: npm run wix env pull
 npm run generate                  # wix generate → dashboard pages, events, data collections
+npx astro dev --port 4333         # plain Astro dev server (Astro 7 runs it as a daemon; stop: npx astro dev stop)
+npm run release -- --version-type minor --comment "…"   # non-interactive release
 ```
 
 All Wix CLI commands: `node_modules/@wix/cli/agents/instructions.md`.
@@ -39,7 +41,7 @@ Every tool here changes fast. Never assume a version. Read declared ranges in `p
 
 Each tool has one job. Ask before moving a responsibility to a different tool. Close-outs fill in details here.
 
-The design-system UI primitives and styling tokens now exist. The mock DTO file and Wix storefront layer are still planned.
+The UI primitives, tokens, site layout (`src/layouts/SiteLayout.astro`, shaped like the kit's) and mock data (`src/data/mock.ts`, typed by a verbatim copy of the kit's `src/wix/storefront/types.ts`) exist. The Wix storefront data layer is still planned. The kit's deploy never overwrites existing files, so wiring merges its `CartButton`/`CartDrawer` into `SiteLayout` by hand.
 
 - **Hosting, deploys, secrets:** Wix (CLI). Secrets are declared in `astro.config.mjs` with `envField` and set with `wix env set`; read server secrets from `astro:env/server`.
 - **UI:** our own primitives in `src/components/ui/`, built from the design system sheet. Pages compose them; callers pass layout classes only, and a caller needing a new color means a variant is missing.
@@ -49,7 +51,7 @@ The design-system UI primitives and styling tokens now exist. The mock DTO file 
 - **Accounts:** Wix Members through `@wix/astro`'s built-in `/api/auth/*` routes, via the `wix-headless-kit` members data layer. No custom callback pages.
 - **3D models:** made by the user in Tripo Studio (the web app; no Tripo API or key) and downloaded as GLB into `models/raw/`. The agent optimizes them with glTF Transform into `models/web/`, stores them in Wix, and renders them with React Three Fiber islands (`client:only="react"`). Not set up yet.
 - **Analytics, replay, flags, experiments:** PostHog. Not set up yet.
-- **Styling:** Tailwind tokens in `src/styles/global.css`.
+- **Styling:** tokens and primitive styles in `src/styles/global.css`; page layout in `src/styles/site.css` (sizes and grids only). Headlines use Barlow Condensed through Astro's Fonts API (`--font-barlow`), so builds need network access.
 
 ## Rules
 
@@ -71,7 +73,7 @@ Designs arrive as images attached to the prompt (design system, home, sign in, c
 - Icons come from the chosen icon library, never redrawn from a screenshot. A missing asset gets a marked placeholder, listed in the report.
 - Anything in a design without a data source yet (reviews, ratings, wishlist, member perks, shipping promises) is a decision in the plan, never faked.
 - Designs are desktop. Derive phone layouts by stacking and keeping the hierarchy, and list the choices in the plan.
-- After building, open the page with the Playwright MCP at 1440px and 390px, screenshot it, compare with the design, list every difference, fix, and repeat. Report which values were estimated from an image.
+- After building, open the page with the Playwright MCP at 1440px and 390px, screenshot it, compare with the design, list every difference, fix, and repeat. Report which values were estimated from an image. Measure the design's canvas scale against the target width before planning sizes. Without Playwright, capture with Chrome DevTools device emulation (desktop Chrome can't lay out narrower than about 500px), and scroll first so lazy images load.
 
 ## How we build features
 
@@ -83,10 +85,10 @@ The user describes what they want in a sentence or two. You work out the how.
 
 1. **Understand.** Load every skill the request names, plus any whose description fits (requests name skills in plain words, such as "the wix headless kit skill" for `wix-headless-kit`). Study any attached design. Read the code involved and the current docs for every API you'll use. Open an earlier plan only if this one builds on it.
 2. **Ask.** If scope, visible behavior, data shape or cost is unclear, ask in the question panel. Pick sensible defaults for the rest and list them in the plan. If a decision in this file looks wrong, raise it rather than changing it.
-3. **Plan.** Copy `prompts/TEMPLATE.md` to `prompts/NN-feature-name.md` (next number), fill it in, set `Status: review`, and add it to `prompts/README.md`. The plan must be self-contained: a fresh session can build it from this file plus the plan. In Claude Code, have the `plan-reviewer` agent check it and fix real gaps.
+3. **Plan.** Copy `prompts/TEMPLATE.md` to `prompts/NN-feature-name.md` (next number), fill it in, set `Status: review`, and add it to `prompts/README.md`. The plan must be self-contained: a fresh session can build it from this file plus the plan. In Claude Code, have a reviewer subagent check it and fix real gaps.
 4. **IMPORTANT: stop for approval.** Write no app code until the user approves. Summarize the plan in five lines and ask in the question panel: "Approve and build now", "Approve, I'll build in a fresh session", or "Change something". On approval set `Status: approved`.
 5. **Build** step by step (in a fresh session, the user says "build plan NN": start here). Tick each step in the plan as its check passes and commit it. If a step turns out wrong, or needs something the plan didn't approve, stop and ask instead of redesigning.
-6. **Verify** with evidence: run every check in the plan's Verification and show the output. In Claude Code, have the `change-reviewer` agent compare the work with the plan and fix real gaps.
+6. **Verify** with evidence: run every check in the plan's Verification and show the output. In Claude Code, have a reviewer subagent compare the work with the plan and fix real gaps.
 7. **Close out.** Write the plan's `## Result`, set `Status: done`, and update the index. Then propose edits to this file: rewrite or delete lines that are no longer true rather than appending. Show the proposed edits and ask before saving them. Keep this file under 150 lines.
 
 ## Reporting
