@@ -7,7 +7,7 @@ interface Props {
   className?: string;
   href?: string;
   type?: 'button' | 'submit';
-  shape?: 'square' | 'round' | 'tile' | 'field';
+  shape?: 'square' | 'round' | 'tile' | 'field' | 'plain';
   attrs?: Record<string, string>;
 }
 const { label, dark = false, disabled = false, preview = false, className = '', href, type = 'button', shape = 'square', attrs = {} } = Astro.props;

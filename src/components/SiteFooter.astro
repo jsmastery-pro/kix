@@ -1,0 +1,26 @@
+---
+import NewsletterForm from './ui/NewsletterForm.astro';
+import Wordmark from './ui/Wordmark.astro';
+
+// Routes for pages the store will add; they 404 until built (plan 03).
+const columns = [
+  { title: 'Shop', links: [['Men', '/category/men'], ['Women', '/category/women'], ['Kids', '/category/kids'], ['Customize', '/customize']] },
+  { title: 'Support', links: [['Help Center', '/help'], ['Shipping', '/help/shipping'], ['Returns', '/help/returns'], ['Order Status', '/account/orders'], ['Size Guide', '/help/size-guide']] },
+  { title: 'Company', links: [['About Kix', '/about'], ['Sustainability', '/about/sustainability'], ['Careers', '/careers'], ['News', '/news']] },
+];
+---
+<footer class="site-footer">
+  <div class="site-footer__inner">
+    <div class="site-footer__brand">
+      <Wordmark />
+      <p class="site-footer__copy">© 2026 Kix. All rights reserved.</p>
+    </div>
+    {columns.map((column) => (
+      <nav class="site-footer__col" aria-label={column.title}>
+        <p class="site-footer__head">{column.title}</p>
+        <ul>{column.links.map(([label, href]) => <li><a href={href}>{label}</a></li>)}</ul>
+      </nav>
+    ))}
+    <NewsletterForm id="footer-newsletter" title="Join Our Newsletter" text="Be the first to know about new releases." className="site-footer__newsletter" />
+  </div>
+</footer>

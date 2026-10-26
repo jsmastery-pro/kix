@@ -1,0 +1,67 @@
+/* Page and chrome layout for storefront pages. Sizes and grids only: colors, fonts, radii and
+   motion come from the tokens in global.css. */
+:root {
+  --site-max: 1280px;
+  --site-inset: clamp(16px, 5.6vw, 80px);
+  --site-wide-max: 1384px;
+  --site-wide-inset: clamp(16px, 2vw, 28px);
+  --site-header-height: 84px;
+  --site-section-gap: 64px;
+}
+
+.site-skip { position: absolute; top: -100px; left: 16px; z-index: 50; padding: 12px 16px; border-radius: var(--radius-sm); background: var(--color-black); color: var(--color-white); text-decoration: none; }
+.site-skip:focus { top: 16px; }
+
+.site-header__bar { display: grid; grid-template-columns: 1fr auto 1fr; grid-template-areas: "logo nav actions"; align-items: center; width: min(var(--site-wide-max), 100% - 2 * var(--site-wide-inset)); height: var(--site-header-height); margin-inline: auto; padding-inline: 24px; }
+.site-header__bar .ui-wordmark { grid-area: logo; justify-self: start; }
+.site-header__nav { grid-area: nav; }
+.site-header__actions { grid-area: actions; justify-self: end; display: flex; align-items: center; gap: 2px; margin-right: -10px; }
+
+.home-hero, .home-banner { width: min(var(--site-wide-max), 100% - 2 * var(--site-wide-inset)); margin-inline: auto; }
+.home-hero { margin-top: 4px; }
+.home-banner { margin-top: 72px; }
+.home-section { width: min(var(--site-max), 100% - 2 * var(--site-inset)); margin: var(--site-section-gap) auto 0; }
+.home-section--first { margin-top: 40px; }
+.home-section--after-banner { margin-top: 48px; }
+
+.home-categories { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 24px; }
+.home-new { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 34px; }
+.home-popular { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 34px; }
+.home-perks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
+
+.site-footer { width: min(var(--site-wide-max), 100% - 2 * var(--site-wide-inset)); margin: 56px auto 0; border-top: 1px solid var(--color-border); }
+.site-footer__inner { display: grid; grid-template-columns: 1.6fr 1fr 1fr 1fr 1.8fr; gap: 32px; padding: 40px 24px 56px; }
+.site-footer__copy { margin-top: 16px; color: var(--color-text-secondary); font-size: 13px; line-height: 18px; }
+.site-footer__head { font-size: 14px; font-weight: 600; line-height: 20px; }
+.site-footer__col ul { display: grid; gap: 6px; margin: 12px 0 0; padding: 0; list-style: none; }
+.site-footer__col a { color: var(--color-text-secondary); font-size: 14px; line-height: 20px; text-decoration: none; }
+.site-footer__col a:hover { color: var(--color-black); }
+
+@media (max-width: 1100px) {
+  .site-header__nav ul { gap: 28px; }
+  .home-new, .home-popular { gap: 20px; }
+  .site-footer__inner { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .site-footer__brand, .site-footer__newsletter { grid-column: 1 / -1; }
+}
+
+@media (max-width: 767px) {
+  :root { --site-inset: 16px; --site-wide-inset: 16px; --site-section-gap: 48px; }
+  .site-header__bar { grid-template-columns: 1fr auto; grid-template-areas: "logo actions" "nav nav"; height: auto; padding-inline: 0; }
+  .site-header__bar .ui-wordmark { padding-block: 16px; }
+  .site-header__nav { overflow-x: auto; scrollbar-width: none; margin-inline: -16px; padding-inline: 16px; }
+  .site-header__nav::-webkit-scrollbar { display: none; }
+  .home-hero { margin-top: 0; }
+  .home-banner { margin-top: 56px; }
+  .home-section--first { margin-top: 32px; }
+  .home-section--after-banner { margin-top: 40px; }
+  .home-categories, .home-new { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; margin-inline: -16px; padding-inline: 16px; scroll-padding-inline: 16px; }
+  .home-categories::-webkit-scrollbar, .home-new::-webkit-scrollbar { display: none; }
+  .home-categories > * { flex: 0 0 140px; scroll-snap-align: start; }
+  .home-new > * { flex: 0 0 78%; scroll-snap-align: start; }
+  .home-popular { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 12px; }
+  .home-perks { grid-template-columns: 1fr; gap: 12px; }
+  .site-footer { margin-top: 48px; }
+  .site-footer__inner { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 12px; padding: 32px 0 40px; }
+  .site-footer__col ul { gap: 0; margin-top: 4px; }
+  .site-footer__col a { display: inline-flex; align-items: center; min-height: 44px; }
+}

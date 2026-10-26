@@ -1,8 +1,79 @@
 ---
-import Hero from '../components/Hero.astro';
-import Layout from '../layouts/Layout.astro';
+// Home page. Reads placeholder data from src/data/mock.ts, shaped like the Headless kit's DTOs.
+// Wiring Wix (plan 03): fetch inside a guarded try, as the kit's page skeletons do —
+//   shopCategories → fetchCategories() filtered to children of the `sports` category, by index
+//   newArrivals / popularNow → fetchProductsByCategory() of the owner-curated `new-arrivals` / `popular`
+//   heroSlides / collectionSlides → a Wix CMS collection
+// An empty list hides its section, heading included.
+import { LockKeyhole, RefreshCcw, Truck } from '@lucide/astro';
+import CategoryTile from '../components/ui/CategoryTile.astro';
+import Carousel from '../components/ui/Carousel.astro';
+import FeatureSlide from '../components/ui/FeatureSlide.astro';
+import PerkCard from '../components/ui/PerkCard.astro';
+import ProductCard from '../components/ui/ProductCard.astro';
+import SectionHeading from '../components/ui/SectionHeading.astro';
+import type { TileTone } from '../components/ui/tones';
+import SiteLayout from '../layouts/SiteLayout.astro';
+import { collectionSlides, heroSlides, memberPerks, newArrivals, popularNow, shopCategories } from '../data/mock';
+
+const categoryTones: TileTone[] = ['beige', 'mint', 'peach', 'coral', 'periwinkle'];
+const newTones: TileTone[] = ['tan', 'aqua', 'rose'];
+const popularTones: TileTone[] = ['mint', 'peach', 'periwinkle', 'lilac'];
+const tone = (tones: TileTone[], index: number) => tones[index % tones.length];
+const perkIcons = { truck: Truck, returns: RefreshCcw, lock: LockKeyhole };
 ---
 
-<Layout>
-	<Hero />
-</Layout>
+<SiteLayout title="Kix · Sneakers" description="New releases, limited collections and every Kix category in one place.">
+  <h1 class="sr-only">Kix sneakers</h1>
+
+  {heroSlides.length > 0 && (
+    <Carousel label="Featured releases" count={heroSlides.length} arrows className="home-hero">
+      {heroSlides.map((slide, index) => <FeatureSlide slide={slide} index={index} total={heroSlides.length} tone="sand" eager />)}
+    </Carousel>
+  )}
+
+  {shopCategories.length > 0 && (
+    <section class="home-section home-section--first" aria-labelledby="shop-by-category">
+      <SectionHeading id="shop-by-category" title="Shop by Category" href="/shop" />
+      <div class="home-categories">
+        {shopCategories.map((category, index) => <CategoryTile category={category} tone={tone(categoryTones, index)} />)}
+      </div>
+    </section>
+  )}
+
+  {newArrivals.length > 0 && (
+    <section class="home-section" aria-labelledby="new-arrivals">
+      <SectionHeading id="new-arrivals" title="New Arrivals" href="/category/new-arrivals" />
+      <div class="home-new">
+        {newArrivals.map((product, index) => <ProductCard product={product} tone={tone(newTones, index)} size="feature" />)}
+      </div>
+    </section>
+  )}
+
+  {collectionSlides.length > 0 && (
+    <Carousel label="Limited collection" count={collectionSlides.length} dots="end" className="home-banner">
+      {collectionSlides.map((slide, index) => <FeatureSlide slide={slide} index={index} total={collectionSlides.length} tone="taupe" variant="banner" />)}
+    </Carousel>
+  )}
+
+  {popularNow.length > 0 && (
+    <section class="home-section home-section--after-banner" aria-labelledby="popular-right-now">
+      <SectionHeading id="popular-right-now" title="Popular Right Now" href="/category/popular" />
+      <div class="home-popular">
+        {popularNow.map((product, index) => <ProductCard product={product} tone={tone(popularTones, index)} />)}
+      </div>
+    </section>
+  )}
+
+  {memberPerks.length > 0 && (
+    <section class="home-section" aria-labelledby="members-get-more">
+      <SectionHeading id="members-get-more" title="Members Get More" />
+      <div class="home-perks">
+        {memberPerks.map((perk) => {
+          const Icon = perkIcons[perk.icon];
+          return <PerkCard title={perk.title} text={perk.text}><Icon /></PerkCard>;
+        })}
+      </div>
+    </section>
+  )}
+</SiteLayout>

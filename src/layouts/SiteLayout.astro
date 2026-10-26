@@ -1,0 +1,55 @@
+---
+// Site chrome for storefront pages, shaped like the Headless kit's SiteLayout (seo-tags slot,
+// title/description props, global.css import). Wiring Wix adds the kit's CartButton and
+// CartDrawer mounts and reads the nav categories with fetchCategories() (plan 03).
+import { Font } from 'astro:assets';
+import { ShoppingBag, UserRound } from '@lucide/astro';
+import SiteFooter from '../components/SiteFooter.astro';
+import IconButton from '../components/ui/IconButton.astro';
+import SiteNav from '../components/ui/SiteNav.astro';
+import Wordmark from '../components/ui/Wordmark.astro';
+import { navCategories } from '../data/mock';
+import '../styles/global.css';
+import '../styles/site.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+const { title, description } = Astro.props;
+const navItems = [
+  ...navCategories.map((category) => ({ label: category.name, href: `/category/${category.slug}` })),
+  { label: 'Customize', href: '/customize' },
+  { label: 'Membership', href: '/membership' },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {!Astro.slots.has('seo-tags') && <title>{title}</title>}
+    {description && <meta name="description" content={description} />}
+    <Font cssVariable="--font-barlow" preload={[{ weight: '700', style: 'normal' }]} />
+    <slot name="seo-tags" />
+  </head>
+  <body class="site">
+    <a class="site-skip" href="#main">Skip to content</a>
+    <header class="site-header">
+      <div class="site-header__bar">
+        <Wordmark />
+        <SiteNav items={navItems} className="site-header__nav" />
+        <div class="site-header__actions">
+          <IconButton href="/cart" label="Bag" shape="plain"><ShoppingBag /></IconButton>
+          <IconButton href="/account" label="Account" shape="plain"><UserRound /></IconButton>
+        </div>
+      </div>
+    </header>
+    <main id="main">
+      <slot />
+    </main>
+    <SiteFooter />
+  </body>
+</html>
