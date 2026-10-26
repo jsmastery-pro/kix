@@ -12,8 +12,10 @@ This file is the project's memory: it holds every decision that is still true. P
 
 ## Commands
 
+Use Node.js 24.18.0 or newer for Wix CLI commands.
+
 ```bash
-npm run dev                       # wix dev → http://localhost:4321 (prints Site + Dashboard links)
+npm run dev                       # wix dev → Astro on http://localhost:4321; Wix CLI 1.2.2 currently exits 1 while preparing its dashboard
 npm run check                     # astro check (types)
 npm run build                     # wix build
 npm run preview                   # wix preview → shareable preview URL (backends stop after 3 days)
@@ -26,16 +28,18 @@ All Wix CLI commands: `node_modules/@wix/cli/agents/instructions.md`.
 
 ## Docs first
 
-Every tool here changes fast. Never assume a version. Read the installed versions in `package.json`, then read the docs for those versions before writing any Wix, Astro or PostHog code. When a Wix skill needs a newer version than the one installed, say so and plan the upgrade as its own step.
+Every tool here changes fast. Never assume a version. Read declared ranges in `package.json` and resolved versions in `package-lock.json` or `npm ls`, then read the docs for those versions before writing any Wix, Astro or PostHog code. When a Wix skill needs a newer version than the one installed, say so and plan the upgrade as its own step.
 
-- **Wix:** the Wix plugin, installed in this project, provides Wix's skills and the Wix MCP. Load the matching skill: `wix-headless-kit`, the Wix Headless skill (Wix's shipped store, members and CMS code, seeding, releases), `wix-app` (dashboard pages, backend events, data collections), `wix-design-system` (dashboard UI), `wix-manage` (site settings via API), `wix-docs` (any API lookup). The Wix MCP searches live docs and calls Wix APIs. A prompt that points at `wix.com/headless/skill.md` means the same Wix Headless skill. In this folder it reuses the site in `wix.config.json`. Keep our pages and code, add only what the request needs, seed nothing without asking, and follow this file's workflow and rules.
-- **Astro:** the Astro Docs MCP (`astro-docs`), Astro's official live search of its documentation. Check it before writing Astro code.
-- **PostHog:** use the PostHog plugin's skills (`posthog:instrument-product-analytics`, `posthog:instrument-error-tracking`, `posthog:instrument-feature-flags`, `posthog:building-a-dashboard`, `posthog:creating-experiments`) and the PostHog MCP. Docs: https://posthog.com/docs (Astro page; JS config for the current `defaults` value).
-- **Browser:** the Playwright MCP, to open pages and take screenshots.
+- **Wix:** Wix skills are installed in `node_modules/@wix/agent-skills/skills/`. Load the matching skill: `wix-headless-kit`, the Wix Headless skill (Wix's shipped store, members and CMS code, seeding, releases), `wix-app` (dashboard pages, backend events, data collections), `wix-design-system` (dashboard UI), `wix-manage` (site settings via API), `wix-docs` (any API lookup). Use the Wix MCP when connected; otherwise use the lookup flow in `wix-docs`. A prompt that points at `wix.com/headless/skill.md` means the same Wix Headless skill. In this folder it reuses the site in `wix.config.json`. Keep our pages and code, add only what the request needs, seed nothing without asking, and follow this file's workflow and rules.
+- **Astro:** check the official docs for the installed major before writing Astro code; use the Astro Docs MCP (`astro-docs`) when connected.
+- **PostHog:** when connected, use the PostHog plugin's skills (`posthog:instrument-product-analytics`, `posthog:instrument-error-tracking`, `posthog:instrument-feature-flags`, `posthog:building-a-dashboard`, `posthog:creating-experiments`) and the PostHog MCP. Docs: https://posthog.com/docs (Astro page; JS config for the current `defaults` value).
+- **Browser:** use the Playwright MCP when connected; otherwise use available browser tooling to open pages and take screenshots.
 
 ## Who owns what
 
 Each tool has one job. Ask before moving a responsibility to a different tool. Close-outs fill in details here.
+
+The UI primitives, mock DTO file, Wix storefront layer, and styling tokens below are planned; this starter has not created them yet.
 
 - **Hosting, deploys, secrets:** Wix (CLI). Secrets are declared in `astro.config.mjs` with `envField` and set with `wix env set`; read server secrets from `astro:env/server`.
 - **UI:** our own primitives in `src/components/ui/`, built from the design system sheet. Pages compose them; callers pass layout classes only, and a caller needing a new color means a variant is missing.
