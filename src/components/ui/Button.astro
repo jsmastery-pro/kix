@@ -1,14 +1,24 @@
 ---
 interface Props {
   variant?: 'primary' | 'secondary' | 'quiet';
+  size?: 'md' | 'lg';
   className?: string;
   disabled?: boolean;
   label: string;
   preview?: boolean;
+  href?: string;
 }
-const { variant = 'primary', className = '', disabled = false, label, preview = false } = Astro.props;
+const { variant = 'primary', size = 'md', className = '', disabled = false, label, preview = false, href } = Astro.props;
+const classes = ['ui-button', `ui-button--${variant}`, { 'ui-button--lg': size === 'lg' }, className];
 ---
-<button type="button" disabled={disabled} data-preview-action={preview ? '' : undefined} class:list={['ui-button', `ui-button--${variant}`, className]}>
-  <span class="ui-button__left"><slot name="leading" />{label}</span>
-  <slot name="trailing" />
-</button>
+{href ? (
+  <a href={href} class:list={classes}>
+    <span class="ui-button__left"><slot name="leading" />{label}</span>
+    <slot name="trailing" />
+  </a>
+) : (
+  <button type="button" disabled={disabled} data-preview-action={preview ? '' : undefined} class:list={classes}>
+    <span class="ui-button__left"><slot name="leading" />{label}</span>
+    <slot name="trailing" />
+  </button>
+)}

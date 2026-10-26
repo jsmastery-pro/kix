@@ -1,0 +1,16 @@
+---
+interface Props {
+  items: { label: string; href: string }[];
+  className?: string;
+}
+const { items, className = '' } = Astro.props;
+const path = Astro.url.pathname;
+const isCurrent = (href: string) => path === href || path.startsWith(`${href}/`);
+---
+<nav class:list={['ui-site-nav', className]} aria-label="Main">
+  <ul>
+    {items.map((item) => (
+      <li><a href={item.href} aria-current={isCurrent(item.href) ? 'page' : undefined}>{item.label}</a></li>
+    ))}
+  </ul>
+</nav>

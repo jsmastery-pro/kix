@@ -1,0 +1,15 @@
+---
+interface Props {
+  title: string;
+  text: string;
+  className?: string;
+}
+const { title, text, className = '' } = Astro.props;
+---
+<div class:list={['ui-perk-card', className]}>
+  <span class="ui-perk-card__icon" aria-hidden="true"><slot /></span>
+  <div>
+    <h3 class="ui-perk-card__title">{title}</h3>
+    <p class="ui-perk-card__text">{text}</p>
+  </div>
+</div>

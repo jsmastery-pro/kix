@@ -1,0 +1,51 @@
+---
+import { ArrowLeft, ArrowRight } from '@lucide/astro';
+import IconButton from './IconButton.astro';
+interface Props {
+  label: string;
+  count: number;
+  arrows?: boolean;
+  dots?: 'start' | 'end';
+  className?: string;
+}
+const { label, count, arrows = false, dots = 'start', className = '' } = Astro.props;
+---
+<section class:list={['ui-carousel', `ui-carousel--dots-${dots}`, className]} aria-roledescription="carousel" aria-label={label} data-carousel>
+  <div class="ui-carousel__slides"><slot /></div>
+  {count > 1 && (
+    <div class="ui-carousel__controls">
+      <div class="ui-carousel__dots">
+        {Array.from({ length: count }, (_, i) => (
+          <button type="button" class="ui-carousel__dot" aria-label={`Show slide ${i + 1}`} aria-current={i === 0 ? 'true' : undefined} data-carousel-go={i}></button>
+        ))}
+      </div>
+      {arrows && (
+        <div class="ui-carousel__arrows">
+          <IconButton shape="round" label="Previous slide" attrs={{ 'data-carousel-step': '-1' }}><ArrowLeft /></IconButton>
+          <IconButton shape="round" label="Next slide" attrs={{ 'data-carousel-step': '1' }}><ArrowRight /></IconButton>
+        </div>
+      )}
+    </div>
+  )}
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-carousel]').forEach((carousel) => {
+    const slides = Array.from(carousel.querySelectorAll<HTMLElement>('[data-slide]'));
+    const dots = Array.from(carousel.querySelectorAll<HTMLButtonElement>('[data-carousel-go]'));
+    let current = 0;
+    const show = (index: number) => {
+      current = (index + slides.length) % slides.length;
+      slides.forEach((slide, i) => { slide.hidden = i !== current; slide.inert = i !== current; });
+      dots.forEach((dot, i) => { if (i === current) dot.setAttribute('aria-current', 'true'); else dot.removeAttribute('aria-current'); });
+    };
+    dots.forEach((dot) => dot.addEventListener('click', () => show(Number(dot.dataset.carouselGo))));
+    carousel.querySelectorAll<HTMLButtonElement>('[data-carousel-step]').forEach((button) => {
+      button.addEventListener('click', () => show(current + Number(button.dataset.carouselStep)));
+    });
+    carousel.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft') show(current - 1);
+      else if (event.key === 'ArrowRight') show(current + 1);
+    });
+  });
+</script>

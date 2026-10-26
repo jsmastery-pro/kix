@@ -1,0 +1,8 @@
+---
+interface Props {
+  className?: string;
+}
+const { className = '' } = Astro.props;
+---
+<!-- Placeholder wordmark until a real Kix logo asset exists. -->
+<a href="/" class:list={['ui-wordmark', className]} aria-label="Kix home" data-placeholder="wordmark"><span aria-hidden="true">KIX</span></a>

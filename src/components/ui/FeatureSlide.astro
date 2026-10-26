@@ -1,0 +1,25 @@
+---
+import type { EditorialSlide } from '../../data/mock';
+import type { TileTone } from './tones';
+import Button from './Button.astro';
+import Photo from './Photo.astro';
+interface Props {
+  slide: EditorialSlide;
+  index: number;
+  total: number;
+  tone: TileTone;
+  variant?: 'hero' | 'banner';
+  eager?: boolean;
+}
+const { slide, index, total, tone, variant = 'hero', eager = false } = Astro.props;
+const hidden = index > 0;
+---
+<div class:list={['ui-feature-slide', `ui-feature-slide--${variant}`, `ui-tone--${tone}`]} role="group" aria-roledescription="slide" aria-label={`${index + 1} of ${total}`} hidden={hidden} inert={hidden} data-slide>
+  <div class="ui-feature-slide__text">
+    <p class="ui-feature-slide__eyebrow">{slide.eyebrow}</p>
+    <h2 class="ui-feature-slide__title">{slide.title}</h2>
+    <p class="ui-feature-slide__body">{slide.body}</p>
+    <Button href={slide.href} label={slide.ctaLabel} size="lg" className="ui-feature-slide__cta" />
+  </div>
+  <Photo src={slide.imageUrl} alt={slide.imageAlt} sizes="(min-width: 768px) 55vw, 100vw" eager={eager && index === 0} className="ui-feature-slide__image" />
+</div>

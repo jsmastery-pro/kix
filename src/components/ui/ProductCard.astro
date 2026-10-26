@@ -1,0 +1,41 @@
+---
+import { ShoppingBag } from '@lucide/astro';
+import type { ProductSummary } from '../../wix/storefront/types';
+import type { TileTone } from './tones';
+import Badge from './Badge.astro';
+import IconButton from './IconButton.astro';
+import Photo from './Photo.astro';
+interface Props {
+  product: ProductSummary;
+  tone: TileTone;
+  size?: 'feature' | 'compact';
+  className?: string;
+}
+const { product: p, tone, size = 'compact', className = '' } = Astro.props;
+const href = `/products/${p.slug}`;
+// Price display follows the kit's ProductSummary contract: "From" first, then a range, else the price with an optional labelled "was".
+const price = p.fromPrice ? `From ${p.price}` : p.price !== p.maxPrice ? `${p.price} – ${p.maxPrice}` : p.price;
+const wasPrice = !p.fromPrice && p.price === p.maxPrice ? p.compareAtPrice : null;
+const availability = p.availability === 'OUT_OF_STOCK' ? (p.preorder ? 'Pre-order' : 'Sold out') : null;
+---
+<article class:list={['ui-product-card', `ui-product-card--${size}`, className]}>
+  <div class="ui-product-card__media">
+    <a href={href} tabindex="-1" aria-hidden="true">
+      <Photo src={p.imageUrl} alt="" sizes={size === 'feature' ? '(min-width: 768px) 30vw, 78vw' : '(min-width: 768px) 22vw, 45vw'} className={`ui-product-card__image ui-tone--${tone}`} />
+    </a>
+    {p.ribbons.length > 0 && (
+      <span class="ui-product-card__ribbons">{p.ribbons.map((ribbon) => <Badge label={ribbon} tone="new" />)}</span>
+    )}
+    <IconButton href={href} label={`Choose options for ${p.name}`} shape="tile" dark className="ui-product-card__bag"><ShoppingBag /></IconButton>
+  </div>
+  <div class="ui-product-card__body">
+    <h3 class="ui-product-card__name"><a href={href}>{p.name}</a></h3>
+    <p class="ui-product-card__price">
+      <span>{price}</span>
+      {wasPrice && <s class="ui-product-card__was"><span class="sr-only">Was </span>{wasPrice}</s>}
+      {p.pricePerUnit && <span class="ui-product-card__unit">{p.pricePerUnit}</span>}
+    </p>
+    {p.discountNames.length > 0 && <p class="ui-product-card__note">{p.discountNames.join(' · ')}</p>}
+    {availability && <p class="ui-product-card__note">{availability}</p>}
+  </div>
+</article>

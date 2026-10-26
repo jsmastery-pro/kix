@@ -5,12 +5,14 @@ interface Props {
   placeholder: string;
   type?: 'text' | 'email' | 'password' | 'search';
   className?: string;
+  required?: boolean;
+  autocomplete?: string;
 }
-const { id, label, placeholder, type = 'text', className = '' } = Astro.props;
+const { id, label, placeholder, type = 'text', className = '', required = false, autocomplete = 'off' } = Astro.props;
 ---
 <div class:list={['ui-field', className]}>
   <label class="sr-only" for={id}>{label}</label>
   <slot name="leading" />
-  <input id={id} name={id} type={type} placeholder={placeholder} autocomplete="off" />
+  <input id={id} name={id} type={type} placeholder={placeholder} autocomplete={autocomplete} required={required} />
   <slot name="trailing" />
 </div>

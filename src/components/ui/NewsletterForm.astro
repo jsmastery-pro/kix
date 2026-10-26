@@ -1,0 +1,33 @@
+---
+import { ArrowRight } from '@lucide/astro';
+import IconButton from './IconButton.astro';
+import TextField from './TextField.astro';
+interface Props {
+  id: string;
+  title: string;
+  text: string;
+  className?: string;
+}
+const { id, title, text, className = '' } = Astro.props;
+---
+<form class:list={['ui-newsletter', className]} method="post" aria-labelledby={`${id}-title`} data-newsletter>
+  <p class="ui-newsletter__title" id={`${id}-title`}>{title}</p>
+  <p class="ui-newsletter__text">{text}</p>
+  <div class="ui-newsletter__row">
+    <TextField id={`${id}-email`} label="Email address" placeholder="Email address" type="email" required autocomplete="email" />
+    <IconButton type="submit" shape="field" dark disabled label="Sign up"><ArrowRight /></IconButton>
+  </div>
+  <p class="ui-newsletter__status" aria-live="polite" data-newsletter-status></p>
+</form>
+
+<script>
+  // No newsletter backend yet: the address is validated by the browser and never sent or stored.
+  document.querySelectorAll<HTMLFormElement>('[data-newsletter]').forEach((form) => {
+    form.querySelector<HTMLButtonElement>('button[type="submit"]')?.removeAttribute('disabled');
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const status = form.querySelector<HTMLElement>('[data-newsletter-status]');
+      if (status) status.textContent = 'Sign-ups open soon.';
+    });
+  });
+</script>

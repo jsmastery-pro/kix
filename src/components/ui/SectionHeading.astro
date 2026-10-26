@@ -1,0 +1,13 @@
+---
+interface Props {
+  id: string;
+  title: string;
+  href?: string;
+  linkLabel?: string;
+}
+const { id, title, href, linkLabel = 'View All' } = Astro.props;
+---
+<div class="ui-section-heading">
+  <h2 id={id}>{title}</h2>
+  {href && <a href={href}>{linkLabel}<span class="sr-only"> {title}</span></a>}
+</div>

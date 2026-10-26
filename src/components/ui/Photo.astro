@@ -1,0 +1,22 @@
+---
+interface Props {
+  src: string;
+  alt: string;
+  sizes?: string;
+  eager?: boolean;
+  className?: string;
+}
+const { src, alt, sizes, eager = false, className = '' } = Astro.props;
+---
+<span class:list={['ui-photo', className]}>
+  {src && <img src={src} alt={alt} sizes={sizes} loading={eager ? 'eager' : 'lazy'} decoding="async" data-photo />}
+  <span class="ui-photo__fallback" hidden={Boolean(src)}>Image placeholder</span>
+</span>
+
+<script>
+  document.querySelectorAll<HTMLImageElement>('[data-photo]').forEach((image) => {
+    const showFallback = () => { image.hidden = true; const fallback = image.nextElementSibling as HTMLElement | null; if (fallback) fallback.hidden = false; };
+    image.addEventListener('error', showFallback);
+    if (image.complete && image.naturalWidth === 0) showFallback();
+  });
+</script>

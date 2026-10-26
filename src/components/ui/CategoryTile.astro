@@ -1,0 +1,15 @@
+---
+import type { Category } from '../../wix/storefront/types';
+import type { TileTone } from './tones';
+import Photo from './Photo.astro';
+interface Props {
+  category: Category;
+  tone: TileTone;
+  className?: string;
+}
+const { category, tone, className = '' } = Astro.props;
+---
+<a href={`/category/${category.slug}`} class:list={['ui-category-tile', className]}>
+  <Photo src={category.imageUrl} alt="" sizes="(min-width: 768px) 20vw, 140px" className={`ui-category-tile__image ui-tone--${tone}`} />
+  <span class="ui-category-tile__name">{category.name}</span>
+</a>
