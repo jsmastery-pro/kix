@@ -1,0 +1,16 @@
+---
+interface Props {
+  id: string;
+  label: string;
+  placeholder: string;
+  type?: 'text' | 'email' | 'password' | 'search';
+  className?: string;
+}
+const { id, label, placeholder, type = 'text', className = '' } = Astro.props;
+---
+<div class:list={['ui-field', className]}>
+  <label class="sr-only" for={id}>{label}</label>
+  <slot name="leading" />
+  <input id={id} name={id} type={type} placeholder={placeholder} autocomplete="off" />
+  <slot name="trailing" />
+</div>

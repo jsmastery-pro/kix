@@ -1,0 +1,13 @@
+---
+interface Props {
+  image: string;
+  label: string;
+  active?: boolean;
+  position?: string;
+}
+const { image, label, active = false, position = 'center' } = Astro.props;
+---
+<button type="button" class="ds-thumbnail" data-thumbnail aria-label={`Show ${label}`} aria-pressed={active}>
+  <span class="ds-thumbnail__image"><img src={image} alt="" loading="lazy" style={`object-position:${position}`} data-specimen-image /><span class="ds-thumbnail__fallback" hidden>Image unavailable</span></span>
+  <span class="ds-thumbnail__label">{label}</span>
+</button>

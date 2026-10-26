@@ -1,0 +1,19 @@
+---
+import { ShoppingBag } from '@lucide/astro';
+interface Props {
+  image: string;
+  label: string;
+  tone?: 'beige' | 'mint' | 'peach' | 'pink';
+  position?: string;
+}
+const { image, label, tone = 'beige', position = 'center' } = Astro.props;
+---
+<article class="ds-product">
+  <div class:list={['ds-product__image', `ds-product__image--${tone}`]}>
+    <img src={image} alt={`Stock footwear specimen: ${label}`} loading="lazy" data-specimen-image style={`object-position:${position}`} />
+    <div class="ds-image-fallback" hidden>Image placeholder</div>
+    <button class="ds-product__bag" type="button" aria-label="Cart button specimen, unavailable without a Wix product" title="Preview only" disabled><ShoppingBag /></button>
+  </div>
+  <h3 class="ds-product__title">{label}</h3>
+  <p class="ds-product__caption">Photo specimen · not for sale</p>
+</article>

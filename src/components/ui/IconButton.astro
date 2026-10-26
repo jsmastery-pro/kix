@@ -1,0 +1,13 @@
+---
+interface Props {
+  label: string;
+  dark?: boolean;
+  disabled?: boolean;
+  preview?: boolean;
+  className?: string;
+}
+const { label, dark = false, disabled = false, preview = false, className = '' } = Astro.props;
+---
+<button type="button" aria-label={label} title={label} disabled={disabled} data-preview-action={preview ? '' : undefined} class:list={['ui-icon-button', { 'ui-icon-button--dark': dark }, className]}>
+  <slot />
+</button>

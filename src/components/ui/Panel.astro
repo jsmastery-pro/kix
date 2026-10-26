@@ -1,0 +1,15 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  className?: string;
+}
+const { title, description, className = '' } = Astro.props;
+---
+<section class:list={['ds-panel', className]} aria-label={title}>
+  <header class="ds-panel__head">
+    <h2 class="ds-panel__title">{title}</h2>
+    <p class="ds-panel__description">{description}</p>
+  </header>
+  <slot />
+</section>

@@ -1,0 +1,8 @@
+---
+interface Props {
+  label: string;
+  tone: 'new' | 'sale' | 'info' | 'limited' | 'success' | 'custom';
+}
+const { label, tone } = Astro.props;
+---
+<span class:list={['ui-badge', `ui-badge--${tone}`]}>{label}</span>

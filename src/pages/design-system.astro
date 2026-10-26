@@ -1,0 +1,197 @@
+---
+import DesignSystemLayout from '../layouts/DesignSystemLayout.astro';
+import Panel from '../components/ui/Panel.astro';
+import BrandSwatch from '../components/ui/BrandSwatch.astro';
+import Button from '../components/ui/Button.astro';
+import IconButton from '../components/ui/IconButton.astro';
+import TextField from '../components/ui/TextField.astro';
+import Badge from '../components/ui/Badge.astro';
+import ProductSpecimen from '../components/ui/ProductSpecimen.astro';
+import Thumbnail from '../components/ui/Thumbnail.astro';
+import { Search, UserRound, ShoppingBag, Heart, Menu, LayoutGrid, ChevronLeft, ChevronRight, ChevronUp, ChevronDown, Plus, Minus, X, SquareArrowOutUpRight, LockKeyhole, Truck, ShieldCheck, RotateCcw, Gift, Star, Bookmark, Share2, Eye } from '@lucide/astro';
+
+const colors = [
+  ['Primary', '#E10600', 'primary'],
+  ['Black', '#111111', 'black'],
+  ['Background', '#F7F1E9', 'background'],
+  ['Surface', '#EDE3DB', 'surface'],
+  ['Text Secondary', '#6B7280', 'text-secondary'],
+  ['Success', '#2F6B3A', 'success'],
+  ['Warning', '#F6A21A', 'warning'],
+  ['Info', '#2563EB', 'info'],
+  ['Sale', '#FF6B6B', 'sale'],
+  ['Border', '#E5E7EB', 'border'],
+] as const;
+const typeScale = [
+  ['Display', '56/64'], ['H1', '40/48'], ['H2', '32/40'], ['H3', '24/32'],
+  ['Body', '16/24'], ['Small', '14/20'], ['Caption', '12/16'],
+] as const;
+const photo = {
+  white: '/images/design-system/white-sneakers.jpg',
+  pink: '/images/design-system/pink-slip-ons.jpg',
+  black: '/images/design-system/black-training.jpg',
+  studio: '/images/design-system/studio-white.jpg',
+};
+const sizes = ['7', '7.5', '8', '8.5', '9', '9.5', '10', '10.5', '11', '12'];
+---
+<DesignSystemLayout>
+  <main class="ds-page" aria-label="Kix design system showcase">
+    <div class="ds-row ds-row--top">
+      <Panel title="Brand Colors" description="Core palette and semantic colors used across the app.">
+        <div class="ds-brand-grid">
+          {colors.map(([label, hex, tone]) => <BrandSwatch label={label} hex={hex} tone={tone} />)}
+        </div>
+      </Panel>
+
+      <Panel title="Typography" description="Clean, bold and minimal type scale.">
+        <div class="ds-type-top">
+          <div class="ds-type-mark"><span class="ds-type-mark__letters">Aa</span><span class="ds-type-mark__name">Helvetica Now</span></div>
+          <div class="ds-type-scale">
+            {typeScale.map(([name, value]) => <div class="ds-type-scale__row"><strong>{name}</strong><span>{value}</span></div>)}
+          </div>
+        </div>
+        <div class="ds-type-example">
+          <h3>New Release</h3>
+          <h4>Kix form study</h4>
+          <p>Timeless style. Reimagined for today.</p>
+          <p>A modern shape with clean lines<br />and room to make it yours.</p>
+        </div>
+      </Panel>
+
+      <Panel title="Buttons" description="Primary, secondary and icon buttons.">
+        <div class="ds-button-stack">
+          <Button label="Add to Cart" className="ui-button--wide" preview><ShoppingBag slot="leading" /><ChevronRight slot="trailing" /></Button>
+          <Button label="Shop Now" variant="secondary" className="ui-button--wide" preview><ChevronRight slot="trailing" /></Button>
+        </div>
+        <div class="ds-icon-button-row">
+          <IconButton label="Wishlist preview" preview><Heart /></IconButton>
+          <IconButton label="Share preview" preview><Share2 /></IconButton>
+          <IconButton label="Bookmark preview" preview><Bookmark /></IconButton>
+          <IconButton label="Bag preview" dark preview><ShoppingBag /></IconButton>
+        </div>
+        <div class="ds-state-row" aria-label="Button state samples">
+          <span class="ds-state-chip">Default</span><span class="ds-state-chip ds-state-chip--hover">Hover</span><span class="ds-state-chip ds-state-chip--pressed">Pressed</span><span class="ds-state-chip ds-state-chip--disabled">Disabled</span>
+        </div>
+        <Button label="Save Design" variant="quiet" className="ui-button--wide ds-save-button" preview><Bookmark slot="leading" /><ChevronRight slot="trailing" /></Button>
+      </Panel>
+
+      <Panel title="Input Fields" description="Form elements and dropdowns.">
+        <div class="ds-input-stack">
+          <TextField id="sample-search" label="Search products sample" placeholder="Search products..."><Search slot="leading" /></TextField>
+          <div class="ds-input-pair">
+            <div class="ui-field ui-field--select"><label class="sr-only" for="sample-size-select">Size</label><select id="sample-size-select" aria-label="Size sample"><option>Size</option>{sizes.map((size) => <option>{size}</option>)}</select><ChevronDown aria-hidden="true" /></div>
+            <div class="ui-quantity" aria-label="Quantity sample" data-quantity><button type="button" aria-label="Decrease quantity" data-qty-action="minus"><Minus /></button><output aria-live="polite">1</output><button type="button" aria-label="Increase quantity" data-qty-action="plus"><Plus /></button></div>
+          </div>
+          <TextField id="sample-email" type="email" label="Email address sample" placeholder="Email address" />
+          <TextField id="sample-password" type="password" label="Password sample" placeholder="Password"><button class="ds-password-toggle" type="button" slot="trailing" aria-label="Show password" data-password-toggle><Eye /></button></TextField>
+        </div>
+      </Panel>
+    </div>
+
+    <div class="ds-row ds-row--middle">
+      <Panel title="Navigation" description="Header, category navigation and footer style.">
+        <div class="ds-nav-sample" aria-label="Navigation visual sample">
+          <div><span class="ds-wordmark">KIX</span><span class="ds-wordmark-note">Kix wordmark placeholder</span></div>
+          <div class="ds-nav-links"><span class="ds-nav-links__active">Shop</span><span>New</span><span>Style</span><span>Customize</span><span>About</span></div>
+          <div class="ds-nav-actions"><ShoppingBag aria-label="Bag icon sample" /><UserRound aria-label="Account icon sample" /></div>
+        </div>
+        <div class="ds-breadcrumb" aria-label="Breadcrumb visual sample"><span>Home</span><span>/</span><span>Shop</span><span>/</span><span>Design system</span><span>/</span><span>Customize</span></div>
+        <div class="ds-categories" role="group" aria-label="Category samples" data-select-group>
+          <button type="button" class="ds-category" aria-pressed="true">All</button><button type="button" class="ds-category" aria-pressed="false">Running</button><button type="button" class="ds-category" aria-pressed="false">Basketball</button><button type="button" class="ds-category" aria-pressed="false">Skate</button><button type="button" class="ds-category" aria-pressed="false">Training</button><button type="button" class="ds-category" aria-pressed="false">Lifestyle</button>
+        </div>
+      </Panel>
+
+      <Panel title="Product Card Variations" description="Different styles used across the app for variety.">
+        <div class="ds-products">
+          <ProductSpecimen image={photo.white} label="Footwear study 01" tone="beige" position="center 67%" />
+          <ProductSpecimen image={photo.pink} label="Footwear study 02" tone="mint" position="center 43%" />
+          <ProductSpecimen image={photo.black} label="Footwear study 03" tone="peach" position="35% center" />
+          <ProductSpecimen image={photo.studio} label="Footwear study 04" tone="pink" position="center 84%" />
+        </div>
+      </Panel>
+    </div>
+
+    <div class="ds-row ds-row--bottom">
+      <Panel title="Thumbnails" description="Product image thumbnails and view selector.">
+        <div class="ds-thumbnails" role="group" aria-label="Thumbnail samples" data-select-group>
+          <Thumbnail image={photo.white} label="View 1" active position="center 70%" />
+          <Thumbnail image={photo.pink} label="View 2" position="center 40%" />
+          <Thumbnail image={photo.black} label="View 3" position="left center" />
+          <Thumbnail image={photo.studio} label="View 4" position="center 84%" />
+          <Thumbnail image={photo.white} label="View 5" position="center 90%" />
+          <Thumbnail image={photo.pink} label="View 6" position="center 15%" />
+        </div>
+      </Panel>
+
+      <Panel title="Selectors" description="Color, size and variant selection.">
+        <div class="ds-selector-title">Color</div>
+        <div class="ds-color-options" role="group" aria-label="Color samples" data-select-group>
+          <button type="button" class="ds-color-option ds-color-option--white" aria-label="White" aria-pressed="false"></button>
+          <button type="button" class="ds-color-option ds-color-option--black" aria-label="Black" aria-pressed="false"></button>
+          <button type="button" class="ds-color-option ds-color-option--red" aria-label="Red" aria-pressed="true"></button>
+          <button type="button" class="ds-color-option ds-color-option--navy" aria-label="Navy" aria-pressed="false"></button>
+          <button type="button" class="ds-color-option ds-color-option--olive" aria-label="Olive" aria-pressed="false"></button>
+        </div>
+        <div class="ds-selector-title">Size</div>
+        <div class="ds-size-options" role="group" aria-label="Size samples" data-select-group>
+          {sizes.map((size) => <button type="button" class="ds-size-option" aria-pressed={size === '8'}>{size}</button>)}
+        </div>
+      </Panel>
+
+      <Panel title="Badges" description="Product, sale and status badges.">
+        <div class="ds-badges"><Badge label="NEW RELEASE" tone="new" /><Badge label="16% OFF" tone="sale" /><Badge label="BESTSELLER" tone="info" /><Badge label="LIMITED" tone="limited" /><Badge label="IN STOCK" tone="success" /><Badge label="CUSTOMIZABLE" tone="custom" /></div>
+      </Panel>
+
+      <Panel title="Icons" description="Minimal line icons (24px)">
+        <div class="ds-icons" aria-label="Icon specimens">
+          <Search /><UserRound /><ShoppingBag /><Heart /><Menu />
+          <LayoutGrid /><ChevronLeft /><ChevronRight /><ChevronUp /><ChevronDown />
+          <Plus /><Minus /><X /><SquareArrowOutUpRight /><LockKeyhole />
+          <Truck /><ShieldCheck /><RotateCcw /><Gift /><Star />
+        </div>
+      </Panel>
+    </div>
+    <p class="ds-demo-note" aria-live="polite" id="design-system-status"></p>
+  </main>
+</DesignSystemLayout>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-select-group]').forEach((group) => {
+    group.querySelectorAll<HTMLButtonElement>('button').forEach((button) => {
+      button.addEventListener('click', () => {
+        group.querySelectorAll<HTMLButtonElement>('button').forEach((item) => item.setAttribute('aria-pressed', String(item === button)));
+      });
+    });
+  });
+
+  const quantity = document.querySelector<HTMLElement>('[data-quantity]');
+  if (quantity) {
+    const output = quantity.querySelector<HTMLOutputElement>('output');
+    quantity.querySelectorAll<HTMLButtonElement>('button').forEach((button) => {
+      button.addEventListener('click', () => {
+        if (!output) return;
+        const change = button.dataset.qtyAction === 'plus' ? 1 : -1;
+        output.value = String(Math.max(1, Math.min(99, Number(output.value) + change)));
+      });
+    });
+  }
+
+  const password = document.querySelector<HTMLInputElement>('#sample-password');
+  const passwordToggle = document.querySelector<HTMLButtonElement>('[data-password-toggle]');
+  passwordToggle?.addEventListener('click', () => {
+    if (!password) return;
+    password.type = password.type === 'password' ? 'text' : 'password';
+    passwordToggle.setAttribute('aria-label', password.type === 'password' ? 'Show password' : 'Hide password');
+  });
+
+  const status = document.querySelector<HTMLElement>('#design-system-status');
+  document.querySelectorAll<HTMLButtonElement>('[data-preview-action]').forEach((button) => {
+    button.addEventListener('click', () => { if (status) status.textContent = 'Design system preview only. No store action was taken.'; });
+  });
+
+  document.querySelectorAll<HTMLImageElement>('[data-specimen-image]').forEach((image) => {
+    const showFallback = () => { image.hidden = true; const fallback = image.nextElementSibling as HTMLElement | null; if (fallback) fallback.hidden = false; };
+    image.addEventListener('error', showFallback);
+    if (image.complete && image.naturalWidth === 0) showFallback();
+  });
+</script>

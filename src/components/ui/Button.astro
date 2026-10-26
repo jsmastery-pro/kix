@@ -1,0 +1,14 @@
+---
+interface Props {
+  variant?: 'primary' | 'secondary' | 'quiet';
+  className?: string;
+  disabled?: boolean;
+  label: string;
+  preview?: boolean;
+}
+const { variant = 'primary', className = '', disabled = false, label, preview = false } = Astro.props;
+---
+<button type="button" disabled={disabled} data-preview-action={preview ? '' : undefined} class:list={['ui-button', `ui-button--${variant}`, className]}>
+  <span class="ui-button__left"><slot name="leading" />{label}</span>
+  <slot name="trailing" />
+</button>

@@ -39,7 +39,7 @@ Every tool here changes fast. Never assume a version. Read declared ranges in `p
 
 Each tool has one job. Ask before moving a responsibility to a different tool. Close-outs fill in details here.
 
-The UI primitives, mock DTO file, Wix storefront layer, and styling tokens below are planned; this starter has not created them yet.
+The design-system UI primitives and styling tokens now exist. The mock DTO file and Wix storefront layer are still planned.
 
 - **Hosting, deploys, secrets:** Wix (CLI). Secrets are declared in `astro.config.mjs` with `envField` and set with `wix env set`; read server secrets from `astro:env/server`.
 - **UI:** our own primitives in `src/components/ui/`, built from the design system sheet. Pages compose them; callers pass layout classes only, and a caller needing a new color means a variant is missing.

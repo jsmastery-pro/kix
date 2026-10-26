@@ -1,0 +1,13 @@
+---
+interface Props {
+  label: string;
+  hex: string;
+  tone: string;
+}
+const { label, hex, tone } = Astro.props;
+---
+<div class="ds-brand-token">
+  <span class:list={['ds-brand-token__circle', `ds-swatch--${tone}`]} aria-hidden="true"></span>
+  <span class="ds-brand-token__label">{label}</span>
+  <span class="ds-brand-token__hex">{hex}</span>
+</div>
