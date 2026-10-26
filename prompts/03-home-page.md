@@ -1,6 +1,6 @@
 # 03 · Home page
 
-Status: approved
+Status: done
 
 <!-- review → approved → done, or dropped. Only the user approves. -->
 
@@ -210,15 +210,15 @@ None. Astro downloads the font from Fontsource at build time, so no npm package 
 
 ## Steps
 
-- [ ] 1. Tokens and font: add the new tokens, the Fonts API config and `@theme inline` mapping, and site body base styles; create `site.css` (check: `npm run check`; `/design-system` renders with Barlow headlines, and its screenshot becomes the baseline for step 4).
-- [ ] 2. Photos: download about 9 Pexels candidates, inspect each at full size for logos or branded designs, keep about 1200px-wide JPEGs under 200 KB in `public/images/home/`, and write `SOURCES.md` (check: visual inspection of every image, file sizes listed).
-- [ ] 3. Data: copy the kit's `types.ts` verbatim to `src/wix/storefront/types.ts`; write `src/data/mock.ts` (check: `npm run check` proves every mock object satisfies its DTO; `diff` the copied file against the kit's).
-- [ ] 4. Primitives: Button/IconButton/TextField changes plus the new primitives listed above (check: `npm run check`; `/design-system` matches the step 1 screenshot).
-- [ ] 5. `SiteLayout`, `SiteFooter`, and the new `index.astro` composing every section. Delete the starter `Hero.astro` and `Welcome.astro` if nothing else imports them, and keep `Layout.astro` only if referenced (check: `npm run check`, `npm run build`).
-- [ ] 6. Visual pass: screenshots at 1440 and 390 (headless Chrome full-page plus Claude in Chrome for interaction), compare each section with the design, list differences, fix, repeat until only the documented intentional differences remain (check: final screenshot pair plus difference list).
-- [ ] 7. Behavior checks: carousel dots, arrows and keys; `inert` on hidden slides; newsletter validation message; keyboard tab order; no horizontal overflow at 390 (`document.documentElement.scrollWidth === 390`); broken-image fallback (check: console output and screenshots).
-- [ ] 8. Release with Node 24.18: `npm run build`, then `npm run release`; open the live URL from the release output at 1440 and 390 (check: live screenshots, HTTP 200 for `/` and the font file).
-- [ ] 9. Close out: Result, index, AGENTS.md proposals; commit each passing step.
+- [x] 1. Tokens and font: add the new tokens, the Fonts API config and `@theme inline` mapping, and site body base styles; create `site.css` (check: `npm run check`; `/design-system` renders with Barlow headlines, and its screenshot becomes the baseline for step 4).
+- [x] 2. Photos: download about 9 Pexels candidates, inspect each at full size for logos or branded designs, keep about 1200px-wide JPEGs under 200 KB in `public/images/home/`, and write `SOURCES.md` (check: visual inspection of every image, file sizes listed).
+- [x] 3. Data: copy the kit's `types.ts` verbatim to `src/wix/storefront/types.ts`; write `src/data/mock.ts` (check: `npm run check` proves every mock object satisfies its DTO; `diff` the copied file against the kit's).
+- [x] 4. Primitives: Button/IconButton/TextField changes plus the new primitives listed above (check: `npm run check`; `/design-system` matches the step 1 screenshot).
+- [x] 5. `SiteLayout`, `SiteFooter`, and the new `index.astro` composing every section. Delete the starter `Hero.astro` and `Welcome.astro` if nothing else imports them, and keep `Layout.astro` only if referenced (check: `npm run check`, `npm run build`).
+- [x] 6. Visual pass: screenshots at 1440 and 390 (headless Chrome full-page plus Claude in Chrome for interaction), compare each section with the design, list differences, fix, repeat until only the documented intentional differences remain (check: final screenshot pair plus difference list).
+- [x] 7. Behavior checks: carousel dots, arrows and keys; `inert` on hidden slides; newsletter validation message; keyboard tab order; no horizontal overflow at 390 (`document.documentElement.scrollWidth === 390`); broken-image fallback (check: console output and screenshots).
+- [x] 8. Release with Node 24.18: `npm run build`, then `npm run release`; open the live URL from the release output at 1440 and 390 (check: live screenshots, HTTP 200 for `/` and the font file).
+- [x] 9. Close out: Result, index, AGENTS.md proposals; commit each passing step.
 
 ## Files
 
@@ -269,4 +269,35 @@ None. Astro downloads the font from Fontsource at build time, so no npm package 
 
 ## Result
 
-Filled at close-out.
+**What shipped.** The home page is live at https://my-site-1-sujata03-0908.wix-site-host.com (two minor releases: the page, then the review fixes). It has every section in the design's order, built only from `src/components/ui/` primitives and fed by `src/data/mock.ts`. The mock is typed with the kit's `ProductSummary` and `Category` DTOs (`src/wix/storefront/types.ts` is byte-identical to the kit's). Barlow Condensed is self-hosted through Astro's Fonts API, with no npm dependency. Seven new vetted Pexels photos are in use, credited in `public/images/home/SOURCES.md`.
+
+**Verification.**
+- `npm run check`: 0 errors, 0 warnings, 0 hints. `npm run build`: passes.
+- `/design-system` was pixel-identical to its step 1 baseline after step 4.
+- Exact-viewport captures (Chrome DevTools protocol) at 1440 and 390: `scrollWidth` equals the viewport width at both.
+- Carousel: dots, arrows, ←/→ and wrap-around work. Hidden slides are `hidden` + `inert`, and none of their links take focus. Focus moves to the new slide's dot when its slide is hidden.
+- Newsletter: an invalid email is blocked by the browser. A valid one shows "Sign-ups open soon.", the URL is unchanged, nothing is sent, and a repeat submit is announced again.
+- Image fallback: a broken image shows "Image placeholder" and keeps its tile size.
+- Phone: every tap target is at least 44px.
+- Live: `/` returns 200, the Barlow woff2 is served (200, `font/woff2`), and `document.fonts.check` is true.
+
+**How it differed from the plan, and why.**
+- **Desktop scale.** The plan estimated the design as a 1024px canvas (×1.32). Side by side at 1440, the build was clearly too small, so the screenshot loop re-tuned every desktop size to the design's proportions at 1440 (×1.86 of the 774px image), using `clamp()` so sizes shrink with the viewport. Every size is still an estimate from the image.
+- **Category labels and perk titles** use the condensed display font, as the design shows, not the body sans.
+- **Primitives added beyond the plan:** `Photo` (shared image plus fallback) and an `IconButton` `plain` shape (bare header icons with a 44px target).
+- **Photos.**
+  - `design-red.jpg` was dropped as a near-duplicate of `court-red.jpg`; hero slide 4 uses `basketball-red.jpg`.
+  - Banner slide 1 uses `black-training.jpg`, black shoes with orange straps, because no vetted black-and-white high-top passed the logo check.
+  - Rejected for brand marks: 7873486, 9666619 and 7916058, plus most search results.
+- **Wordmark placeholder.** It's marked by an HTML comment and `data-placeholder="wordmark"`, not a visually hidden note, so screen readers on the live site don't announce "placeholder".
+- **Card images** use `alt=""` inside an `aria-hidden` link, because the product name link right below carries the name.
+- **Reviews.** `plan-reviewer` and `change-reviewer` aren't defined in `.claude/agents/`, so a general-purpose agent did both reviews. All plan-review findings were applied. Of the change review: fixed carousel focus loss, the brand names in `SOURCES.md`, footer type rules in `site.css`, a dead nav rule, and repeat status announcements. Recorded here instead of changed: the wordmark note, card alt text, banner photo, and `sizes` without `srcset` in `Photo` (kept for the kit's `imgAttrs` when Wix images land).
+
+**Still intentionally different from the design:** no star ratings; no social icons; no "Sale" or "Investors" footer links; no nav item bolded on `/`; the `KIX` wordmark; stock photos instead of floating studio shoes. Wix also adds its own "Built on Wix Headless" badge in the bottom-right corner of the live site.
+
+**Lessons.**
+- Measure the design's scale against the target viewport before planning sizes. Text-height ratios against the design-system tokens pointed to the wrong canvas width.
+- Desktop Chrome can't lay out narrower than about 500px. Phone captures need DevTools device emulation, and they must scroll the page so lazy images load.
+- `npm run release` takes `--version-type minor --comment …`, which avoids its prompts.
+
+**One-pass prompt:** "Build plan 03's home page from the attached design at 1440 (design is a downscaled 1440 canvas, ×1.86) and 390 using our ui primitives and kit-typed mock data, vetted Pexels photos, Barlow via Astro Fonts, perks as written, future-route links; verify with exact-viewport CDP screenshots and release."
