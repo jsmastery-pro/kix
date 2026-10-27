@@ -240,7 +240,7 @@ None. No new npm packages. Nothing is sent or stored.
 - [x] 3. Logic: `src/data/mock-auth.ts` and `src/scripts/auth-form.ts` (check: `npm run check`).
 - [x] 4. Pages: `AuthSplit`, `login.astro`, `create-account.astro`, `site.css` auth rules, header icon → `/login` (check: `npm run check`, `npm run build`).
 - [x] 5. Visual pass: screenshots at 1440 and 390 of both pages, compared with the designs section by section; list differences, fix, repeat until only the documented intentional differences remain (check: final screenshot pairs plus the difference list).
-- [ ] 6. Behavior checks in the browser (check: screenshots and console output for each):
+- [x] 6. Behavior checks in the browser (check: screenshots and console output for each):
   - Empty submit on each page shows every field error and focuses the first.
   - A bad email shows the format message on blur; fixing it clears the message while typing.
   - A 7-character password, an empty confirm and a mismatched confirm show their messages; changing the password re-checks a typed confirm; the unchecked terms box shows its message.

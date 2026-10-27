@@ -310,7 +310,8 @@ body.design-system {
 /* Storefront primitives (home page and site chrome). Layout of pages lives in site.css.
    Desktop sizes reach the home design's values at 1440px and scale down with the viewport. */
 body.site { margin: 0; min-width: 320px; background: var(--color-panel); color: var(--color-black); font-family: var(--font-sans); -webkit-font-smoothing: antialiased; }
-:where(.site) :is(button, input) { font: inherit; }
+.site input { font: inherit; }
+:where(.site) button { font: inherit; }
 .site button { cursor: pointer; }
 .site button:disabled { cursor: default; }
 :where(.site) a { color: inherit; }
@@ -493,10 +494,10 @@ a.ui-button { text-decoration: none; }
 .auth-split__headline span, .auth-split__subhead span { display: block; }
 .auth-split__subhead { color: var(--color-text-secondary); font-family: var(--font-display); font-size: clamp(18px, 1.53vw, 22px); line-height: 1.35; }
 .auth-form__forgot, .auth-form__switch { font-family: var(--font-display); font-size: clamp(17px, 1.39vw, 20px); line-height: 1.35; }
-.auth-form__forgot a { display: inline-block; padding-block: 10px; color: var(--color-text-secondary); text-decoration: underline; text-underline-offset: 3px; }
+.auth-form__forgot a { display: inline-block; min-width: 44px; min-height: 44px; padding-block: 10px; text-align: center; color: var(--color-text-secondary); text-decoration: underline; text-underline-offset: 3px; }
 .auth-form__forgot a:hover { color: var(--color-black); }
 .auth-form__switch { color: var(--color-text-secondary); text-align: center; }
-.auth-form__switch a { display: inline-block; padding-block: 10px; color: var(--color-black); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.auth-form__switch a { display: inline-block; min-width: 44px; min-height: 44px; padding-block: 10px; text-align: center; color: var(--color-black); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 
 @media (max-width: 767px) {
   .ui-site-nav ul { gap: 4px; margin-inline: -10px; }
