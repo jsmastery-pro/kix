@@ -1,5 +1,5 @@
 // @ts-check
-import { defineConfig, fontProviders } from 'astro/config';
+import { defineConfig, envField, fontProviders } from 'astro/config';
 import wix from "@wix/astro";
 import wixPages from "@wix/astro-pages";
 
@@ -10,6 +10,13 @@ import tailwindcss from "@tailwindcss/vite";
 // https://astro.build/config
 export default defineConfig({
   vite: { plugins: [tailwindcss()] },
+  // PostHog (plan 06). Public by design; optional so a missing value turns analytics off, never the site.
+  env: {
+    schema: {
+      PUBLIC_POSTHOG_PROJECT_TOKEN: envField.string({ context: "client", access: "public", optional: true }),
+      PUBLIC_POSTHOG_HOST: envField.string({ context: "client", access: "public", optional: true }),
+    },
+  },
   fonts: [
     {
       provider: fontProviders.fontsource(),
