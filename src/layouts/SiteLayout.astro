@@ -2,10 +2,11 @@
 // Site chrome for storefront pages, shaped like the Headless kit's SiteLayout (seo-tags slot,
 // title/description props, global.css import). Wiring Wix adds the kit's CartButton and
 // CartDrawer mounts and reads the nav categories with fetchCategories() (plan 03). AccountMenu is
-// the member control (plan 05).
+// the member control (plan 05). PostHog loads analytics (plan 06).
 import { Font } from 'astro:assets';
 import { ShoppingBag } from '@lucide/astro';
 import AccountMenu from '../components/AccountMenu.astro';
+import PostHog from '../components/PostHog.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import IconButton from '../components/ui/IconButton.astro';
 import SiteNav from '../components/ui/SiteNav.astro';
@@ -35,6 +36,7 @@ const navItems = [
     {!Astro.slots.has('seo-tags') && <title>{title}</title>}
     {description && <meta name="description" content={description} />}
     <Font cssVariable="--font-barlow" preload={[{ weight: '700', style: 'normal' }]} />
+    <PostHog />
     <slot name="seo-tags" />
   </head>
   <body class="site">
