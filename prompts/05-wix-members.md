@@ -360,7 +360,7 @@ Avatar sizes live with the primitive in `global.css`. Account layout sizes live 
 - Google round trip → `/account`;
 - the member's `/login` and `/forgot-password` redirect to `returnTo`;
 - a visitor's `/account` → `/login?returnTo=%2Faccount`;
-- `returnTo=/\\evil.com` and `//evil.com` → `/account`;
+- `returnTo=/\evil.com` and `//evil.com` → `/account`;
 - the header menu (name, email, Account, Sign out);
 - sign out → `/` signed out;
 - the account name save (PATCH 200 as the member, no elevation; changed and restored on the user's member);
