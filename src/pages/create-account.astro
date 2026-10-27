@@ -1,7 +1,8 @@
 ---
-// Create account. Wix's built-in signup takes email and password only; the wiring plan saves the
-// names to the member profile after signup (plan 04). Submits go through src/data/mock-auth.ts.
+// Create account, wired to Wix Members (plan 05). Wix's built-in signup takes email and password
+// only; the names wait in this tab (pending-profile.ts) and are saved once the member is signed in.
 import AuthSplit from '../components/AuthSplit.astro';
+import VerifyEmailForm from '../components/VerifyEmailForm.astro';
 import Button from '../components/ui/Button.astro';
 import Checkbox from '../components/ui/Checkbox.astro';
 import Divider from '../components/ui/Divider.astro';
@@ -11,9 +12,12 @@ import GoogleMark from '../components/ui/GoogleMark.astro';
 import PasswordField from '../components/ui/PasswordField.astro';
 import TextField from '../components/ui/TextField.astro';
 import SiteLayout from '../layouts/SiteLayout.astro';
-import { safeReturnTo, withReturnTo } from '../scripts/auth-form';
+import { DEFAULT_RETURN_TO, safeReturnTo, withReturnTo } from '../scripts/return-to';
+import { fetchCurrentMember } from '../wix/members/members';
 
-const returnTo = safeReturnTo(Astro.url.searchParams.get('returnTo'));
+const returnTo = safeReturnTo(Astro.url.searchParams.get('returnTo'), Astro.url.origin);
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+if (await fetchCurrentMember()) return Astro.redirect(returnTo ?? DEFAULT_RETURN_TO);
 ---
 
 <SiteLayout title="Create account · Kix" description="Create a Kix account.">
@@ -39,8 +43,9 @@ const returnTo = safeReturnTo(Astro.url.searchParams.get('returnTo'));
         <Divider label="or" className="auth-form__divider" />
         <Button variant="secondary" size="form" label="Continue with Google" disabled attrs={{ 'data-google': '' }}><GoogleMark slot="leading" /></Button>
         <p class="auth-form__switch">Already have an account? <a href={withReturnTo('/login', returnTo)}>Sign in</a></p>
-        <p class="sr-only" aria-live="polite" data-auth-status></p>
+        <p class="sr-only" aria-live="polite" data-form-status></p>
       </form>
+      <VerifyEmailForm />
     </FormCard>
   </AuthSplit>
 </SiteLayout>

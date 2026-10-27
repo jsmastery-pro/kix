@@ -1,0 +1,15 @@
+---
+// Member avatar: their photo, or the first letter of their name on black. Decorative; the
+// control or heading beside it carries the name. account-menu.ts fills it in the browser.
+interface Props {
+  name?: string;
+  photoUrl?: string;
+  size?: 'sm' | 'lg';
+  className?: string;
+}
+const { name = '', photoUrl = '', size = 'sm', className = '' } = Astro.props;
+const initial = name.trim().charAt(0);
+---
+<span class:list={['ui-avatar', `ui-avatar--${size}`, className]} aria-hidden="true" data-avatar>
+  {photoUrl ? <img src={photoUrl} alt="" /> : initial}
+</span>

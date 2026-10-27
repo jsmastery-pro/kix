@@ -1,0 +1,39 @@
+---
+// Header account control (plan 05). Server-rendered as the sign-in icon for everyone, so ordinary
+// pages make no Wix call; account-menu.ts swaps in the member's avatar and menu in the browser.
+import { UserRound } from '@lucide/astro';
+import Avatar from './ui/Avatar.astro';
+import IconButton from './ui/IconButton.astro';
+import { logoutAction, withReturnTo } from '../scripts/return-to';
+
+const { pathname, search } = Astro.url;
+const here = `${pathname}${search}`;
+const onAuthPage = ['/login', '/create-account', '/forgot-password'].includes(pathname);
+const signInHref = onAuthPage ? '/login' : withReturnTo('/login', here);
+// Signing out on /account would bounce through sign in, so it returns home instead.
+const signOutAction = logoutAction(pathname === '/account' ? '/' : here);
+---
+<div class="account-menu" data-account-menu>
+  <IconButton href={signInHref} label="Sign in" shape="plain" attrs={{ 'data-account-signin': '' }}><UserRound /></IconButton>
+  <button type="button" class="account-menu__button" aria-label="Account menu" aria-expanded="false" aria-controls="account-menu-panel" hidden data-account-button>
+    <Avatar />
+  </button>
+  <div class="account-menu__panel" id="account-menu-panel" hidden data-account-panel>
+    <p class="account-menu__name" data-account-name></p>
+    <p class="account-menu__email" data-account-email></p>
+    <ul class="account-menu__links">
+      <li><a class="account-menu__item" href="/account">Account</a></li>
+      <li>
+        <form method="post" action={signOutAction}>
+          <button type="submit" class="account-menu__item">Sign out</button>
+        </form>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  import { initAccountMenu } from '../scripts/account-menu';
+  const root = document.querySelector<HTMLElement>('[data-account-menu]');
+  if (root) initAccountMenu(root);
+</script>

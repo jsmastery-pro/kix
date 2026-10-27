@@ -1,12 +1,15 @@
 ---
 interface Props {
   title: string;
+  /** 1 for the page's only form card (auth pages); 2 for cards under a page heading (account). */
+  level?: 1 | 2;
   className?: string;
 }
-const { title, className = '' } = Astro.props;
+const { title, level = 1, className = '' } = Astro.props;
 const titleId = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-title`;
+const Heading = level === 1 ? 'h1' : 'h2';
 ---
 <section class:list={['ui-form-card', className]} aria-labelledby={titleId}>
-  <h1 class="ui-form-card__title" id={titleId}>{title}</h1>
+  <Heading class:list={['ui-form-card__title', { 'ui-form-card__title--h2': level === 2 }]} id={titleId} tabindex={level === 1 ? '-1' : undefined} data-form-card-title>{title}</Heading>
   <slot />
 </section>

@@ -1,9 +1,72 @@
 ---
-import SiteLayout from "../layouts/SiteLayout.astro";
-import AccountPage from "../components/members/AccountPage";
+// Account: the signed-in member's profile, a name form, a password reset link and sign out
+// (plan 05). Read on the server as the member; a visitor goes to sign in. Replaces the kit's
+// React shell (AccountPage/RequireAuth), which stays in src/components/members/ unused.
+import Avatar from '../components/ui/Avatar.astro';
+import Button from '../components/ui/Button.astro';
+import FormAlert from '../components/ui/FormAlert.astro';
+import FormCard from '../components/ui/FormCard.astro';
+import TextField from '../components/ui/TextField.astro';
+import SiteLayout from '../layouts/SiteLayout.astro';
+import { logoutAction } from '../scripts/return-to';
+import { fetchCurrentMember } from '../wix/members/members';
+
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+const member = await fetchCurrentMember();
+if (!member) return Astro.redirect('/login?returnTo=%2Faccount');
+
+// memberSince is "YYYY-MM-DD" (UTC); format in UTC so the 1st doesn't become the month before.
+const memberSince = member.memberSince
+  ? new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(new Date(`${member.memberSince}T00:00:00Z`))
+  : '';
 ---
 
-<SiteLayout title="My account">
-  <h1 class="mb-8 text-2xl font-semibold tracking-tight">My account</h1>
-  <AccountPage client:only="react" />
+<SiteLayout title="Account · Kix" description="Your Kix account.">
+  <div class="account" data-account data-member-id={member.id} data-login-email={member.loginEmail}>
+    <div class="account__head">
+      <Avatar name={member.displayName} photoUrl={member.photoUrl} size="lg" className="account__avatar" />
+      <div class="account__heading">
+        <h1 class="account__title">Account</h1>
+        {memberSince && <p class="account__since">Member since {memberSince}</p>}
+      </div>
+      <form class="account__signout" method="post" action={logoutAction('/')}>
+        <Button type="submit" variant="secondary" label="Sign out" />
+      </form>
+    </div>
+
+    <div class="account__cards">
+      <FormCard title="Profile" level={2}>
+        <form class="auth-form" method="post" data-account-name-form>
+          {member.loginEmail && (
+            <div class="account__field">
+              <p class="account__label">Email</p>
+              <p class="account__value">{member.loginEmail}</p>
+            </div>
+          )}
+          <div class="auth-form__names">
+            <TextField id="account-first-name" label="First name" labelVisible placeholder="First name" autocomplete="given-name" maxlength={50} required size="lg" value={member.firstName} errors />
+            <TextField id="account-last-name" label="Last name" labelVisible placeholder="Last name" autocomplete="family-name" maxlength={50} required size="lg" value={member.lastName} errors />
+          </div>
+          <FormAlert className="auth-form__alert" />
+          <Button type="submit" size="form" label="Save changes" busyLabel="Saving…" disabled className="auth-form__submit" />
+          <p class="sr-only" aria-live="polite" data-form-status></p>
+        </form>
+      </FormCard>
+
+      <FormCard title="Password" level={2}>
+        <form class="auth-form" method="post" data-account-reset-form>
+          <p class="auth-form__intro">We'll email <strong>{member.loginEmail}</strong> a link to set a new password. It works for 3 hours.</p>
+          <FormAlert className="auth-form__alert" />
+          <Button type="submit" variant="secondary" size="form" label="Send reset link" busyLabel="Sending…" disabled className="auth-form__submit" />
+          <p class="sr-only" aria-live="polite" data-form-status></p>
+        </form>
+      </FormCard>
+    </div>
+  </div>
 </SiteLayout>
+
+<script>
+  import { initAccount } from '../scripts/account';
+  const root = document.querySelector<HTMLElement>('[data-account]');
+  if (root) initAccount(root);
+</script>

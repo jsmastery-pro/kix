@@ -1,10 +1,11 @@
 ---
 // Site chrome for storefront pages, shaped like the Headless kit's SiteLayout (seo-tags slot,
 // title/description props, global.css import). Wiring Wix adds the kit's CartButton and
-// CartDrawer mounts and reads the nav categories with fetchCategories() (plan 03). The account
-// icon points to /login until the members wiring adds the kit's member control (plan 04).
+// CartDrawer mounts and reads the nav categories with fetchCategories() (plan 03). AccountMenu is
+// the member control (plan 05).
 import { Font } from 'astro:assets';
-import { ShoppingBag, UserRound } from '@lucide/astro';
+import { ShoppingBag } from '@lucide/astro';
+import AccountMenu from '../components/AccountMenu.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import IconButton from '../components/ui/IconButton.astro';
 import SiteNav from '../components/ui/SiteNav.astro';
@@ -44,7 +45,7 @@ const navItems = [
         <SiteNav items={navItems} className="site-header__nav" />
         <div class="site-header__actions">
           <IconButton href="/cart" label="Bag" shape="plain"><ShoppingBag /></IconButton>
-          <IconButton href="/login" label="Account" shape="plain"><UserRound /></IconButton>
+          <AccountMenu />
         </div>
       </div>
     </header>

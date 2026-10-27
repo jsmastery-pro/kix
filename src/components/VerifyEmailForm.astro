@@ -1,0 +1,15 @@
+---
+// The email-code step for sign in and create account. Hidden until Wix answers
+// EMAIL_VERIFICATION_REQUIRED; auth-form.ts swaps it in place of the main form in the same card.
+import Button from './ui/Button.astro';
+import FormAlert from './ui/FormAlert.astro';
+import TextField from './ui/TextField.astro';
+---
+<form class="auth-form" method="post" hidden data-auth-verify>
+  <p class="auth-form__intro">We sent a code to <strong data-verify-email></strong>. Enter it to finish.</p>
+  <TextField id="verify-code" label="Verification code" labelVisible placeholder="Enter the code" autocomplete="one-time-code" required maxlength={12} size="lg" errors />
+  <FormAlert className="auth-form__alert" />
+  <Button type="submit" size="form" label="Verify" busyLabel="Verifying…" disabled className="auth-form__submit" />
+  <p class="auth-form__switch">Didn't get a code? <button type="button" class="auth-form__link" data-verify-restart>Start over</button></p>
+  <p class="sr-only" aria-live="polite" data-form-status></p>
+</form>

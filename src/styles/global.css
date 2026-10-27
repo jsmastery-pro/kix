@@ -52,6 +52,7 @@
   --radius-lg: 12px;
   --radius-pill: 9999px;
   --shadow-arrow: 0 2px 8px rgb(17 17 17 / 8%);
+  --shadow-menu: 0 12px 32px rgb(17 17 17 / 12%);
 }
 
 @theme inline {
@@ -480,6 +481,12 @@ a.ui-button { text-decoration: none; }
 
 .ui-form-card { width: 100%; padding: clamp(24px, 2.8vw, 40px); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-white); box-shadow: var(--ds-panel-shadow); }
 .ui-form-card__title { margin-bottom: clamp(24px, 2.2vw, 32px); font-family: var(--font-display); font-size: clamp(40px, 3.2vw, 46px); font-weight: 700; line-height: 1; text-transform: uppercase; }
+.ui-form-card__title--h2 { margin-bottom: var(--ds-space-6); font-size: clamp(28px, 2.2vw, 32px); }
+
+.ui-avatar { display: inline-grid; flex: none; place-items: center; overflow: hidden; border-radius: var(--radius-pill); background: var(--color-black); color: var(--color-white); font-family: var(--font-display); font-weight: 600; line-height: 1; text-transform: uppercase; }
+.ui-avatar--sm { width: 36px; height: 36px; font-size: 18px; }
+.ui-avatar--lg { width: 72px; height: 72px; font-size: 36px; }
+.ui-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
 .ui-button--form { width: 100%; min-height: clamp(54px, 4.9vw, 70px); padding: 0 var(--ds-space-6); box-shadow: none; }
 .ui-button--form .ui-button__left { display: inline-flex; align-items: center; gap: clamp(16px, 1.7vw, 24px); }
@@ -502,6 +509,27 @@ a.ui-button { text-decoration: none; }
 .auth-form__forgot a:hover { color: var(--color-black); }
 .auth-form__switch { color: var(--color-text-secondary); text-align: center; }
 .auth-form__switch a { display: inline-block; min-width: 44px; min-height: 44px; padding-block: 10px; text-align: center; color: var(--color-black); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.auth-form__link { display: inline-block; min-width: 44px; min-height: 44px; padding: 10px 0; border: 0; background: none; color: var(--color-black); font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.auth-form__intro { color: var(--color-ink-soft); font-family: var(--font-display); font-size: clamp(18px, 1.39vw, 20px); line-height: 1.35; }
+.auth-form__intro strong { color: var(--color-black); font-weight: 600; overflow-wrap: anywhere; }
+.ui-form-alert__action { padding: 0; border: 0; background: none; color: inherit; font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+
+/* Header account control (AccountMenu). Position and sizes live in site.css. */
+.account-menu [hidden] { display: none; }
+.account-menu__button { display: inline-grid; place-items: center; padding: 0; border: 0; border-radius: var(--radius-pill); background: transparent; transition: opacity var(--ds-motion-fast); }
+.account-menu__button:hover { opacity: .8; }
+.account-menu__panel { border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-white); box-shadow: var(--shadow-menu); }
+.account-menu__name { overflow: hidden; font-family: var(--font-display); font-size: 20px; font-weight: 600; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+.account-menu__email { overflow: hidden; color: var(--color-text-secondary); font-size: 14px; line-height: 1.4; text-overflow: ellipsis; white-space: nowrap; }
+.account-menu__links { border-top: 1px solid var(--color-border); }
+.account-menu__item { display: flex; align-items: center; width: 100%; min-height: 44px; border: 0; border-radius: var(--radius-sm); background: none; color: var(--color-black); font-family: var(--font-display); font-size: 18px; font-weight: 500; text-align: left; text-decoration: none; transition: background var(--ds-motion-fast); }
+.account-menu__item:hover { background: var(--color-muted-fill); }
+
+/* Account page. Layout sizes live in site.css. */
+.account__title { font-family: var(--font-display); font-size: clamp(40px, 3.2vw, 46px); font-weight: 700; line-height: 1; text-transform: uppercase; }
+.account__since { color: var(--color-text-secondary); font-size: 16px; line-height: 1.4; }
+.account__label { font-family: var(--font-display); font-size: clamp(18px, 1.39vw, 20px); font-weight: 500; line-height: 1.2; }
+.account__value { color: var(--color-ink-soft); font-size: 18px; line-height: 1.4; overflow-wrap: anywhere; }
 
 @media (max-width: 767px) {
   .ui-site-nav ul { gap: 4px; margin-inline: -10px; }

@@ -1,7 +1,8 @@
 ---
-// Sign in. The route the Headless kit's RequireAuth links to; the kit's deploy never overwrites it.
-// Submits go through src/data/mock-auth.ts until the Wix members wiring plan (plan 04).
+// Sign in, wired to Wix Members through the kit's member store and @wix/astro's /api/auth routes
+// (plan 05). A member who opens it goes straight to returnTo. The kit's deploy never overwrites it.
 import AuthSplit from '../components/AuthSplit.astro';
+import VerifyEmailForm from '../components/VerifyEmailForm.astro';
 import Button from '../components/ui/Button.astro';
 import Divider from '../components/ui/Divider.astro';
 import FormAlert from '../components/ui/FormAlert.astro';
@@ -10,9 +11,12 @@ import GoogleMark from '../components/ui/GoogleMark.astro';
 import PasswordField from '../components/ui/PasswordField.astro';
 import TextField from '../components/ui/TextField.astro';
 import SiteLayout from '../layouts/SiteLayout.astro';
-import { safeReturnTo, withReturnTo } from '../scripts/auth-form';
+import { DEFAULT_RETURN_TO, safeReturnTo, withReturnTo } from '../scripts/return-to';
+import { fetchCurrentMember } from '../wix/members/members';
 
-const returnTo = safeReturnTo(Astro.url.searchParams.get('returnTo'));
+const returnTo = safeReturnTo(Astro.url.searchParams.get('returnTo'), Astro.url.origin);
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+if (await fetchCurrentMember()) return Astro.redirect(returnTo ?? DEFAULT_RETURN_TO);
 ---
 
 <SiteLayout title="Sign in · Kix" description="Sign in to your Kix account.">
@@ -21,14 +25,15 @@ const returnTo = safeReturnTo(Astro.url.searchParams.get('returnTo'));
       <form class="auth-form" method="post" data-auth-form="login">
         <TextField id="login-email" label="Email" labelVisible type="email" autocomplete="email" required placeholder="Enter your email" size="lg" errors />
         <PasswordField id="login-password" label="Password" labelVisible autocomplete="current-password" placeholder="Enter your password" />
-        <p class="auth-form__forgot"><a href="/forgot-password">Forgot password?</a></p>
+        <p class="auth-form__forgot"><a href={withReturnTo('/forgot-password', returnTo)}>Forgot password?</a></p>
         <FormAlert className="auth-form__alert" />
         <Button type="submit" size="form" label="Sign in" busyLabel="Signing in…" disabled className="auth-form__submit" />
         <Divider label="or" className="auth-form__divider" />
         <Button variant="secondary" size="form" label="Continue with Google" disabled attrs={{ 'data-google': '' }}><GoogleMark slot="leading" /></Button>
         <p class="auth-form__switch">New to Kix? <a href={withReturnTo('/create-account', returnTo)}>Create account</a></p>
-        <p class="sr-only" aria-live="polite" data-auth-status></p>
+        <p class="sr-only" aria-live="polite" data-form-status></p>
       </form>
+      <VerifyEmailForm />
     </FormCard>
   </AuthSplit>
 </SiteLayout>

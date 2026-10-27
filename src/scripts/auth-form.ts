@@ -1,37 +1,14 @@
-// Sign in and create account forms: validation, busy state, result messages, password toggles.
-// Auth calls go through src/data/mock-auth.ts until the Wix wiring plan swaps in the kit's
-// member store (see the note at the top of that file). Never log or store what the shopper typed.
-import { login, register, type LoginResult } from '../data/mock-auth';
+// Sign in and create account: validation, busy state, result messages, password toggles, Google,
+// and the email-code step. Auth runs through the Headless kit's member store, which posts to
+// @wix/astro's built-in /api/auth routes (plan 05). Never log or store what the shopper typed,
+// except the names waiting in pending-profile.ts for the new member.
+import { login, logout, register, verifyEmail } from '../wix/members/member-store';
+import type { LoginResult } from '../wix/members/auth';
+import { createFormControls, emailRule, firstNameRule, lastNameRule, NETWORK_ERROR, type Message, type Rule } from './form-controls';
+import { clearPendingName, savePendingName } from './pending-profile';
+import { DEFAULT_RETURN_TO, googleLoginHref, safeReturnTo, withReturnTo } from './return-to';
 
 export type AuthMode = 'login' | 'register';
-
-const DEFAULT_RETURN_TO = '/account';
-
-/** The kit's rule: only a same-site path, never a protocol-relative URL. */
-export function safeReturnTo(value: string | null | undefined): string | null {
-  return value && value.startsWith('/') && !value.startsWith('//') ? value : null;
-}
-
-/** Adds ?returnTo= to an internal link when the current page was given a safe one. */
-export function withReturnTo(href: string, returnTo: string | null): string {
-  return returnTo ? `${href}?returnTo=${encodeURIComponent(returnTo)}` : href;
-}
-
-interface Message {
-  tone: 'error' | 'info';
-  text: string;
-  link?: { href: string; label: string };
-  /** Shown under this field instead of in the form alert. */
-  fieldId?: string;
-}
-
-type Rule = (input: HTMLInputElement, form: HTMLFormElement) => string;
-
-const emailRule: Rule = (input) => {
-  if (!input.value.trim()) return 'Enter your email address.';
-  if (input.validity.typeMismatch) return 'Enter a valid email address, like name@example.com.';
-  return '';
-};
 
 const RULES: Record<AuthMode, Record<string, Rule>> = {
   login: {
@@ -39,8 +16,8 @@ const RULES: Record<AuthMode, Record<string, Rule>> = {
     'login-password': (input) => (input.value ? '' : 'Enter your password.'),
   },
   register: {
-    'register-first-name': (input) => (input.value.trim() ? '' : 'Enter your first name.'),
-    'register-last-name': (input) => (input.value.trim() ? '' : 'Enter your last name.'),
+    'register-first-name': firstNameRule,
+    'register-last-name': lastNameRule,
     'register-email': emailRule,
     'register-password': (input) => (input.value.length >= 8 ? '' : 'Use at least 8 characters.'),
     'register-confirm': (input, form) => {
@@ -52,17 +29,29 @@ const RULES: Record<AuthMode, Record<string, Rule>> = {
   },
 };
 
+const VERIFY_RULES: Record<string, Rule> = {
+  'verify-code': (input) => (input.value.trim() ? '' : 'Enter the code from your email.'),
+};
+
+const AWAITING_APPROVAL: Message = { tone: 'info', text: "Your account is waiting for approval. You can sign in once it's approved." };
+
+/** States after which a new member may still appear in this tab; anything else drops waiting names. */
+const KEEPS_PENDING_NAME = new Set<LoginResult['state']>(['SUCCESS', 'EMAIL_VERIFICATION_REQUIRED', 'OWNER_APPROVAL_REQUIRED']);
+
+const here = () => `${location.pathname}${location.search}`;
+
 function messageFor(result: LoginResult, mode: AuthMode, returnTo: string | null): Message {
   const signIn = { href: withReturnTo('/login', returnTo), label: 'Sign in' };
   const code = result.errorCode;
-  switch (result.state) {
-    case 'EMAIL_VERIFICATION_REQUIRED':
-      return { tone: 'info', text: 'Check your email to finish creating your account.' };
-    case 'OWNER_APPROVAL_REQUIRED':
-      return { tone: 'info', text: 'Your account is awaiting approval.' };
+  if (result.state === 'OWNER_APPROVAL_REQUIRED') return AWAITING_APPROVAL;
+  if (code === 'ALREADY_LOGGED_IN') {
+    return {
+      tone: 'info',
+      text: "You're already signed in.",
+      link: { href: returnTo ?? DEFAULT_RETURN_TO, label: 'Continue' },
+      action: { label: 'Sign out', run: () => void logout(here()) },
+    };
   }
-  if (code === 'notConnected') return { tone: 'info', text: 'Accounts open soon. Nothing was sent or saved.' };
-  if (code === 'ALREADY_LOGGED_IN') return { tone: 'info', text: "You're already signed in.", link: { href: returnTo ?? DEFAULT_RETURN_TO, label: 'Continue' } };
   if (code === 'captchaRequired' || code === 'missingCaptchaToken' || code === 'invalidCaptchaToken') {
     return { tone: 'error', text: "We couldn't verify this request. Try again later." };
   }
@@ -70,91 +59,36 @@ function messageFor(result: LoginResult, mode: AuthMode, returnTo: string | null
     if (code === 'invalidPassword' || code === 'invalidCredentials' || code === 'invalidEmail') {
       return { tone: 'error', text: "That email and password don't match." };
     }
-    if (code === 'resetPassword') return { tone: 'error', text: 'Reset your password to sign in.', link: { href: '/forgot-password', label: 'Forgot password' } };
+    if (code === 'resetPassword') {
+      return { tone: 'error', text: 'Reset your password to sign in.', link: { href: withReturnTo('/forgot-password', returnTo), label: 'Forgot password' } };
+    }
   } else {
     if (code === 'emailAlreadyExists') return { tone: 'error', text: 'An account with this email already exists.', link: signIn, fieldId: 'register-email' };
     if (code === 'invalidEmail') return { tone: 'error', text: 'Use a different email address.', fieldId: 'register-email' };
     if (code === 'invalidPassword') return { tone: 'error', text: 'Choose a stronger password.', fieldId: 'register-password' };
+    if (code === 'unknown') return { tone: 'error', text: "We couldn't create your account. Check your details and try again." };
+    // Wix's guide: registration may have created the account before the failure; don't repeat signup.
+    if (code === 'AUTH_SERVICE_ERROR' || code === 'INTERNAL_ERROR') {
+      return { tone: 'error', text: 'Something went wrong. Your account may already exist, so try signing in.', link: signIn };
+    }
   }
   return { tone: 'error', text: 'Something went wrong. Try again.' };
 }
 
-const NETWORK_ERROR: Message = { tone: 'error', text: "We couldn't reach Kix. Check your connection and try again." };
-
-function fillMessage(target: HTMLElement, message: Pick<Message, 'text' | 'link'>) {
-  target.replaceChildren(document.createTextNode(message.text));
-  if (message.link) {
-    const link = document.createElement('a');
-    link.href = message.link.href;
-    link.textContent = message.link.label;
-    target.append(' ', link);
-  }
-}
-
 export function initAuthForm(form: HTMLFormElement, mode: AuthMode) {
-  const rules = RULES[mode];
-  const returnTo = safeReturnTo(new URLSearchParams(location.search).get('returnTo'));
-  const alert = form.querySelector<HTMLElement>('[data-form-alert]');
-  const alertMessage = form.querySelector<HTMLElement>('[data-form-alert-message]');
-  const status = form.querySelector<HTMLElement>('[data-auth-status]');
-  const submit = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+  const params = new URLSearchParams(location.search);
+  const returnTo = safeReturnTo(params.get('returnTo'), location.origin);
+  const destination = returnTo ?? DEFAULT_RETURN_TO;
+  const controls = createFormControls(form, RULES[mode]);
   const google = form.querySelector<HTMLButtonElement>('[data-google]');
-  const fields = Object.keys(rules)
-    .map((id) => form.querySelector<HTMLInputElement>(`#${id}`))
-    .filter((input): input is HTMLInputElement => input !== null);
-  const typedIn = new Set<string>();
-  // Fields showing a message from the server: kept until the shopper edits them or submits again,
-  // so a link inside the message (Sign in) survives focus leaving the field.
-  const serverErrors = new Set<string>();
-  let busy = false;
+  const card = form.closest('.ui-form-card');
+  const title = card?.querySelector<HTMLElement>('[data-form-card-title]') ?? null;
+  const cardTitle = title?.textContent ?? '';
+  const verifyForm = card?.querySelector<HTMLFormElement>('[data-auth-verify]') ?? null;
+  const verify = verifyForm ? createFormControls(verifyForm, VERIFY_RULES) : null;
+  const emailId = mode === 'login' ? 'login-email' : 'register-email';
 
-  form.noValidate = true;
-  submit?.removeAttribute('disabled');
   google?.removeAttribute('disabled');
-
-  const errorLine = (input: HTMLInputElement) => document.getElementById(`${input.id}-error`);
-
-  function showFieldError(input: HTMLInputElement, message: Pick<Message, 'text' | 'link'>) {
-    input.setAttribute('aria-invalid', 'true');
-    const line = errorLine(input);
-    if (!line) return;
-    fillMessage(line, message);
-    line.hidden = false;
-  }
-
-  function clearFieldError(input: HTMLInputElement) {
-    input.removeAttribute('aria-invalid');
-    const line = errorLine(input);
-    if (!line) return;
-    line.hidden = true;
-    line.replaceChildren();
-  }
-
-  /** Returns true when the field passes. */
-  function validate(input: HTMLInputElement): boolean {
-    const text = rules[input.id]?.(input, form) ?? '';
-    if (text) showFieldError(input, { text });
-    else clearFieldError(input);
-    return !text;
-  }
-
-  function hideAlert() {
-    if (!alert || !alertMessage) return;
-    alert.hidden = true;
-    alertMessage.replaceChildren();
-  }
-
-  function showAlert(message: Message, focus: boolean) {
-    if (!alert || !alertMessage) return;
-    alert.dataset.tone = message.tone;
-    alert.hidden = false;
-    // Empty first and fill on the next frame, so a repeated message is announced again.
-    alertMessage.replaceChildren();
-    requestAnimationFrame(() => {
-      fillMessage(alertMessage, message);
-      if (focus) alert.focus();
-    });
-  }
 
   function hidePasswords() {
     form.querySelectorAll<HTMLButtonElement>('[data-password-toggle]').forEach((toggle) => {
@@ -163,49 +97,6 @@ export function initAuthForm(form: HTMLFormElement, mode: AuthMode) {
       toggle.setAttribute('aria-pressed', 'false');
     });
   }
-
-  const setFlag = (element: Element, name: string, on: boolean) => {
-    if (on) element.setAttribute(name, 'true');
-    else element.removeAttribute(name);
-  };
-
-  function setBusy(on: boolean) {
-    busy = on;
-    setFlag(form, 'aria-busy', on);
-    form.querySelectorAll<HTMLInputElement>('input:not([type="checkbox"])').forEach((input) => { input.readOnly = on; });
-    form.querySelectorAll('button[type="submit"], [data-google], input[type="checkbox"]').forEach((control) => setFlag(control, 'aria-disabled', on));
-    if (submit) {
-      setFlag(submit, 'aria-busy', on);
-      const label = submit.querySelector<HTMLElement>('[data-button-label]');
-      const text = on ? submit.dataset.busyLabel : submit.dataset.label;
-      if (label && text) label.textContent = text;
-      if (status) status.textContent = on && text ? text : '';
-    }
-  }
-
-  form.addEventListener('input', (event) => {
-    const input = event.target as HTMLInputElement;
-    hideAlert();
-    if (!rules[input.id]) return;
-    typedIn.add(input.id);
-    serverErrors.delete(input.id);
-    if (input.getAttribute('aria-invalid') === 'true' || input.type === 'checkbox') validate(input);
-    // A new password can make a typed confirmation match or stop matching.
-    if (input.id === 'register-password' && typedIn.has('register-confirm')) {
-      const confirm = form.querySelector<HTMLInputElement>('#register-confirm');
-      if (confirm) validate(confirm);
-    }
-  });
-
-  form.addEventListener('focusout', (event) => {
-    const input = event.target as HTMLInputElement;
-    if (rules[input.id] && typedIn.has(input.id) && !serverErrors.has(input.id) && !busy) validate(input);
-  });
-
-  // The checkbox can't be read-only, so block toggling while a submit is in flight.
-  form.querySelectorAll<HTMLInputElement>('input[type="checkbox"]').forEach((box) => {
-    box.addEventListener('click', (event) => { if (busy) event.preventDefault(); });
-  });
 
   form.querySelectorAll<HTMLButtonElement>('[data-password-toggle]').forEach((toggle) => {
     toggle.addEventListener('click', () => {
@@ -217,58 +108,135 @@ export function initAuthForm(form: HTMLFormElement, mode: AuthMode) {
     });
   });
 
-  google?.addEventListener('click', () => {
-    if (busy) return;
-    showAlert({ tone: 'info', text: 'Google sign-in opens soon.' }, false);
+  // ---- the email-code step --------------------------------------------------------------------
+
+  function showVerifyStep(email: string) {
+    if (!verifyForm || !verify) return;
+    const target = verifyForm.querySelector<HTMLElement>('[data-verify-email]');
+    if (target) target.textContent = email;
+    form.hidden = true;
+    verifyForm.hidden = false;
+    if (title) {
+      title.textContent = 'Check your email';
+      title.focus();
+    }
+  }
+
+  function startOver() {
+    if (!verifyForm || !verify) return;
+    clearPendingName();
+    verify.hideAlert();
+    const code = verify.input('verify-code');
+    if (code) verify.resetField(code);
+    verifyForm.hidden = true;
+    form.hidden = false;
+    if (title) title.textContent = cardTitle;
+    hidePasswords();
+    form.querySelectorAll<HTMLInputElement>('input[type="password"]').forEach((input) => controls.resetField(input));
+    controls.input(emailId)?.focus();
+  }
+
+  const restart = { label: 'Start over', run: startOver };
+
+  verifyForm?.querySelector('[data-verify-restart]')?.addEventListener('click', startOver);
+
+  verifyForm?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!verify || verify.isBusy()) return;
+    verify.hideAlert();
+    if (!verify.validateAll()) return;
+    verify.setBusy(true);
+    let result: LoginResult;
+    try {
+      result = await verifyEmail(verify.value('verify-code').trim());
+    } catch {
+      verify.setBusy(false);
+      verify.showAlert(NETWORK_ERROR, true);
+      return;
+    }
+    if (result.state === 'SUCCESS') return; // The store is navigating through Wix to returnTo.
+    verify.setBusy(false);
+    const code = verify.input('verify-code');
+    if (result.state === 'EMAIL_VERIFICATION_REQUIRED' && code) {
+      verify.resetField(code);
+      verify.showResult({ tone: 'error', text: 'Enter the new code from your email.', fieldId: 'verify-code' });
+    } else if (result.state === 'OWNER_APPROVAL_REQUIRED') {
+      verify.showAlert(AWAITING_APPROVAL, true);
+    } else if (result.errorCode === 'VERIFICATION_FAILED') {
+      verify.showResult({ tone: 'error', text: "That code didn't work. Check it, or start over to get a new one.", fieldId: 'verify-code' });
+    } else if (result.errorCode === 'VERIFICATION_STATE_EXPIRED') {
+      verify.showAlert({ tone: 'error', text: 'This code expired. Start over to get a new one.', action: restart }, true);
+    } else {
+      verify.showAlert({ tone: 'error', text: 'Something went wrong. Try again, or start over.', action: restart }, true);
+    }
   });
+
+  // ---- Google ------------------------------------------------------------------------------------
+
+  google?.addEventListener('click', () => {
+    if (controls.isBusy()) return;
+    if (mode === 'register') {
+      const terms = controls.input('register-terms');
+      if (terms && !controls.validate(terms)) {
+        terms.focus();
+        return;
+      }
+    }
+    clearPendingName();
+    controls.setBusy(true);
+    location.assign(googleLoginHref(destination));
+  });
+
+  // ---- submit ------------------------------------------------------------------------------------
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    if (busy) return;
-    hideAlert();
-    serverErrors.clear();
-    const invalid = fields.filter((input) => !validate(input));
-    if (invalid.length) {
-      invalid[0].focus();
-      return;
-    }
+    if (controls.isBusy()) return;
+    controls.hideAlert();
+    if (!controls.validateAll()) return;
 
-    const value = (id: string) => form.querySelector<HTMLInputElement>(`#${id}`)?.value ?? '';
-    const options = { returnTo: returnTo ?? DEFAULT_RETURN_TO };
+    const email = controls.value(emailId).trim();
+    const options = { returnTo: destination };
     // Hidden before anything is sent, so a revealed password never shows while busy or navigating.
     hidePasswords();
-    setBusy(true);
+    controls.setBusy(true);
     let result: LoginResult;
     try {
-      result = mode === 'login'
-        ? await login(value('login-email').trim(), value('login-password'), options)
-        : await register(
-            value('register-email').trim(),
-            value('register-password'),
-            { firstName: value('register-first-name').trim(), lastName: value('register-last-name').trim() },
-            options,
-          );
+      if (mode === 'login') {
+        clearPendingName();
+        result = await login(email, controls.value('login-password'), options);
+      } else {
+        const name = { firstName: controls.value('register-first-name').trim(), lastName: controls.value('register-last-name').trim() };
+        savePendingName(email, name);
+        result = await register(email, controls.value('register-password'), name, options);
+        if (!KEEPS_PENDING_NAME.has(result.state)) clearPendingName();
+      }
     } catch {
-      setBusy(false);
-      showAlert(NETWORK_ERROR, true);
+      if (mode === 'register') clearPendingName();
+      controls.setBusy(false);
+      controls.showAlert(NETWORK_ERROR, true);
       return;
     }
 
     if (result.state === 'SUCCESS') {
       // The form stays busy while the browser navigates (the store already does when redirectUrl is set).
-      if (!result.redirectUrl) location.assign(options.returnTo);
+      if (!result.redirectUrl) location.assign(destination);
       return;
     }
 
-    setBusy(false);
-    const message = messageFor(result, mode, returnTo);
-    const field = message.fieldId ? form.querySelector<HTMLInputElement>(`#${message.fieldId}`) : null;
-    if (field) {
-      serverErrors.add(field.id);
-      showFieldError(field, message);
-      field.focus();
-    } else {
-      showAlert(message, true);
+    controls.setBusy(false);
+    if (result.state === 'EMAIL_VERIFICATION_REQUIRED') {
+      showVerifyStep(email);
+      return;
     }
+    controls.showResult(messageFor(result, mode, returnTo));
   });
+
+  // ---- arrival notices ---------------------------------------------------------------------------
+
+  if (mode === 'login' && params.get('reset') === 'done') {
+    controls.showAlert({ tone: 'info', text: 'Password changed. Sign in with your new password.' }, false);
+  }
+  // Dev only (stripped from the build): open the code step without calling Wix, for layout checks.
+  if (import.meta.env.DEV && params.get('preview') === 'verify') showVerifyStep('preview@example.com');
 }

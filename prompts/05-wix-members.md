@@ -270,10 +270,10 @@ Avatar sizes live with the primitive in `global.css`. Account layout sizes live 
 - [x] 2. Run the members seed: install the Members Area app (check: `read-site.mjs` reports `installed: true`).
 - [x] 3. Allowed redirect URIs: look up the OAuth app API with `wix-docs` and read the app's allowed URIs. Confirm `/api/auth/callback` for localhost:4321, the live origin and the preview origin, adding any that are missing. Add the two `/login?reset=done` URLs if missing (check: read-back lists them all; if there's no API, it's recorded in You need to).
   - Result (2026-10-27): `allowedRedirectUris` already holds `/api/auth/callback` and `/api/auth/logout-callback` for `http://localhost:4321`, `https://my-site-1-sujata03-0908.wix-site-host.com` and the preview wildcard `https://*-my-site-1-sujata03-0908.wix-site-host.com`. `allowedRedirectDomains` (redirects "after processes other than authentication") already lists localhost:4321 and both live and preview origins. Nothing was written. The two `/login?reset=done` URIs are added in step 8 only if Send Recovery Email rejects the redirect.
-- [ ] 4. Token and primitives: `--shadow-menu`, `Avatar`, `FormCard level`, with Avatar and `level={2}` specimens on `/design-system` (check: `npm run check`; `/` and the existing `/design-system` sections look the same before and after in screenshots).
-- [ ] 5. Data layer and scripts: `profile.ts`, `recovery.ts`, `pending-profile.ts`, `auth-form.ts` changes; delete `mock-auth.ts` (check: `npm run check`; `grep -r mock-auth src` is empty).
-- [ ] 6. Pages: `login`, `create-account`, `forgot-password`, `account`, plus `site.css` rules (check: `npm run check`, `npm run build`).
-- [ ] 7. Header: `AccountMenu` in `SiteLayout` (check: `npm run check`, `npm run build`).
+- [x] 4. Token and primitives: `--shadow-menu`, `Avatar`, `FormCard level`, with Avatar and `level={2}` specimens on `/design-system` (check: `npm run check`; `/` and the existing `/design-system` sections look the same before and after in screenshots).
+- [x] 5. Data layer and scripts: `profile.ts`, `recovery.ts`, `pending-profile.ts`, `auth-form.ts` changes; delete `mock-auth.ts` (check: `npm run check`; `grep -r mock-auth src` is empty).
+- [x] 6. Pages: `login`, `create-account`, `forgot-password`, `account`, plus `site.css` rules (check: `npm run check`, `npm run build`).
+- [x] 7. Header: `AccountMenu` in `SiteLayout` (check: `npm run check`, `npm run build`).
 - [ ] 8. Live checks against Wix on `localhost:4321`, with a test address from the user. Each check gets screenshots and network evidence:
   - sign up;
   - the name is saved (dashboard and menu);
