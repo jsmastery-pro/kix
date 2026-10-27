@@ -5,3 +5,4 @@
 - [03 · Home page](03-home-page.md) — done
 - [04 · Sign in and create account pages](04-sign-in-and-create-account.md) — done
 - [05 · Wix Members: real sign in, accounts and the header menu](05-wix-members.md) — done (email signup blocked by the site's reCAPTCHA)
+- [06 · PostHog setup: analytics, identity, errors and a starter dashboard](06-posthog-setup.md) — approved
