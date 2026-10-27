@@ -135,7 +135,7 @@ export function createFormControls(form: HTMLFormElement, rules: Record<string, 
     busy = on;
     setFlag(form, 'aria-busy', on);
     form.querySelectorAll<HTMLInputElement>('input:not([type="checkbox"])').forEach((field) => { field.readOnly = on; });
-    form.querySelectorAll('button[type="submit"], [data-google], input[type="checkbox"]').forEach((control) => setFlag(control, 'aria-disabled', on));
+    form.querySelectorAll('button[type="submit"], [data-google], [data-verify-restart], input[type="checkbox"]').forEach((control) => setFlag(control, 'aria-disabled', on));
     if (submit) {
       setFlag(submit, 'aria-busy', on);
       const label = submit.querySelector<HTMLElement>('[data-button-label]');

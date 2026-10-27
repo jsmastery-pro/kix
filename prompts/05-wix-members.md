@@ -289,7 +289,7 @@ Avatar sizes live with the primitive in `global.css`. Account layout sizes live 
   - the account reset link;
   - redirects (`/account` as a visitor; `/login` as a member).
 - [x] 9. Visual pass at 1440 and 390: header (visitor, member, menu open), `/account`, `/forgot-password` (form and sent), code step on both pages. Also regression screenshots of `/login` and `/create-account` against plan 04's final shots. List differences, fix, repeat.
-- [ ] 10. Reviewer subagent compares the work with this plan; fix real gaps. Then close out.
+- [x] 10. Reviewer subagent compares the work with this plan; fix real gaps. Then close out.
 
 ## Files
 

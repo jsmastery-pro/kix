@@ -4,10 +4,10 @@
 import { UserRound } from '@lucide/astro';
 import Avatar from './ui/Avatar.astro';
 import IconButton from './ui/IconButton.astro';
-import { logoutAction, withReturnTo } from '../scripts/return-to';
+import { logoutAction, safeReturnTo, withReturnTo } from '../scripts/return-to';
 
-const { pathname, search } = Astro.url;
-const here = `${pathname}${search}`;
+const { pathname, search, origin } = Astro.url;
+const here = safeReturnTo(`${pathname}${search}`, origin) ?? '/';
 const onAuthPage = ['/login', '/create-account', '/forgot-password'].includes(pathname);
 const signInHref = onAuthPage ? '/login' : withReturnTo('/login', here);
 // Signing out on /account would bounce through sign in, so it returns home instead.

@@ -68,6 +68,8 @@ export function initAccountMenu(root: HTMLElement) {
     button.focus();
   });
   root.addEventListener('focusout', (event) => {
+    // A null relatedTarget is also a click on plain text inside the panel, so only close on a
+    // known target outside; clicks elsewhere are handled by the document listener below.
     const next = event.relatedTarget as Node | null;
     if (next && !root.contains(next)) setOpen(false);
   });

@@ -38,7 +38,7 @@ const AWAITING_APPROVAL: Message = { tone: 'info', text: "Your account is waitin
 /** States after which a new member may still appear in this tab; anything else drops waiting names. */
 const KEEPS_PENDING_NAME = new Set<LoginResult['state']>(['SUCCESS', 'EMAIL_VERIFICATION_REQUIRED', 'OWNER_APPROVAL_REQUIRED']);
 
-const here = () => `${location.pathname}${location.search}`;
+const here = () => safeReturnTo(`${location.pathname}${location.search}`, location.origin) ?? '/';
 
 function messageFor(result: LoginResult, mode: AuthMode, returnTo: string | null): Message {
   const signIn = { href: withReturnTo('/login', returnTo), label: 'Sign in' };
@@ -126,7 +126,8 @@ export function initAuthForm(form: HTMLFormElement, mode: AuthMode) {
   }
 
   function startOver() {
-    if (!verifyForm || !verify) return;
+    // Not while a code is in flight: a late SUCCESS would sign in without the waiting names.
+    if (!verifyForm || !verify || verify.isBusy()) return;
     clearPendingName();
     verify.hideAlert();
     const code = verify.input('verify-code');
@@ -233,6 +234,13 @@ export function initAuthForm(form: HTMLFormElement, mode: AuthMode) {
       return;
     }
     controls.showResult(messageFor(result, mode, returnTo));
+  });
+
+  // Back from Google or Wix out of the back-forward cache: the form was left busy while navigating.
+  window.addEventListener('pageshow', (event) => {
+    if (!event.persisted) return;
+    controls.setBusy(false);
+    verify?.setBusy(false);
   });
 
   // ---- arrival notices ---------------------------------------------------------------------------

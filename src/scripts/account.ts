@@ -59,7 +59,13 @@ export function initAccount(root: HTMLElement) {
       controls.setBusy(true);
       const outcome = await resetEmail(loginEmail);
       controls.setBusy(false);
-      controls.showAlert(outcome === 'sent' ? { tone: 'info', text: 'Check your email for the link.' } : resetFailure(outcome), true);
+      if (outcome !== 'sent') {
+        controls.showAlert(resetFailure(outcome), true);
+        return;
+      }
+      // One email per visit: each send counts toward Wix's 200-a-day limit.
+      resetForm.querySelector<HTMLElement>('button[type="submit"]')?.setAttribute('hidden', '');
+      controls.showAlert({ tone: 'info', text: 'Check your email for the link.' }, true);
     });
   }
 }
