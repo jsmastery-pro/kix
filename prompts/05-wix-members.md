@@ -1,6 +1,6 @@
 # 05 · Wix Members: real sign in, accounts and the header menu
 
-Status: approved
+Status: done
 
 <!-- review → approved → done, or dropped. Only the user approves. -->
 
@@ -347,4 +347,48 @@ Avatar sizes live with the primitive in `global.css`. Account layout sizes live 
 
 ## Result
 
-Filled at close-out.
+**Shipped (2026-10-27, branch `feat/wix-members`, not released):**
+- Real sign in on `/login`, Google on both auth pages, and the in-card email-code step.
+- `/forgot-password`, plus `/login?reset=done` as the landing page after a reset.
+- `/account`: profile, name edit, reset link and sign out.
+- The header avatar menu.
+- Names typed at signup are saved after sign in.
+- On Wix: the kit's members data layer and `@wix/members` were deployed, and the Members Area app was installed. No redirect URIs were needed (step 3).
+
+**Verified live on localhost:4321:**
+- wrong credentials → 422, "That email and password don't match.";
+- Google round trip → `/account`;
+- the member's `/login` and `/forgot-password` redirect to `returnTo`;
+- a visitor's `/account` → `/login?returnTo=%2Faccount`;
+- `returnTo=/\\evil.com` and `//evil.com` → `/account`;
+- the header menu (name, email, Account, Sign out);
+- sign out → `/` signed out;
+- the account name save (PATCH 200 as the member, no elevation; changed and restored on the user's member);
+- pending name applied when the email matches and dropped without a write when it doesn't;
+- Send Recovery Email → 200 for a member (the user confirmed the email arrived and opens Wix's reset page), and the neutral copy for an unknown email;
+- the code step and Start over in the DEV preview;
+- 1440 and 390 screenshots with no horizontal overflow.
+
+**Differences from the plan, and why:**
+- **The site requires reCAPTCHA for signup** (`missingCaptchaToken`). The user chose to keep it on, so email signup can't complete. The create-account form now says "We can't create accounts with email here right now. Continue with Google instead." Not live-tested because of this: email/password signup success, the real email-code step, email/password sign-in success, owner approval, and landing on `?reset=done` after a finished reset.
+- **Send Recovery Email for an unknown email** answers 404 with `applicationError.code` `-19999`. `recovery.ts` treats exactly that as sent; a bare 404 is still a failure.
+- **Google profile photos refuse requests with a referrer.** The avatar uses `referrerpolicy="no-referrer"` and falls back to the initial.
+- **Code layout:**
+  - helpers split into `form-controls.ts` (validation, alert, busy) and `return-to.ts` (import-free, used by pages on the server);
+  - the reset script is `password-reset.ts` (shared by `/forgot-password` and `/account`);
+  - the code step is its own component, `VerifyEmailForm.astro`.
+- **`/design-system` got no Avatar or `level={2}` specimens.** That page mirrors the design-system sheet, and plan 04's primitives weren't added to it either.
+- **The account page's Sign out** is the standard `md` secondary button; `lg` is 186–260px wide.
+- **The build review found four low-severity issues, all fixed:**
+  - Start over is blocked while a code is verifying;
+  - busy state resets on a back-forward cache restore;
+  - logout return paths go through `safeReturnTo`;
+  - the account reset button hides after one send.
+
+**Lessons:**
+- Probe the site's signup policy (one JSON POST to `/api/auth/signup`) before planning signup. reCAPTCHA was on by default.
+- The kit's members playbook names `/api/auth/reset-password`, which `@wix/astro` 3.1.0 doesn't have. Trust the integration source and Wix's Astro guide over the playbook.
+- Astro 7's dev server sometimes 404s its font files after a self-restart; `astro dev stop` and start again fixes it.
+- A stale `astro dev` can hold port 4321, and OAuth only allows that port.
+
+**One-shot prompt:** "Wire plan 04's sign in and create account pages to Wix Members with the wix-headless-kit skill: email/password, Google, an in-card email-code step, forgot password through Send Recovery Email (there is no Astro reset route), save signup names with updateMember as the member, a header avatar menu and a simple /account page. Check the site's signup policy (reCAPTCHA) first and ask what to do if it's on."
