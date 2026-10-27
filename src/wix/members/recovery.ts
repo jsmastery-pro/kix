@@ -18,10 +18,17 @@ export interface ResetRedirect {
 }
 
 /**
- * Statuses that mean "no such account". They show the same confirmation as a sent email, so the
- * page never reveals which emails have accounts. Recorded from a live call in plan 05 step 8.
+ * "No such account": 404 with `{ message: "Identity not found", details: { applicationError: {
+ * code: "-19999" } } }` (recorded from a live call, plan 05 step 8). Treated as sent, so the page
+ * never reveals which emails have accounts. A bare 404 (a wrong path) is still a failure.
  */
-const UNKNOWN_EMAIL_STATUSES: number[] = [];
+const UNKNOWN_IDENTITY = "-19999";
+
+async function isUnknownEmail(res: Response): Promise<boolean> {
+  if (res.status !== 404) return false;
+  const body = await res.json().catch(() => null);
+  return body?.details?.applicationError?.code === UNKNOWN_IDENTITY;
+}
 
 /** Never throws. Every outcome except a send, an unknown email or a rate limit is `failed`. */
 export async function sendPasswordReset(email: string, redirect?: ResetRedirect): Promise<ResetOutcome> {
@@ -35,7 +42,7 @@ export async function sendPasswordReset(email: string, redirect?: ResetRedirect)
   } catch {
     return "failed";
   }
-  if (res.ok || UNKNOWN_EMAIL_STATUSES.includes(res.status)) return "sent";
+  if (res.ok || (await isUnknownEmail(res))) return "sent";
   if (res.status === 429) return "rate-limited";
   if (import.meta.env.DEV) console.warn(`[kix] Send Recovery Email answered ${res.status}`);
   return "failed";
