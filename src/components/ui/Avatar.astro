@@ -11,5 +11,6 @@ const { name = '', photoUrl = '', size = 'sm', className = '' } = Astro.props;
 const initial = name.trim().charAt(0);
 ---
 <span class:list={['ui-avatar', `ui-avatar--${size}`, className]} aria-hidden="true" data-avatar>
-  {photoUrl ? <img src={photoUrl} alt="" /> : initial}
+  {/* Google profile photos refuse requests that send a referrer. */}
+  {photoUrl ? <img src={photoUrl} alt="" referrerpolicy="no-referrer" /> : initial}
 </span>

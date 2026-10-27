@@ -5,16 +5,21 @@ import { getMemberState, subscribeMember } from '../wix/members/member-store';
 import type { CurrentMember } from '../wix/members/types';
 import { applyPendingName } from './pending-profile';
 
-/** The member's photo, or the first letter of their name. */
+/** The member's photo, or the first letter of their name (also when the photo fails to load). */
 export function renderAvatar(target: HTMLElement, member: CurrentMember) {
-  if (member.photoUrl) {
-    const image = document.createElement('img');
-    image.src = member.photoUrl;
-    image.alt = '';
-    target.replaceChildren(image);
-  } else {
-    target.replaceChildren(document.createTextNode(member.displayName.trim().charAt(0)));
+  const showInitial = () => target.replaceChildren(document.createTextNode(member.displayName.trim().charAt(0)));
+  if (!member.photoUrl) {
+    showInitial();
+    return;
   }
+  const current = target.querySelector('img');
+  if (current?.getAttribute('src') === member.photoUrl && current.complete && current.naturalWidth > 0) return;
+  const image = document.createElement('img');
+  image.alt = '';
+  image.referrerPolicy = 'no-referrer'; // Google profile photos refuse requests that send a referrer.
+  image.addEventListener('error', showInitial);
+  image.src = member.photoUrl;
+  target.replaceChildren(image);
 }
 
 export function initAccountMenu(root: HTMLElement) {

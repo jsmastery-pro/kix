@@ -481,6 +481,7 @@ a.ui-button { text-decoration: none; }
 
 .ui-form-card { width: 100%; padding: clamp(24px, 2.8vw, 40px); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-white); box-shadow: var(--ds-panel-shadow); }
 .ui-form-card__title { margin-bottom: clamp(24px, 2.2vw, 32px); font-family: var(--font-display); font-size: clamp(40px, 3.2vw, 46px); font-weight: 700; line-height: 1; text-transform: uppercase; }
+.ui-form-card__title:focus { outline: none; } /* focused by script so readers hear the new step; not interactive */
 .ui-form-card__title--h2 { margin-bottom: var(--ds-space-6); font-size: clamp(28px, 2.2vw, 32px); }
 
 .ui-avatar { display: inline-grid; flex: none; place-items: center; overflow: hidden; border-radius: var(--radius-pill); background: var(--color-black); color: var(--color-white); font-family: var(--font-display); font-weight: 600; line-height: 1; text-transform: uppercase; }

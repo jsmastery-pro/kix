@@ -274,7 +274,7 @@ Avatar sizes live with the primitive in `global.css`. Account layout sizes live 
 - [x] 5. Data layer and scripts: `profile.ts`, `recovery.ts`, `pending-profile.ts`, `auth-form.ts` changes; delete `mock-auth.ts` (check: `npm run check`; `grep -r mock-auth src` is empty).
 - [x] 6. Pages: `login`, `create-account`, `forgot-password`, `account`, plus `site.css` rules (check: `npm run check`, `npm run build`).
 - [x] 7. Header: `AccountMenu` in `SiteLayout` (check: `npm run check`, `npm run build`).
-- [ ] 8. Live checks against Wix on `localhost:4321`, with a test address from the user. Each check gets screenshots and network evidence:
+- [x] 8. Live checks against Wix on `localhost:4321`, with a test address from the user. Each check gets screenshots and network evidence:
   - sign up;
   - the name is saved (dashboard and menu);
   - the menu;
@@ -288,7 +288,7 @@ Avatar sizes live with the primitive in `global.css`. Account layout sizes live 
   - the account name edit;
   - the account reset link;
   - redirects (`/account` as a visitor; `/login` as a member).
-- [ ] 9. Visual pass at 1440 and 390: header (visitor, member, menu open), `/account`, `/forgot-password` (form and sent), code step on both pages. Also regression screenshots of `/login` and `/create-account` against plan 04's final shots. List differences, fix, repeat.
+- [x] 9. Visual pass at 1440 and 390: header (visitor, member, menu open), `/account`, `/forgot-password` (form and sent), code step on both pages. Also regression screenshots of `/login` and `/create-account` against plan 04's final shots. List differences, fix, repeat.
 - [ ] 10. Reviewer subagent compares the work with this plan; fix real gaps. Then close out.
 
 ## Files

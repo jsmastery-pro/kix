@@ -53,7 +53,10 @@ function messageFor(result: LoginResult, mode: AuthMode, returnTo: string | null
     };
   }
   if (code === 'captchaRequired' || code === 'missingCaptchaToken' || code === 'invalidCaptchaToken') {
-    return { tone: 'error', text: "We couldn't verify this request. Try again later." };
+    // The site's signup security wants reCAPTCHA, which these forms don't render yet (plan 05).
+    return mode === 'register'
+      ? { tone: 'error', text: "We can't create accounts with email here right now. Continue with Google instead." }
+      : { tone: 'error', text: "We couldn't verify this request. Try again later." };
   }
   if (mode === 'login') {
     if (code === 'invalidPassword' || code === 'invalidCredentials' || code === 'invalidEmail') {
