@@ -22,7 +22,7 @@ npm run preview                   # wix preview → shareable preview URL (backe
 npm run release                   # wix release → live site. Ask the user first
 npm run wix env set -- --key K --value V   # then: npm run wix env pull
 npm run generate                  # wix generate → dashboard pages, events, data collections
-npx astro dev --port 4333         # plain Astro dev server (Astro 7 runs it as a daemon; stop: npx astro dev stop)
+npx astro dev --port 4321         # plain Astro dev server (daemon; stop: npx astro dev stop). Auth only works on 4321, the one local origin the OAuth app allows; stop any stale server holding it first
 npm run release -- --version-type minor --comment "…"   # non-interactive release
 ```
 
@@ -41,14 +41,14 @@ Every tool here changes fast. Never assume a version. Read declared ranges in `p
 
 Each tool has one job. Ask before moving a responsibility to a different tool. Close-outs fill in details here.
 
-The UI primitives, tokens, site layout (`src/layouts/SiteLayout.astro`, shaped like the kit's) and mock data (`src/data/mock.ts`, typed by a verbatim copy of the kit's `src/wix/storefront/types.ts`) exist. The Wix storefront data layer is still planned. The kit's deploy never overwrites existing files, so wiring merges its `CartButton`/`CartDrawer` into `SiteLayout` by hand.
+The UI primitives, tokens, site layout (`src/layouts/SiteLayout.astro`, shaped like the kit's) and mock data (`src/data/mock.ts`, typed by a verbatim copy of the kit's `src/wix/storefront/types.ts`) exist. The kit's members data layer and auth seam (`src/wix/sdk.ts`, `src/wix/members/`) are deployed; the storefront data layer is still planned. The kit's deploy never overwrites existing files, so wiring merges its `CartButton`/`CartDrawer` into `SiteLayout` by hand.
 
 - **Hosting, deploys, secrets:** Wix (CLI). Secrets are declared in `astro.config.mjs` with `envField` and set with `wix env set`; read server secrets from `astro:env/server`.
 - **UI:** our own primitives in `src/components/ui/`, built from the design system sheet. Pages compose them; callers pass layout classes only, and a caller needing a new color means a variant is missing.
 - **Mock data:** until a page is wired to Wix, it reads `src/data/mock.ts`, shaped exactly like the storefront DTOs the `wix-headless-kit` skill ships (`storefront/app/wix/storefront/types.ts` in the templates it downloads), so wiring it is a swap, not a rewrite.
 - **Catalog, cart, checkout, orders:** Wix Stores and Wix eCommerce (Wix's hosted checkout), through the data layer and hooks shipped by `wix-headless-kit` (`src/wix/storefront/`, `src/hooks/storefront/`). Don't rewrite that logic. Its UI components are used only where they match the designs.
 - **Other data (3D model links, saved designs):** Wix CMS collections, keyed by product ID as a text field. CMS can't reference Stores products.
-- **Accounts:** Wix Members through `@wix/astro`'s built-in `/api/auth/*` routes, via the `wix-headless-kit` members data layer. No custom callback pages. `/login` and `/create-account` exist and submit through `src/data/mock-auth.ts` (same signatures as the kit's `member-store.ts`) until wired. The built-in signup takes email and password only, so wiring saves first and last name after signup; there's no remember-me (the session cookie's lifetime can't be set).
+- **Accounts:** Wix Members through `@wix/astro`'s built-in `/api/auth/*` routes and the kit's framework-free `member-store.ts`, used from Astro scripts (`src/scripts/auth-form.ts`, `account-menu.ts`); the kit's React members UI stays unused. No custom callback pages. `@wix/astro` has no reset route: forgot password calls Send Recovery Email (`src/wix/members/recovery.ts`). Signup takes email and password only, so names wait in `sessionStorage` and are saved with `updateMember` as the member (`profile.ts`). Pages read the member on the server with `fetchCurrentMember()` (needs the Members Area app, installed). The site's signup security requires reCAPTCHA, which our forms don't render, so email signup fails until it's added or switched off. No remember-me (the session cookie's lifetime can't be set).
 - **3D models:** made by the user in Tripo Studio (the web app; no Tripo API or key) and downloaded as GLB into `models/raw/`. The agent optimizes them with glTF Transform into `models/web/`, stores them in Wix, and renders them with React Three Fiber islands (`client:only="react"`). Not set up yet.
 - **Analytics, replay, flags, experiments:** PostHog. Not set up yet.
 - **Styling:** tokens and primitive styles in `src/styles/global.css`; page layout in `src/styles/site.css` (sizes and grids only). Headlines use Barlow Condensed through Astro's Fonts API (`--font-barlow`), so builds need network access. Tailwind's preflight strips link underlines, so links the design underlines set `text-decoration` themselves.
@@ -73,7 +73,7 @@ Designs arrive as images attached to the prompt (design system, home, sign in, c
 - Icons come from the chosen icon library, never redrawn from a screenshot. A missing asset gets a marked placeholder, listed in the report.
 - Anything in a design without a data source yet (reviews, ratings, wishlist, member perks, shipping promises) is a decision in the plan, never faked.
 - Designs are desktop. Derive phone layouts by stacking and keeping the hierarchy, and list the choices in the plan.
-- After building, open the page with the Playwright MCP at 1440px and 390px, screenshot it, compare with the design, list every difference, fix, and repeat. Report which values were estimated from an image. Measure the design's canvas scale against the target width before planning sizes. Without Playwright, capture with Chrome DevTools device emulation (desktop Chrome can't lay out narrower than about 500px), and scroll first so lazy images load.
+- After building, open the page with the Playwright MCP at 1440px and 390px, screenshot it, compare with the design, list every difference, fix, and repeat. Report which values were estimated from an image. Measure the design's canvas scale against the target width before planning sizes. Without Playwright, capture 390px by loading the page in a 390px-wide same-origin iframe (desktop Chrome won't resize narrower than about 500px), and scroll first so lazy images load.
 
 ## How we build features
 
