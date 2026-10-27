@@ -1,0 +1,24 @@
+---
+// Sign in / create account section: photo panel with a tagline on the left, the form card on the
+// right. The tagline is decorative copy, so the card title stays the page's only h1.
+import Photo from './ui/Photo.astro';
+
+interface Props {
+  headline: string[];
+  subhead: string[];
+  photo: string;
+}
+const { headline, subhead, photo } = Astro.props;
+---
+<div class="auth-split">
+  <div class="auth-split__panel">
+    <Photo src={photo} alt="" sizes="55vw" className="auth-split__photo" />
+    <div class="auth-split__text">
+      <p class="auth-split__headline">{headline.map((line) => <span>{line}</span>)}</p>
+      <p class="auth-split__subhead">{subhead.map((line) => <span>{line}</span>)}</p>
+    </div>
+  </div>
+  <div class="auth-split__form">
+    <slot />
+  </div>
+</div>

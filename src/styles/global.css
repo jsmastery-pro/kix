@@ -463,7 +463,7 @@ a.ui-button { text-decoration: none; }
 .ui-checkbox__label a { color: var(--color-black); text-underline-offset: 3px; }
 .ui-checkbox .ui-field-error { margin-top: var(--ds-space-1); }
 
-.ui-divider { display: flex; align-items: center; gap: var(--ds-space-6); color: var(--color-text-secondary); font-family: var(--font-display); font-size: 18px; font-weight: 500; line-height: 1; }
+.ui-divider { text-transform: uppercase; display: flex; align-items: center; gap: var(--ds-space-6); color: var(--color-text-secondary); font-family: var(--font-display); font-size: 18px; font-weight: 500; line-height: 1; }
 .ui-divider::before, .ui-divider::after { content: ""; flex: 1; height: 1px; background: var(--color-border); }
 
 .ui-form-alert { display: flex; align-items: flex-start; gap: var(--ds-space-3); padding: var(--ds-space-4); border-radius: var(--radius-sm); font-family: var(--font-display); font-size: clamp(17px, 1.25vw, 18px); line-height: 1.35; }
@@ -514,6 +514,8 @@ a.ui-button { text-decoration: none; }
   .ui-carousel__dot { width: 44px; height: 44px; }
   .ui-carousel--dots-end .ui-carousel__dot::before { width: 12px; height: 12px; background: var(--color-state-disabled); }
   .ui-carousel__arrows { display: none; }
+  .auth-split__headline { font-size: 40px; line-height: .92; }
+  .auth-split__subhead { font-size: 17px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

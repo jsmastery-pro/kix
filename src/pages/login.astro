@@ -1,0 +1,40 @@
+---
+// Sign in. The route the Headless kit's RequireAuth links to; the kit's deploy never overwrites it.
+// Submits go through src/data/mock-auth.ts until the Wix members wiring plan (plan 04).
+import AuthSplit from '../components/AuthSplit.astro';
+import Button from '../components/ui/Button.astro';
+import Divider from '../components/ui/Divider.astro';
+import FormAlert from '../components/ui/FormAlert.astro';
+import FormCard from '../components/ui/FormCard.astro';
+import GoogleMark from '../components/ui/GoogleMark.astro';
+import PasswordField from '../components/ui/PasswordField.astro';
+import TextField from '../components/ui/TextField.astro';
+import SiteLayout from '../layouts/SiteLayout.astro';
+import { safeReturnTo, withReturnTo } from '../scripts/auth-form';
+
+const returnTo = safeReturnTo(Astro.url.searchParams.get('returnTo'));
+---
+
+<SiteLayout title="Sign in · Kix" description="Sign in to your Kix account.">
+  <AuthSplit headline={['Sneakers', 'Move culture', 'Forward']} subhead={['Same passion.', 'A more personal experience.']} photo="/images/auth/sign-in-stool.jpg">
+    <FormCard title="Sign in" className="auth-split__card">
+      <form class="auth-form" method="post" data-auth-form="login">
+        <TextField id="login-email" label="Email" labelVisible type="email" autocomplete="email" required placeholder="Enter your email" size="lg" errors />
+        <PasswordField id="login-password" label="Password" labelVisible autocomplete="current-password" placeholder="Enter your password" />
+        <p class="auth-form__forgot"><a href="/forgot-password">Forgot password?</a></p>
+        <FormAlert className="auth-form__alert" />
+        <Button type="submit" size="form" label="Sign in" busyLabel="Signing in…" disabled className="auth-form__submit" />
+        <Divider label="or" className="auth-form__divider" />
+        <Button variant="secondary" size="form" label="Continue with Google" disabled attrs={{ 'data-google': '' }}><GoogleMark slot="leading" /></Button>
+        <p class="auth-form__switch">New to Kix? <a href={withReturnTo('/create-account', returnTo)}>Create account</a></p>
+        <p class="sr-only" aria-live="polite" data-auth-status></p>
+      </form>
+    </FormCard>
+  </AuthSplit>
+</SiteLayout>
+
+<script>
+  import { initAuthForm } from '../scripts/auth-form';
+  const form = document.querySelector<HTMLFormElement>('[data-auth-form="login"]');
+  if (form) initAuthForm(form, 'login');
+</script>

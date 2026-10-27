@@ -1,0 +1,52 @@
+---
+// Create account. Wix's built-in signup takes email and password only; the wiring plan saves the
+// names to the member profile after signup (plan 04). Submits go through src/data/mock-auth.ts.
+import AuthSplit from '../components/AuthSplit.astro';
+import Button from '../components/ui/Button.astro';
+import Checkbox from '../components/ui/Checkbox.astro';
+import Divider from '../components/ui/Divider.astro';
+import FormAlert from '../components/ui/FormAlert.astro';
+import FormCard from '../components/ui/FormCard.astro';
+import GoogleMark from '../components/ui/GoogleMark.astro';
+import PasswordField from '../components/ui/PasswordField.astro';
+import TextField from '../components/ui/TextField.astro';
+import SiteLayout from '../layouts/SiteLayout.astro';
+import { safeReturnTo, withReturnTo } from '../scripts/auth-form';
+
+const returnTo = safeReturnTo(Astro.url.searchParams.get('returnTo'));
+---
+
+<SiteLayout title="Create account · Kix" description="Create a Kix account.">
+  <AuthSplit
+    headline={['Join a bigger', 'Sneaker culture']}
+    subhead={['Create an account to track orders, save your designs, and get early access to new releases.']}
+    photo="/images/auth/create-account-ladder.jpg"
+  >
+    <FormCard title="Create account" className="auth-split__card">
+      <form class="auth-form" method="post" data-auth-form="register">
+        <div class="auth-form__names">
+          <TextField id="register-first-name" label="First name" placeholder="First name" autocomplete="given-name" maxlength={50} required size="lg" errors />
+          <TextField id="register-last-name" label="Last name" placeholder="Last name" autocomplete="family-name" maxlength={50} required size="lg" errors />
+        </div>
+        <TextField id="register-email" label="Email address" type="email" placeholder="Email address" autocomplete="email" required size="lg" errors />
+        <PasswordField id="register-password" label="Password" placeholder="Password" autocomplete="new-password" minlength={8} />
+        <PasswordField id="register-confirm" label="Confirm password" placeholder="Confirm password" autocomplete="new-password" />
+        <Checkbox id="register-terms" required className="auth-form__terms">
+          I agree to the <a href="/terms" target="_blank" rel="noopener">Terms of Service<span class="sr-only"> (opens in a new tab)</span></a> and <a href="/privacy" target="_blank" rel="noopener">Privacy Policy<span class="sr-only"> (opens in a new tab)</span></a>.
+        </Checkbox>
+        <FormAlert className="auth-form__alert" />
+        <Button type="submit" size="form" label="Create account" busyLabel="Creating account…" disabled className="auth-form__submit" />
+        <Divider label="or" className="auth-form__divider" />
+        <Button variant="secondary" size="form" label="Continue with Google" disabled attrs={{ 'data-google': '' }}><GoogleMark slot="leading" /></Button>
+        <p class="auth-form__switch">Already have an account? <a href={withReturnTo('/login', returnTo)}>Sign in</a></p>
+        <p class="sr-only" aria-live="polite" data-auth-status></p>
+      </form>
+    </FormCard>
+  </AuthSplit>
+</SiteLayout>
+
+<script>
+  import { initAuthForm } from '../scripts/auth-form';
+  const form = document.querySelector<HTMLFormElement>('[data-auth-form="register"]');
+  if (form) initAuthForm(form, 'register');
+</script>
