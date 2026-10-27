@@ -1,0 +1,12 @@
+---
+import { CircleAlert } from '@lucide/astro';
+interface Props {
+  className?: string;
+}
+const { className = '' } = Astro.props;
+---
+<!-- Filled by a script: data-tone="error" | "info"; the message may hold one link. -->
+<div class:list={['ui-form-alert', className]} role="alert" tabindex="-1" data-tone="info" hidden data-form-alert>
+  <CircleAlert class="ui-form-alert__icon" aria-hidden="true" />
+  <p class="ui-form-alert__message" data-form-alert-message></p>
+</div>

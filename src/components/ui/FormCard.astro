@@ -1,0 +1,11 @@
+---
+interface Props {
+  title: string;
+  className?: string;
+}
+const { title, className = '' } = Astro.props;
+---
+<section class:list={['ui-form-card', className]} aria-labelledby="form-card-title">
+  <h1 class="ui-form-card__title" id="form-card-title">{title}</h1>
+  <slot />
+</section>

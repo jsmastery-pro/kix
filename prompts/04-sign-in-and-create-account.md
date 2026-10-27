@@ -236,7 +236,7 @@ None. No new npm packages. Nothing is sent or stored.
 ## Steps
 
 - [x] 1. Photos and Google mark: find two portrait Pexels photos with light backgrounds and top-left space, inspect each at full size for brand marks, save them to `public/images/auth/` (about 1200px wide, under 250 KB) with `SOURCES.md`. Save Google's official G as `public/images/brand/google-g.svg` with its source URL in `public/images/brand/SOURCES.md` (check: visual inspection of each photo, file sizes listed).
-- [ ] 2. Tokens and primitives: add the three tokens; change `TextField` and `Button`; add `PasswordField`, `Checkbox`, `Divider`, `FormAlert`, `FormCard`, `GoogleMark`; take a `/design-system` and `/` screenshot before and after (check: `npm run check`; the before/after screenshots of `/design-system` and `/` are identical).
+- [x] 2. Tokens and primitives: add the three tokens; change `TextField` and `Button`; add `PasswordField`, `Checkbox`, `Divider`, `FormAlert`, `FormCard`, `GoogleMark`; take a `/design-system` and `/` screenshot before and after (check: `npm run check`; the before/after screenshots of `/design-system` and `/` are identical).
 - [ ] 3. Logic: `src/data/mock-auth.ts` and `src/scripts/auth-form.ts` (check: `npm run check`).
 - [ ] 4. Pages: `AuthSplit`, `login.astro`, `create-account.astro`, `site.css` auth rules, header icon → `/login` (check: `npm run check`, `npm run build`).
 - [ ] 5. Visual pass: screenshots at 1440 and 390 of both pages, compared with the designs section by section; list differences, fix, repeat until only the documented intentional differences remain (check: final screenshot pairs plus the difference list).

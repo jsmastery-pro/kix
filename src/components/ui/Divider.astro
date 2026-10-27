@@ -1,0 +1,8 @@
+---
+interface Props {
+  label: string;
+  className?: string;
+}
+const { label, className = '' } = Astro.props;
+---
+<p class:list={['ui-divider', className]}><span>{label}</span></p>

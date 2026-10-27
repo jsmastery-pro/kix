@@ -1,24 +1,30 @@
 ---
+import { LoaderCircle } from '@lucide/astro';
 interface Props {
   variant?: 'primary' | 'secondary' | 'quiet';
-  size?: 'md' | 'lg';
+  size?: 'md' | 'lg' | 'form';
   className?: string;
   disabled?: boolean;
   label: string;
   preview?: boolean;
   href?: string;
+  type?: 'button' | 'submit';
+  /** Label shown while a script marks the button aria-busy; also renders the spinner. */
+  busyLabel?: string;
+  attrs?: Record<string, string>;
 }
-const { variant = 'primary', size = 'md', className = '', disabled = false, label, preview = false, href } = Astro.props;
-const classes = ['ui-button', `ui-button--${variant}`, { 'ui-button--lg': size === 'lg' }, className];
+const { variant = 'primary', size = 'md', className = '', disabled = false, label, preview = false, href, type = 'button', busyLabel, attrs = {} } = Astro.props;
+const classes = ['ui-button', `ui-button--${variant}`, { 'ui-button--lg': size === 'lg', 'ui-button--form': size === 'form' }, className];
 ---
 {href ? (
-  <a href={href} class:list={classes}>
+  <a href={href} class:list={classes} {...attrs}>
     <span class="ui-button__left"><slot name="leading" />{label}</span>
     <slot name="trailing" />
   </a>
 ) : (
-  <button type="button" disabled={disabled} data-preview-action={preview ? '' : undefined} class:list={classes}>
-    <span class="ui-button__left"><slot name="leading" />{label}</span>
+  <button type={type} disabled={disabled} data-preview-action={preview ? '' : undefined} data-label={busyLabel ? label : undefined} data-busy-label={busyLabel} class:list={classes} {...attrs}>
+    {busyLabel && <LoaderCircle class="ui-button__spinner" aria-hidden="true" />}
+    <span class="ui-button__left"><slot name="leading" /><span data-button-label>{label}</span></span>
     <slot name="trailing" />
   </button>
 )}

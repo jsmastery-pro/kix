@@ -7,12 +7,27 @@ interface Props {
   className?: string;
   required?: boolean;
   autocomplete?: string;
+  labelVisible?: boolean;
+  size?: 'md' | 'lg';
+  minlength?: number;
+  maxlength?: number;
+  inputmode?: 'text' | 'email' | 'search';
+  value?: string;
+  /** Renders a hidden message line under the field that scripts fill and unhide. */
+  errors?: boolean;
 }
-const { id, label, placeholder, type = 'text', className = '', required = false, autocomplete = 'off' } = Astro.props;
+const {
+  id, label, placeholder, type = 'text', className = '', required = false, autocomplete = 'off',
+  labelVisible = false, size = 'md', minlength, maxlength, inputmode, value, errors = false,
+} = Astro.props;
+const errorId = `${id}-error`;
 ---
-<div class:list={['ui-field', className]}>
-  <label class="sr-only" for={id}>{label}</label>
-  <slot name="leading" />
-  <input id={id} name={id} type={type} placeholder={placeholder} autocomplete={autocomplete} required={required} />
-  <slot name="trailing" />
+<div class="ui-text-field">
+  <label class:list={[labelVisible ? 'ui-text-field__label' : 'sr-only']} for={id}>{label}</label>
+  <div class:list={['ui-field', { 'ui-field--lg': size === 'lg' }, className]}>
+    <slot name="leading" />
+    <input id={id} name={id} type={type} placeholder={placeholder} autocomplete={autocomplete} required={required} minlength={minlength} maxlength={maxlength} inputmode={inputmode} value={value} aria-describedby={errors ? errorId : undefined} />
+    <slot name="trailing" />
+  </div>
+  {errors && <p class="ui-field-error" id={errorId} hidden data-field-error></p>}
 </div>
