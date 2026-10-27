@@ -4,8 +4,9 @@ interface Props {
   className?: string;
 }
 const { title, className = '' } = Astro.props;
+const titleId = `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-title`;
 ---
-<section class:list={['ui-form-card', className]} aria-labelledby="form-card-title">
-  <h1 class="ui-form-card__title" id="form-card-title">{title}</h1>
+<section class:list={['ui-form-card', className]} aria-labelledby={titleId}>
+  <h1 class="ui-form-card__title" id={titleId}>{title}</h1>
   <slot />
 </section>

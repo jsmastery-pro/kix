@@ -103,6 +103,9 @@ export function initAuthForm(form: HTMLFormElement, mode: AuthMode) {
     .map((id) => form.querySelector<HTMLInputElement>(`#${id}`))
     .filter((input): input is HTMLInputElement => input !== null);
   const typedIn = new Set<string>();
+  // Fields showing a message from the server: kept until the shopper edits them or submits again,
+  // so a link inside the message (Sign in) survives focus leaving the field.
+  const serverErrors = new Set<string>();
   let busy = false;
 
   form.noValidate = true;
@@ -185,6 +188,7 @@ export function initAuthForm(form: HTMLFormElement, mode: AuthMode) {
     hideAlert();
     if (!rules[input.id]) return;
     typedIn.add(input.id);
+    serverErrors.delete(input.id);
     if (input.getAttribute('aria-invalid') === 'true' || input.type === 'checkbox') validate(input);
     // A new password can make a typed confirmation match or stop matching.
     if (input.id === 'register-password' && typedIn.has('register-confirm')) {
@@ -195,7 +199,7 @@ export function initAuthForm(form: HTMLFormElement, mode: AuthMode) {
 
   form.addEventListener('focusout', (event) => {
     const input = event.target as HTMLInputElement;
-    if (rules[input.id] && typedIn.has(input.id) && !busy) validate(input);
+    if (rules[input.id] && typedIn.has(input.id) && !serverErrors.has(input.id) && !busy) validate(input);
   });
 
   // The checkbox can't be read-only, so block toggling while a submit is in flight.
@@ -222,6 +226,7 @@ export function initAuthForm(form: HTMLFormElement, mode: AuthMode) {
     event.preventDefault();
     if (busy) return;
     hideAlert();
+    serverErrors.clear();
     const invalid = fields.filter((input) => !validate(input));
     if (invalid.length) {
       invalid[0].focus();
@@ -230,6 +235,8 @@ export function initAuthForm(form: HTMLFormElement, mode: AuthMode) {
 
     const value = (id: string) => form.querySelector<HTMLInputElement>(`#${id}`)?.value ?? '';
     const options = { returnTo: returnTo ?? DEFAULT_RETURN_TO };
+    // Hidden before anything is sent, so a revealed password never shows while busy or navigating.
+    hidePasswords();
     setBusy(true);
     let result: LoginResult;
     try {
@@ -243,7 +250,6 @@ export function initAuthForm(form: HTMLFormElement, mode: AuthMode) {
           );
     } catch {
       setBusy(false);
-      hidePasswords();
       showAlert(NETWORK_ERROR, true);
       return;
     }
@@ -255,10 +261,10 @@ export function initAuthForm(form: HTMLFormElement, mode: AuthMode) {
     }
 
     setBusy(false);
-    hidePasswords();
     const message = messageFor(result, mode, returnTo);
     const field = message.fieldId ? form.querySelector<HTMLInputElement>(`#${message.fieldId}`) : null;
     if (field) {
+      serverErrors.add(field.id);
       showFieldError(field, message);
       field.focus();
     } else {
