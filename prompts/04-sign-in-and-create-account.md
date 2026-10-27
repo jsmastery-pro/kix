@@ -1,6 +1,6 @@
 # 04 · Sign in and create account pages
 
-Status: approved
+Status: done
 
 <!-- review → approved → done, or dropped. Only the user approves. -->
 
@@ -254,7 +254,7 @@ None. No new npm packages. Nothing is sent or stored.
   - No horizontal overflow at 390 (`document.documentElement.scrollWidth === 390`) and every tap target is at least 44px.
   - Network panel: no request carries the typed email or password.
   - With JavaScript disabled, the buttons are disabled.
-- [ ] 7. Review and close out: a reviewer subagent compares the work with this plan; fix real gaps; write Result, update the index, propose AGENTS.md edits (the Google mark exception, the member-auth placeholder line); commit each passing step.
+- [x] 7. Review and close out: a reviewer subagent compares the work with this plan; fix real gaps; write Result, update the index, propose AGENTS.md edits (the Google mark exception, the member-auth placeholder line); commit each passing step.
 
 ## Files
 
@@ -306,4 +306,77 @@ None. No new npm packages. Nothing is sent or stored.
 
 ## Result
 
-Filled at close-out.
+**What shipped.** `/login` and `/create-account` are built from the two designs with our primitives:
+- the site header, a photo panel with the tagline, and the form card;
+- a stacked layout on phones (a sand band, then the form).
+
+Every submit goes through `src/data/mock-auth.ts`, which matches the kit's `member-store.ts` signatures and `LoginResult` shape (the reviewer confirmed it field for field).
+- The live result is the notice "Accounts open soon. Nothing was sent or saved."
+- In dev, reserved `@example.com` addresses exercise every branch. The build contains none of them (grepped).
+
+New primitives:
+- `PasswordField`, `Checkbox`, `Divider`, `FormAlert`, `FormCard`, `GoogleMark`.
+- `TextField` gained a visible label, an `lg` size and an error line.
+- `Button` gained `type`, `attrs`, a `form` size and a busy spinner.
+
+New tokens: `--color-error`, `--color-error-surface`, `--ds-motion-spin`. The header account icon points to `/login`.
+
+**Verification.**
+- `npm run check`: 0 errors, 0 warnings, 0 hints. `npm run build`: passes.
+- A DevTools-protocol script with real typing, Tab and clicks passed 64 of 64 checks:
+  - every validation message and the focus moves;
+  - the busy state (spinner, label, focus kept, read-only fields, primary colors kept);
+  - all eight scenarios and the not-connected notice;
+  - Google's repeat announcement;
+  - the `returnTo` rule, including `//evil.com`;
+  - tab order;
+  - no overflow at 390 and every tap target at least 44px;
+  - no request carrying any typed value;
+  - with JavaScript off, the buttons stay disabled.
+- Exact-viewport screenshots at 1440 × 1086 and 390 were compared with the designs.
+- `/` is pixel-identical to its pre-change baseline at both widths. `/design-system` changed only by dev-toolbar and image-load noise.
+
+**How it differed from the plan, and why.**
+- **Create-account photo.** 7588166 (a ladder) put jeans behind the headline, so the page uses 7588168 (the same series, a stool), credited in `SOURCES.md`.
+- **Tuned in the visual pass (estimates from the images):**
+  - Card title: `clamp(40px, 3.2vw, 46px)` (plan 52px; the design measures about 46px).
+  - "OR": 20px.
+  - Checkbox label, "Forgot password?" and the cross-links: up to 20px.
+  - Space above the cross-link: 16px. Space above the terms row: 18px.
+  - Subhead max width: 19.5em.
+  - Form column side padding: `clamp(16px, 4.4vw, 64px)`, so the card reaches about 516px.
+- **Two existing style bugs fixed:**
+  - `.site button { font: inherit }` outranked `.ui-button`'s font, so the form buttons showed Helvetica. Buttons now use `:where(.site) button`. The input rule keeps its old specificity, so the footer newsletter field doesn't change.
+  - Tailwind's preflight resets `text-decoration` on links, so every underlined link sets it explicitly.
+- **Review fixes:**
+  - Server field errors (for example "already exists. Sign in") now stay until the shopper edits the field or submits again. Before, losing focus cleared them, removing the Sign in link before it could be reached.
+  - Passwords are hidden as soon as a submit starts.
+  - `FormCard`'s heading id comes from its title.
+- **Plan review:** the plan reviewer's 15 findings were applied before approval (see Decisions).
+
+**Still intentionally different from the designs:**
+- stock photos;
+- no Remember me;
+- the Eye icon while hidden on both pages;
+- the added cross-links;
+- the copy "save your designs";
+- the darker placeholder gray;
+- the `KIX` wordmark;
+- no nav item is bolded.
+
+**For the wiring plan:**
+- Swap the two imports named in `mock-auth.ts`.
+- Save first and last name after signup.
+- Build the verification-code step.
+- Turn the Google button into the `/api/auth/login?idp=google` link once Google login is enabled.
+- Build `/forgot-password`.
+- Restore the header's member control.
+- Confirm Wix's password policy against our 8-character minimum.
+
+**Lessons.**
+- Check new primitives in a real `<button>`: the home page used only links, so the `.site button` specificity bug stayed hidden.
+- Tailwind preflight removes link underlines, so any link the design underlines must set `text-decoration`.
+- A field error that holds a link must not be re-validated on blur.
+- Choose panel photos by the headline area, not just the brand check.
+
+**One-pass prompt:** "Build plan 04's sign in and create account pages from the attached designs (1:1 at 1440) with our primitives and a mock adapter shaped like the kit's member store; vetted portrait Pexels photos with a clear top-left; Google's official G; verify with a DevTools behavior script and exact-viewport screenshots."
