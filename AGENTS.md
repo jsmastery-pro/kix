@@ -6,7 +6,7 @@ This file is the project's memory: it holds every decision that is still true. P
 
 ## Brand
 
-- Kix is a made-up brand with a Nike-style look. The page designs show Nike's logo and product names as references only: use a Kix wordmark (a marked placeholder until a real asset exists) and our own product data. Never use real brands' names, logos or shoe designs.
+- Kix is a made-up brand with a Nike-style look. The page designs show Nike's logo and product names as references only: use a Kix wordmark (a marked placeholder until a real asset exists) and our own product data. Never use real brands' names, logos or shoe designs. The one exception is Google's official G on the Continue with Google button (`public/images/brand/`), which Google's sign-in guidelines require.
 - Look: warm off-white backgrounds, near-black type and buttons, a red primary, condensed uppercase headlines, product-first layouts on soft pastel tiles. Once the design system exists, its tokens are the source of truth.
 - Voice: confident, short sentences, motion words. Never invent reviews, ratings, stock levels or delivery promises.
 
@@ -48,10 +48,10 @@ The UI primitives, tokens, site layout (`src/layouts/SiteLayout.astro`, shaped l
 - **Mock data:** until a page is wired to Wix, it reads `src/data/mock.ts`, shaped exactly like the storefront DTOs the `wix-headless-kit` skill ships (`storefront/app/wix/storefront/types.ts` in the templates it downloads), so wiring it is a swap, not a rewrite.
 - **Catalog, cart, checkout, orders:** Wix Stores and Wix eCommerce (Wix's hosted checkout), through the data layer and hooks shipped by `wix-headless-kit` (`src/wix/storefront/`, `src/hooks/storefront/`). Don't rewrite that logic. Its UI components are used only where they match the designs.
 - **Other data (3D model links, saved designs):** Wix CMS collections, keyed by product ID as a text field. CMS can't reference Stores products.
-- **Accounts:** Wix Members through `@wix/astro`'s built-in `/api/auth/*` routes, via the `wix-headless-kit` members data layer. No custom callback pages.
+- **Accounts:** Wix Members through `@wix/astro`'s built-in `/api/auth/*` routes, via the `wix-headless-kit` members data layer. No custom callback pages. `/login` and `/create-account` exist and submit through `src/data/mock-auth.ts` (same signatures as the kit's `member-store.ts`) until wired. The built-in signup takes email and password only, so wiring saves first and last name after signup; there's no remember-me (the session cookie's lifetime can't be set).
 - **3D models:** made by the user in Tripo Studio (the web app; no Tripo API or key) and downloaded as GLB into `models/raw/`. The agent optimizes them with glTF Transform into `models/web/`, stores them in Wix, and renders them with React Three Fiber islands (`client:only="react"`). Not set up yet.
 - **Analytics, replay, flags, experiments:** PostHog. Not set up yet.
-- **Styling:** tokens and primitive styles in `src/styles/global.css`; page layout in `src/styles/site.css` (sizes and grids only). Headlines use Barlow Condensed through Astro's Fonts API (`--font-barlow`), so builds need network access.
+- **Styling:** tokens and primitive styles in `src/styles/global.css`; page layout in `src/styles/site.css` (sizes and grids only). Headlines use Barlow Condensed through Astro's Fonts API (`--font-barlow`), so builds need network access. Tailwind's preflight strips link underlines, so links the design underlines set `text-decoration` themselves.
 
 ## Rules
 
