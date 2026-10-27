@@ -196,6 +196,8 @@ body.design-system {
 .ui-field:focus-within { border-color: var(--color-primary); box-shadow: inset 0 0 0 1px var(--color-primary); }
 /* The field box shows focus, so the input inside never draws its own outline (it would nest a second box). */
 .ui-field :is(input, select):focus-visible { outline: 0; }
+/* Browser autofill paints only the input, which is inset from the field box; paint it the field's white instead. */
+.ui-field input:is(:autofill, :-webkit-autofill) { box-shadow: inset 0 0 0 100px var(--color-white); -webkit-text-fill-color: var(--color-black); caret-color: var(--color-black); }
 .ui-field svg { width: 22px; height: 22px; flex: none; stroke-width: 1.75; }
 .ui-field input, .ui-field select { width: 100%; align-self: stretch; min-width: 0; border: 0; outline: 0; background: transparent; color: var(--color-black); font-size: 14px; }
 .ui-field input::placeholder { color: var(--color-text-secondary); opacity: 1; }
