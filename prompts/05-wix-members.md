@@ -267,7 +267,7 @@ Avatar sizes live with the primitive in `global.css`. Account layout sizes live 
 ## Steps
 
 - [x] 1. Branch `feat/wix-members`. Run `deploy.mjs members --stack astro`, then one `install.mjs` (Node 24.18) (check: `git status` lists only new kit files, `src/pages/account.astro`, and `package.json`/`package-lock.json` with `@wix/members` added; `npm run check` passes).
-- [ ] 2. Run the members seed: install the Members Area app (check: `read-site.mjs` reports `installed: true`).
+- [x] 2. Run the members seed: install the Members Area app (check: `read-site.mjs` reports `installed: true`).
 - [ ] 3. Allowed redirect URIs: look up the OAuth app API with `wix-docs` and read the app's allowed URIs. Confirm `/api/auth/callback` for localhost:4321, the live origin and the preview origin, adding any that are missing. Add the two `/login?reset=done` URLs if missing (check: read-back lists them all; if there's no API, it's recorded in You need to).
 - [ ] 4. Token and primitives: `--shadow-menu`, `Avatar`, `FormCard level`, with Avatar and `level={2}` specimens on `/design-system` (check: `npm run check`; `/` and the existing `/design-system` sections look the same before and after in screenshots).
 - [ ] 5. Data layer and scripts: `profile.ts`, `recovery.ts`, `pending-profile.ts`, `auth-form.ts` changes; delete `mock-auth.ts` (check: `npm run check`; `grep -r mock-auth src` is empty).
