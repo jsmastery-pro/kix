@@ -1,6 +1,6 @@
 # 09 · Product page: gallery, color and size pickers, add to cart, details and recommendations
 
-Status: approved
+Status: done
 
 <!-- review → approved → done, or dropped. Only the user approves. -->
 
@@ -275,7 +275,7 @@ Each step ends with `npm run check` passing and a commit.
   
   (check: screenshots of each.)
 - [x] 9. **Review.** A reviewer subagent compares the work with this plan; fix real gaps.
-- [ ] 10. **Close out.** Write Result, set `Status: done`, update the index, propose AGENTS.md edits.
+- [x] 10. **Close out.** Write Result, set `Status: done`, update the index, propose AGENTS.md edits.
 
 ## Files
 
@@ -328,4 +328,75 @@ Each step ends with `npm run check` passing and a commit.
 
 ## Result
 
-Filled at close-out.
+**What shipped**
+
+- **`/products/[slug]`**: server-rendered from Wix with the owner-editable SEO tags. A failed SEO read never 404s the product. An unknown slug is a 404 page with a way back.
+- **`ProductView` island** on the kit's `useProductDetail`:
+  - gallery: thumbnails, wrapping arrows, a centred `<dialog>` lightbox, and the disabled 3D pill and 3D View tile;
+  - our color swatches and 5-column size grid;
+  - Add to Cart, gated by the hook with the kit's reason;
+  - an inline "Added to your bag." or error message;
+  - the disabled wishlist heart.
+- **Header bag**: the live item count from the kit's cart store, on every page.
+- **Server sections**: neutral store-info strip, About This Product with the "Features" list, Product Details (Colorway, Material, Product Care), Fit & Sizing from the size range, Shipping & Returns, and You Might Also Like (same sport, then same gender, up to 4).
+- **Analytics**: `product_added_to_cart` (`product_id` only), plus `captureError(…, 'cart_add')` on a failed add.
+- **Wix data fix** (user-approved during step 2): every sneaker now has its own Features and Materials info sections (see Decisions).
+
+**Differences from the plan and why**
+
+- **The info-section data fix** wasn't planned. Step 2 exposed the shared sections, and the user chose to fix the data.
+- **The phone photo band is 29vh, not 38vh, and the thumbnails are 52px, not 56px.** After the review moved the status line into the sticky bar, the bar grew taller. The Color swatches had to clear it at 390 × 664.
+- **The phone sticky element** is a wrapper around the buy row and the status line, not the buy row alone. Otherwise "Added to your bag." and "Choose Size" sat under the bar (found in review).
+- **An incomplete add** scrolls the first missing group to the centre before focusing it, so the sticky bar can't hide it.
+- **Re-picking the current color** shows its photo again. `ProductView` passes a color-pick counter to the gallery.
+- **Extra pieces:**
+  - a new `ui-soon` class (focusable, dimmed with opacity `.6`, the same treatment as the existing `ui-button[aria-disabled]`) instead of `--color-state-disabled` icons;
+  - a `compact` option on `SectionHeading`;
+  - the ribbon badge sized up beside the price.
+- **Hardened HTML parsing** in `product-page.ts` (from review): numeric and named entities, and list items as separate lines. The summary renders as a `<div>`, so block HTML can't break hydration.
+- **Tablet thumbnail row** sits directly under the photo (`grid-template-rows: auto 1fr`), with padding so the focus rings aren't clipped.
+
+**Known differences from the design**
+
+- The shared header (as plan 08).
+- Content aligns with our logo at 65px rather than 53px.
+- Wix's `$189.00` prices.
+- The merchant's "Sale" or "New" ribbon instead of "16% OFF".
+- No stars, reviews or Customer Reviews.
+- A square main photo instead of a portrait one.
+- 2 photos plus the 3D View tile instead of 6 photos.
+- "Color" with no name until a pick, since nothing is pre-selected.
+- One check icon for every feature.
+- Fit & Sizing laid out like Shipping & Returns (icon beside the heading).
+- Neutral store-info copy.
+- No Size Guide or Learn More links.
+- No Style, Origin or SKU rows.
+- A visible selected-thumbnail border.
+
+Every size is estimated from the 866px image as ×1.663. Measured at 1440 × 900:
+
+| Element | Ours | Design |
+| --- | --- | --- |
+| Rail | 122px | 123px |
+| Photo | 659px | 667px |
+| Swatch | 52px | 52px |
+| Size pill | 81 × 60 | 85 × 60 |
+| Add to Cart | 370 × 80 | 389 × 80 |
+| Heart | 67 × 80 | 67 × 80 |
+| Perk cards | 100px tall | 103px tall |
+
+**Follow-ups**
+
+- `@wix/astro` adds a second `<title>` to every page, and the kit's `SEO.Tags` logs a React `schemaType` warning on the server.
+- `fetchProductBySlug` turns a Wix outage into a 404 (Risks).
+- The old shared "Features" and "Materials" info sections remain in Wix, unassigned. The owner can delete them.
+
+**Lessons**
+
+- The kit's seed shares info sections by title. Give each product's sections a unique name, or read one product back before building on its info sections.
+- A sticky phone bar must carry its own feedback line. Anything after it in the flow is hidden while it's stuck.
+- `aria-disabled` keeps the design's look, but an existing `.ui-button[aria-disabled]` dimming rule later in the file wins. Check the specificity and the file order.
+- Tailwind's preflight removes a `<dialog>`'s `margin: auto`. Set it back or the modal sits top-left.
+- Astro 7 runs one dev server per project, and `astro dev logs` was stale after hours. Restart it to read fresh server logs.
+
+**One-shot prompt:** "Build plan 09's product page: `/products/[slug]` with the kit's SEO read through `allSettled`, a `ProductView` island on `useProductDetail` (our swatches and size grid, an `aria-disabled` black Add to Cart with the kit's reason in a phone-sticky bar, an inline result, a gallery synced by `mediaKey`, a `<dialog>` lightbox, and disabled 3D and wishlist controls), a header bag count from `useCart`, server-rendered detail sections and same-sport recommendations. First give every product its own Features and Materials info sections in Wix."
