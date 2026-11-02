@@ -53,6 +53,8 @@
   --radius-pill: 9999px;
   --shadow-arrow: 0 2px 8px rgb(17 17 17 / 8%);
   --shadow-menu: 0 12px 32px rgb(17 17 17 / 12%);
+  --shadow-swatch: 0 2px 3px rgb(0 0 0 / 8%);
+  --color-swatch-border: rgb(17 17 17 / 12%);
 }
 
 @theme inline {
@@ -259,7 +261,7 @@ body.design-system {
 
 .ds-selector-title { margin: 0 0 8px; font-family: var(--font-display); font-size: 14px; font-weight: 700; }
 .ds-color-options { display: flex; align-items: center; gap: 17px; margin: 2px 0 17px; }
-.ds-color-option { position: relative; width: var(--ds-option-swatch); height: var(--ds-option-swatch); border: 1px solid rgb(17 17 17 / 12%); border-radius: 50%; background: var(--swatch-color); box-shadow: 0 2px 3px rgb(0 0 0 / 8%); }
+.ds-color-option { position: relative; width: var(--ds-option-swatch); height: var(--ds-option-swatch); border: 1px solid var(--color-swatch-border); border-radius: 50%; background: var(--swatch-color); box-shadow: var(--shadow-swatch); }
 .ds-color-option[aria-pressed="true"]::after { content: ""; position: absolute; inset: -4px; border: 1px solid var(--color-black); border-radius: 50%; }
 .ds-color-option--white { background: var(--color-white); }
 .ds-color-option--black { background: var(--color-black); }
@@ -446,7 +448,7 @@ a.ui-button { text-decoration: none; }
 .ui-range__input:focus-visible::-moz-range-thumb { box-shadow: 0 0 0 2px var(--color-white), 0 0 0 4px var(--color-primary); }
 .ui-range__input--top { z-index: 1; }
 
-.ui-color-dot { position: relative; width: var(--ds-filter-swatch); height: var(--ds-filter-swatch); padding: 0; border: 1px solid rgb(17 17 17 / 12%); border-radius: 50%; background: var(--swatch-color, var(--color-muted-fill)); box-shadow: 0 2px 3px rgb(0 0 0 / 8%); }
+.ui-color-dot { position: relative; width: var(--ds-filter-swatch); height: var(--ds-filter-swatch); padding: 0; border: 1px solid var(--color-swatch-border); border-radius: 50%; background: var(--swatch-color, var(--color-muted-fill)); box-shadow: var(--shadow-swatch); }
 .ui-color-dot--none { border-color: var(--color-control-border); }
 .ui-color-dot[aria-pressed="true"]::after { content: ""; position: absolute; inset: -5px; border: 1.5px solid var(--color-black); border-radius: 50%; }
 .ui-color-dot[aria-disabled="true"] { cursor: progress; }

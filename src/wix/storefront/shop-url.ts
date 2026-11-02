@@ -20,6 +20,39 @@ function decodeChoice(token: string): { kind: FacetSelection["kind"]; facetId: s
   return null;
 }
 
+const SEARCH_MAX = 100; // the kit's search limit (catalog-core searchQuery)
+
+/**
+ * The URL without keys the explore page can't honour, or null when it is already clean. Bad price
+ * bounds and over-long searches would make the catalog query throw (an error that no retry fixes);
+ * `sort` and `category` have no control on the page, and the store's live `category` switch would
+ * widen /shop past its Sports scope. Redirecting to the cleaned URL fixes server and client alike.
+ */
+export function cleanShopUrl(url: URL): URL | null {
+  const next = new URL(url);
+  const p = next.searchParams;
+  const bound = (key: string) => {
+    const raw = p.get(key);
+    if (raw === null) return null;
+    const n = Number(raw);
+    if (raw === "" || !Number.isFinite(n) || n < 0) {
+      p.delete(key);
+      return null;
+    }
+    return n;
+  };
+  const min = bound("min");
+  const max = bound("max");
+  if (min !== null && max !== null && min > max) {
+    p.delete("min");
+    p.delete("max");
+  }
+  if ((p.get("q") ?? "").trim().length > SEARCH_MAX) p.delete("q");
+  p.delete("sort");
+  p.delete("category");
+  return next.search === url.search ? null : next;
+}
+
 export function parseShopUrl(params: URLSearchParams): ShopUrlState {
   const state: ShopUrlState = { facetSelections: [], choiceIds: [] };
   if (params.get("min")) state.minPrice = params.get("min")!;

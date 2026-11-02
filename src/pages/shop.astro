@@ -7,9 +7,11 @@ import ShopView from '../components/storefront/ShopView';
 import { scopeLabel, sneakerNav, urlView } from '../components/storefront/explore';
 import SiteLayout from '../layouts/SiteLayout.astro';
 import { fetchCategories, fetchFacetData, searchCatalog } from '../wix/storefront/catalog';
-import { parseShopUrl } from '../wix/storefront/shop-url';
+import { cleanShopUrl, parseShopUrl } from '../wix/storefront/shop-url';
 import type { Category, FacetData, ProductSummary } from '../wix/storefront/types';
 
+const cleaned = cleanShopUrl(Astro.url);
+if (cleaned) return Astro.redirect(`${cleaned.pathname}${cleaned.search}`);
 const url = parseShopUrl(Astro.url.searchParams);
 const { choiceIds: _choiceIds, ...filters } = url;
 let categories: Category[] = [];

@@ -17,11 +17,13 @@ import { PUBLIC_POSTHOG_HOST, PUBLIC_POSTHOG_PROJECT_TOKEN } from 'astro:env/cli
     // POSTHOG_BROWSER_SNIPPET_END
     const EMAIL = /[^\s@<>"']+@[^\s@<>"']+\.[^\s@<>"']+/g;
     const SEARCH_PARAM = /([?&]q=)[^&#]*/g;
-    const maskSearch = (props) => {
-      if (!props) return;
+    // Top-level properties and one level of nested objects (web vitals nest their own $current_url).
+    const maskSearch = (props, depth = 0) => {
+      if (!props || typeof props !== 'object') return;
       for (const key of Object.keys(props)) {
         const value = props[key];
         if (typeof value === 'string' && /url|referrer/i.test(key)) props[key] = value.replace(SEARCH_PARAM, '$1<MASKED>');
+        else if (depth === 0 && value && typeof value === 'object' && !Array.isArray(value)) maskSearch(value, 1);
       }
     };
     posthog.init(token, {

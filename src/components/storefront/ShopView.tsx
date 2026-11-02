@@ -38,6 +38,8 @@ type FilterName = 'category' | 'price' | 'color' | 'search' | 'clear';
 
 const TONES: TileTone[] = ['beige', 'aqua', 'rose', 'mint', 'peach', 'periwinkle', 'lilac', 'coral'];
 const SKELETONS = 6;
+/** How long the color dots wait for the store's own facets before they're hidden (its facet read failed). */
+const FACET_WAIT_MS = 8000;
 const dollars = (n: number) => `$${n}`;
 const toNumber = (value: number | string | undefined | null): number | null => {
   if (value == null || value === '') return null;
@@ -60,9 +62,17 @@ export default function ShopView({ initialProducts, initialCategories, initialCa
   // No count beside an error: the last one no longer describes what's on screen.
   const total = shop.error ? null : (shop.total ?? lastTotal.current);
   const facetsLoaded = shop.facets.length > 0 || shop.priceRange !== null;
+  // The kit's facet read never throws (it answers empty), so a store that never gets facets is
+  // only visible by waiting. Then the server's dots can't be used: hide them rather than leave them pending.
+  const [facetsGaveUp, setFacetsGaveUp] = useState(false);
+  useEffect(() => {
+    if (!ready || facetsLoaded) return;
+    const id = setTimeout(() => setFacetsGaveUp(true), FACET_WAIT_MS);
+    return () => clearTimeout(id);
+  }, [ready, facetsLoaded]);
   const facets = facetsLoaded ? shop.facets : initialFacetData.facets;
   const priceRange = facetsLoaded ? shop.priceRange : initialFacetData.priceRange;
-  const colorFacets = facets.filter((f) => f.isColor && f.choices.length > 0);
+  const colorFacets = facetsGaveUp && !facetsLoaded ? [] : facets.filter((f) => f.isColor && f.choices.length > 0);
   const search = ready ? (shop.filters.search ?? '') : urlState.search;
   const pressed = ready ? shop.selectedChoiceIds : urlState.choiceIds;
   const hasFilters = ready ? shop.hasActiveFilters : urlState.hasFilters;

@@ -11,7 +11,7 @@ import ShopView from '../../components/storefront/ShopView';
 import { scopeLabel, sneakerNav, urlView } from '../../components/storefront/explore';
 import SiteLayout from '../../layouts/SiteLayout.astro';
 import { fetchCategories, fetchCategoryBySlug, fetchFacetData, searchCatalog } from '../../wix/storefront/catalog';
-import { parseShopUrl } from '../../wix/storefront/shop-url';
+import { cleanShopUrl, parseShopUrl } from '../../wix/storefront/shop-url';
 import type { Category, FacetData, ProductSummary } from '../../wix/storefront/types';
 
 export const wixMetadata = {
@@ -27,6 +27,8 @@ const pageUrl =
     ? forwardedUrl
     : Astro.url.href;
 
+const cleaned = cleanShopUrl(Astro.url);
+if (cleaned) return Astro.redirect(`${cleaned.pathname}${cleaned.search}`);
 const url = parseShopUrl(Astro.url.searchParams);
 const { choiceIds: _choiceIds, ...filters } = url;
 let category: Category | null = null;
@@ -60,7 +62,11 @@ try {
   console.error('[category] catalog read failed', slug, error);
 }
 
-if (!category) Astro.response.status = 404;
+if (!category) {
+  // fetchCategoryBySlug returns null for a missing slug and for a failed read alike.
+  console.error('[category] not found or read failed:', slug);
+  Astro.response.status = 404;
+}
 const sportsId = categories.find((c) => c.slug === 'sports')?.id ?? null;
 ---
 
