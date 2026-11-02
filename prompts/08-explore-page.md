@@ -195,7 +195,7 @@ Each step ends with `npm run check` passing and a commit.
   - no event property anywhere contains "court".
 
   If PostHog isn't configured locally, say so and leave this unchecked.
-- [ ] 10. **Design comparison** at 1440px and 390px (390 through a same-origin iframe, scrolled so lazy images load), side by side with the design. List every difference, fix, repeat. Also check 1024px and 768px for layout breaks.
+- [x] 10. **Design comparison** at 1440px and 390px (390 through a same-origin iframe, scrolled so lazy images load), side by side with the design. List every difference, fix, repeat. Also check 1024px and 768px for layout breaks.
 - [ ] 11. **Final checks and review.** `npm run check` and `npm run build`; a reviewer subagent compares the work with this plan; fix real gaps.
 - [ ] 12. **Close out.** Write Result, set `Status: done`, update the index, propose AGENTS.md edits, and ask about releasing.
 

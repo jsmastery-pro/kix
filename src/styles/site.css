@@ -122,7 +122,7 @@
   .account__signout .ui-button { width: 100%; }
   .account__cards { grid-template-columns: 1fr; }
   .explore { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto; grid-template-areas: "head" "side" "results"; }
-  .explore__head { display: grid; gap: 16px; padding: 24px 0 0; }
+  .explore__head { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 24px 0 0; }
   .explore__sidebar { padding: 16px 0 0; border-right: 0; }
   .explore__sidebar-heading, .explore__filters-heading { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .explore__categories { margin: 0 -16px; padding-inline: 16px; overflow-x: auto; scrollbar-width: none; }
