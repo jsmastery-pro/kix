@@ -1,6 +1,6 @@
 # 08 · Explore page: category list, price and color filters, search and the product grid
 
-Status: review
+Status: approved
 
 <!-- review → approved → done, or dropped. Only the user approves. -->
 
