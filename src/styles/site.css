@@ -80,6 +80,32 @@
 .explore__more { display: flex; justify-content: center; margin-top: 48px; }
 .explore-missing { width: min(var(--site-max), 100% - 2 * var(--site-inset)); margin: clamp(40px, 5vw, 80px) auto; }
 
+/* Product page (plan 09): rail | photo | buy column (the gallery's root is display: contents, so its
+   rail and frame are grid items here), then the store info, the detail sections and recommendations.
+   Content lines up with the header's logo and account icon. */
+.pdp { width: min(var(--site-wide-max), 100% - 2 * var(--site-wide-inset)); margin-inline: auto; padding: clamp(4px, .6vw, 8px) clamp(16px, 2.6vw, 37px) 0; }
+.pdp__top { display: grid; grid-template-columns: clamp(72px, 8.5vw, 123px) minmax(0, 667fr) minmax(300px, 471fr); grid-template-areas: "rail photo buy"; align-items: start; column-gap: clamp(16px, 2.2vw, 32px); }
+.pdp__top .ui-gallery__rail { grid-area: rail; }
+.pdp__top .ui-gallery__frame { grid-area: photo; }
+.pdp__buy { grid-area: buy; display: flex; flex-direction: column; min-width: 0; margin-left: clamp(0px, 1vw, 15px); }
+.pdp__title { margin-top: 4px; }
+.pdp__price { margin-top: clamp(12px, 1.25vw, 18px); }
+.pdp__summary { margin-top: clamp(12px, 1.1vw, 16px); }
+.pdp__color { margin-top: clamp(18px, 1.8vw, 26px); }
+.pdp__size { margin-top: clamp(16px, 1.7vw, 24px); }
+.pdp__buy-row { margin-top: clamp(20px, 2.1vw, 30px); }
+.pdp__status { margin-top: 10px; }
+.pdp__perks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(12px, 1vw, 15px); margin-top: clamp(32px, 3vw, 43px); }
+.pdp__section { display: grid; grid-template-columns: 55fr 45fr; margin-top: clamp(32px, 3.3vw, 47px); padding-top: clamp(32px, 3.3vw, 47px); border-top: 1px solid var(--color-border); }
+.pdp__col { min-width: 0; }
+.pdp__col:first-child { padding-right: clamp(24px, 2.8vw, 40px); }
+.pdp__col + .pdp__col { padding-left: clamp(24px, 3.5vw, 50px); border-left: 1px solid var(--color-border); }
+.pdp__copy, .pdp__table { margin-top: clamp(12px, 1.1vw, 16px); }
+.pdp__features { padding-top: 4px; }
+.pdp__info { display: grid; align-content: start; gap: clamp(28px, 3.3vw, 48px); }
+.pdp__related { margin-top: clamp(32px, 3.3vw, 47px); padding-top: clamp(32px, 3.3vw, 47px); border-top: 1px solid var(--color-border); }
+.pdp__related-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(16px, 3vw, 44px); }
+
 @media (max-width: 1100px) {
   .site-header__nav ul { gap: 28px; }
   .home-new, .home-popular { gap: 20px; }
@@ -91,6 +117,15 @@
   .explore__head { flex-wrap: wrap; }
   .explore__search { width: 100%; }
   .explore__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pdp__top { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "photo buy" "rail buy"; }
+  .pdp__top .ui-gallery__rail { display: flex; margin-top: 12px; overflow-x: auto; scrollbar-width: none; }
+  .pdp__top .ui-gallery__rail::-webkit-scrollbar { display: none; }
+  .pdp__top .ui-gallery__rail > li { flex: 0 0 72px; }
+  .pdp__buy { margin-left: 0; }
+  .pdp__section { grid-template-columns: minmax(0, 1fr); }
+  .pdp__col:first-child { padding-right: 0; }
+  .pdp__col + .pdp__col { margin-top: 32px; padding: 32px 0 0; border-top: 1px solid var(--color-border); border-left: 0; }
+  .pdp__related-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px 16px; }
 }
 
 @media (max-width: 767px) {
@@ -135,4 +170,19 @@
   .explore__clear { margin-top: 20px; }
   .explore__results { padding: 24px 0 48px; }
   .explore__grid { gap: 28px 12px; }
+  /* Phone PDP: a bounded photo band, a thumbnail row, then the buy column with the summary after the
+     buy row (CSS order) and the buy row stuck to the bottom while the column is on screen. */
+  .pdp { padding: 0; }
+  .pdp__top { grid-template-columns: minmax(0, 1fr); grid-template-areas: "photo" "rail" "buy"; }
+  .pdp__top .ui-gallery__frame { aspect-ratio: auto; height: min(100vw - 32px, 38vh); }
+  .pdp__top .ui-gallery__rail { gap: 8px; margin-top: 8px; }
+  .pdp__top .ui-gallery__rail > li { flex-basis: 56px; }
+  .pdp__buy { margin-top: 16px; }
+  .pdp__price { margin-top: 10px; }
+  .pdp__summary { order: 1; margin-top: 20px; }
+  .pdp__color { margin-top: 16px; }
+  .pdp__size { margin-top: 16px; }
+  .pdp__buy-row { position: sticky; bottom: 0; z-index: 2; margin: 16px -16px 0; padding: 12px 16px; border-top: 1px solid var(--color-border); background: var(--color-panel); }
+  .pdp__perks { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .pdp__related-grid { gap: 24px 12px; }
 }

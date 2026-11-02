@@ -1,5 +1,6 @@
 ---
 // ProductCard.tsx is this card's React twin for React islands (plan 08): same markup and classes. Keep them in step.
+// `wide` (plan 09's recommendations) is the compact card with a landscape image; it renders on the server only, so the twin has no `wide`.
 import { ShoppingBag } from '@lucide/astro';
 import type { ProductSummary } from '../../wix/storefront/types';
 import type { TileTone } from './tones';
@@ -9,7 +10,7 @@ import Photo from './Photo.astro';
 interface Props {
   product: ProductSummary;
   tone: TileTone;
-  size?: 'feature' | 'compact';
+  size?: 'feature' | 'compact' | 'wide';
   className?: string;
 }
 const { product: p, tone, size = 'compact', className = '' } = Astro.props;
@@ -19,7 +20,7 @@ const price = p.fromPrice ? `From ${p.price}` : p.price !== p.maxPrice ? `${p.pr
 const wasPrice = !p.fromPrice && p.price === p.maxPrice ? p.compareAtPrice : null;
 const availability = p.availability === 'OUT_OF_STOCK' ? (p.preorder ? 'Pre-order' : 'Sold out') : null;
 ---
-<article class:list={['ui-product-card', `ui-product-card--${size}`, className]}>
+<article class:list={['ui-product-card', size === 'wide' ? 'ui-product-card--compact ui-product-card--wide' : `ui-product-card--${size}`, className]}>
   <div class="ui-product-card__media">
     <a href={href} class="ui-product-card__link" tabindex="-1" aria-hidden="true">
       <Photo src={p.imageUrl} alt="" sizes={size === 'feature' ? '(min-width: 768px) 30vw, 78vw' : '(min-width: 768px) 22vw, 45vw'} className={`ui-product-card__image ui-tone--${tone}`} />

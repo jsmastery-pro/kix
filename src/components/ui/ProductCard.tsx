@@ -1,6 +1,7 @@
 // React twin of ProductCard.astro (plan 08) for listings rendered inside React islands, where Astro
 // components can't render. Same markup and ui-product-card classes; keep the two in step. The
-// listing look (square tile, name and price on one row) is the `listing` size.
+// listing look (square tile, name and price on one row) is the `listing` size. The Astro card's `wide`
+// size (plan 09) is server-only, so it has no twin here.
 import { ShoppingBag } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { imgAttrs } from '../../wix/media';

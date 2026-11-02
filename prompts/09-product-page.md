@@ -245,7 +245,7 @@ The new React components reuse these classes:
 
 Each step ends with `npm run check` passing and a commit.
 
-- [ ] 1. **Tokens and primitives.** Add `--color-scrim` and the primitive classes above to `global.css`, and the `.pdp*` layout to `site.css`. Add the `wide` size to `ProductCard.astro`. (check: `npm run check`; `/design-system` and `/` look unchanged in a screenshot.)
+- [x] 1. **Tokens and primitives.** Add `--color-scrim` and the primitive classes above to `global.css`, and the `.pdp*` layout to `site.css`. Add the `wide` size to `ProductCard.astro`. (check: `npm run check`; `/design-system` and `/` look unchanged in a screenshot.)
 - [ ] 2. **Server page.** Write `product-page.ts` and `src/pages/products/[slug].astro`: the kit skeleton's `wixMetadata` and SEO reads, with `allSettled` and a conditional `<SEO.Tags>` (see "Server reads and failures"), the reads above with logging, the 404 page, and the lower sections (perk strip, About, Product Details, Fit & Sizing, Shipping & Returns, recommendations). The island is a placeholder `div` for now. (check:
   - `curl -s -o /dev/null -w '%{http_code}'` gives 200 for `kix-nightshift-high` and 404 for `no-such-shoe`;
   - the HTML holds the product name, the SEO tags, 3 Features items, Colorway/Material/Product Care rows, "Available in sizes 7 to 12" and 4 recommendation cards, none of them Nightshift High;
