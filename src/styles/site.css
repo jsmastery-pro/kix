@@ -93,7 +93,7 @@
 .pdp__summary { margin-top: clamp(12px, 1.1vw, 16px); }
 .pdp__color { margin-top: clamp(18px, 1.8vw, 26px); }
 .pdp__size { margin-top: clamp(16px, 1.7vw, 24px); }
-.pdp__buy-row { margin-top: clamp(20px, 2.1vw, 30px); }
+.pdp__buy-action { margin-top: clamp(20px, 2.1vw, 30px); }
 .pdp__status { margin-top: 10px; }
 .pdp__perks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(12px, 1vw, 15px); margin-top: clamp(32px, 3vw, 43px); }
 .pdp__section { display: grid; grid-template-columns: 55fr 45fr; margin-top: clamp(32px, 3.3vw, 47px); padding-top: clamp(32px, 3.3vw, 47px); border-top: 1px solid var(--color-border); }
@@ -117,8 +117,9 @@
   .explore__head { flex-wrap: wrap; }
   .explore__search { width: 100%; }
   .explore__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .pdp__top { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "photo buy" "rail buy"; }
-  .pdp__top .ui-gallery__rail { display: flex; margin-top: 12px; overflow-x: auto; scrollbar-width: none; }
+  .pdp__top { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-rows: auto 1fr; grid-template-areas: "photo buy" "rail buy"; }
+  /* The padding keeps the thumbnails' focus rings inside the scrolling row. */
+  .pdp__top .ui-gallery__rail { display: flex; align-self: start; margin: 7px -5px 0; padding: 5px; overflow-x: auto; scrollbar-width: none; }
   .pdp__top .ui-gallery__rail::-webkit-scrollbar { display: none; }
   .pdp__top .ui-gallery__rail > li { flex: 0 0 72px; }
   .pdp__buy { margin-left: 0; }
@@ -170,20 +171,22 @@
   .explore__clear { margin-top: 20px; }
   .explore__results { padding: 24px 0 48px; }
   .explore__grid { gap: 28px 12px; }
-  /* Phone PDP: a bounded photo band (32vh, so the Color swatches clear the sticky buy row at 390 × 664), a thumbnail row, then the buy column with the summary after the
-     buy row (CSS order) and the buy row stuck to the bottom while the column is on screen. */
+  /* Phone PDP: a bounded photo band (29vh, so the Color swatches clear the sticky buy row at 390 × 664), a thumbnail row, then the buy column with the summary after the
+     buy row (CSS order) and the buy row with its status line stuck to the bottom while the column is on screen. */
   .pdp { padding: 0; }
-  .pdp__top { grid-template-columns: minmax(0, 1fr); grid-template-areas: "photo" "rail" "buy"; }
-  .pdp__top .ui-gallery__frame { aspect-ratio: auto; height: min(100vw - 32px, 32vh); }
-  .pdp__top .ui-gallery__rail { gap: 8px; margin-top: 8px; }
+  html:has(.pdp) { scroll-padding-bottom: 140px; }
+  .pdp__top { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "photo" "rail" "buy"; }
+  .pdp__top .ui-gallery__frame { aspect-ratio: auto; height: min(100vw - 32px, 29vh); }
+  .pdp__top .ui-gallery__rail { gap: 8px; margin-top: 3px; }
   .pdp__top .ui-gallery__rail > li { flex-basis: 52px; }
   .pdp__buy { margin-top: 12px; }
   .pdp__title { margin-top: 2px; }
-  .pdp__price { margin-top: 8px; }
+  .pdp__price { margin-top: 6px; }
   .pdp__summary { order: 1; margin-top: 20px; }
-  .pdp__color { margin-top: 14px; }
+  .pdp__color { margin-top: 12px; }
   .pdp__size { margin-top: 16px; }
-  .pdp__buy-row { position: sticky; bottom: 0; z-index: 2; margin: 16px -16px 0; padding: 10px 16px; border-top: 1px solid var(--color-border); background: var(--color-panel); }
+  .pdp__buy-action { position: sticky; bottom: 0; z-index: 2; margin: 16px -16px 0; padding: 8px 16px; border-top: 1px solid var(--color-border); background: var(--color-panel); }
+  .pdp__status { margin-top: 4px; }
   .pdp__perks { grid-template-columns: minmax(0, 1fr); gap: 12px; }
   .pdp__related-grid { gap: 24px 12px; }
 }

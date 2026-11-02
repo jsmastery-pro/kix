@@ -24,12 +24,15 @@ type Outcome = { tone: 'done' | 'error'; text: string } | null;
 export default function ProductView({ initial, eyebrow, summaryHtml }: Props) {
   const d = useProductDetail({ initial });
   const [outcome, setOutcome] = useState<Outcome>(null);
+  // Counts color picks, so picking the current color again brings its photo back.
+  const [colorPicks, setColorPicks] = useState(0);
   const buyRef = useRef<HTMLDivElement>(null);
   const product = d.product ?? initial;
   const blocked = !d.canAdd || d.adding;
 
   const select = (optionId: string, choiceId: string) => {
     setOutcome(null);
+    if (d.optionGroups.find((g) => g.id === optionId)?.isColor) setColorPicks((n) => n + 1);
     d.selectOption(optionId, choiceId);
   };
 
@@ -37,7 +40,11 @@ export default function ProductView({ initial, eyebrow, summaryHtml }: Props) {
     if (d.adding) return;
     if (!d.canAdd) {
       const missing = d.optionGroups.find((g) => !g.choices.some((c) => c.selected));
-      if (missing) buyRef.current?.querySelector<HTMLButtonElement>(`[data-option-group="${missing.id}"] button:not(:disabled)`)?.focus();
+      const target = missing && buyRef.current?.querySelector<HTMLButtonElement>(`[data-option-group="${missing.id}"] button:not(:disabled)`);
+      if (target) {
+        target.scrollIntoView({ block: 'center' });
+        target.focus({ preventScroll: true });
+      }
       return;
     }
     setOutcome(null);
@@ -58,7 +65,7 @@ export default function ProductView({ initial, eyebrow, summaryHtml }: Props) {
 
   return (
     <div className="pdp__top">
-      <ProductGallery name={product.name} gallery={product.gallery} selectedImage={d.imageUrl} />
+      <ProductGallery name={product.name} gallery={product.gallery} selectedImage={d.imageUrl} selectionKey={colorPicks} />
 
       <div ref={buyRef} className="pdp__buy">
         {eyebrow && <p className="ui-pdp-eyebrow">{eyebrow}</p>}
@@ -74,13 +81,14 @@ export default function ProductView({ initial, eyebrow, summaryHtml }: Props) {
           )}
           {product.discountNames.length > 0 && <p className="ui-price__note">{product.discountNames.join(' · ')}</p>}
         </div>
-        {summaryHtml && <div className="ui-pdp-summary pdp__summary"><p dangerouslySetInnerHTML={{ __html: summaryHtml }} /></div>}
+        {summaryHtml && <div className="ui-pdp-summary pdp__summary" dangerouslySetInnerHTML={{ __html: summaryHtml }} />}
 
         {d.optionGroups.map((group) => (
           <OptionGroup key={group.id} group={group} onSelect={select} className={group.isColor ? 'pdp__color' : 'pdp__size'} />
         ))}
 
-        <div className="ui-buy-row pdp__buy-row">
+        <div className="pdp__buy-action">
+        <div className="ui-buy-row">
           <button
             type="button"
             className="ui-button ui-button--primary ui-buy-row__cta"
@@ -98,6 +106,7 @@ export default function ProductView({ initial, eyebrow, summaryHtml }: Props) {
           </button>
         </div>
         <p id="pdp-status" className={`ui-status-line pdp__status${statusTone}`} role="status">{statusText}</p>
+        </div>
       </div>
     </div>
   );

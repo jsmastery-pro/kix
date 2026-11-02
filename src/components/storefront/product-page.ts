@@ -4,7 +4,10 @@
 import type { Category, ProductDetail, ProductSummary } from '../../wix/storefront/types';
 
 const EYEBROW: Record<string, string> = { men: "Men's Shoe", women: "Women's Shoe", kids: "Kids' Shoe" };
-const ENTITIES: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', '#39': "'", nbsp: ' ' };
+const ENTITIES: Record<string, string> = {
+  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
+  lsquo: '\u2018', rsquo: '\u2019', ldquo: '\u201C', rdquo: '\u201D', ndash: '\u2013', mdash: '\u2014', hellip: '\u2026',
+};
 // Info sections the page places itself; any other section becomes its own Product Details row.
 const FEATURES = 'features';
 const MATERIALS = 'materials';
@@ -39,13 +42,14 @@ export function paragraphs(html: string): string[] {
   return (blocks.length > 0 ? blocks : [html.trim()]).filter((block) => plainText(block) !== '');
 }
 
-/** Tags stripped (a line break becomes a space), common entities decoded, whitespace collapsed. */
+/** Tags stripped (a line break or a closing block tag becomes a space), entities decoded, whitespace collapsed. */
 export function plainText(html: string): string {
   return html
-    .replace(/<br\s*\/?>/gi, ' ')
-    .replace(/<\/p>\s*<p\b[^>]*>/gi, ' ')
+    .replace(/<br\s*\/?>|<\/(p|li|div|h[1-6])>/gi, ' ')
     .replace(/<[^>]*>/g, '')
-    .replace(/&(amp|lt|gt|quot|#39|nbsp);/g, (_, name: string) => ENTITIES[name])
+    .replace(/&#(\d+);/g, (_, code: string) => String.fromCodePoint(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code: string) => String.fromCodePoint(parseInt(code, 16)))
+    .replace(/&([a-z]+);/gi, (entity, name: string) => ENTITIES[name.toLowerCase()] ?? entity)
     .replace(/\s+/g, ' ')
     .trim();
 }

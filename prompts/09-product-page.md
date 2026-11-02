@@ -274,7 +274,7 @@ Each step ends with `npm run check` passing and a commit.
   - `add()` rejects: our error copy shows, `captureError` fires, the button works again.
   
   (check: screenshots of each.)
-- [ ] 9. **Review.** A reviewer subagent compares the work with this plan; fix real gaps.
+- [x] 9. **Review.** A reviewer subagent compares the work with this plan; fix real gaps.
 - [ ] 10. **Close out.** Write Result, set `Status: done`, update the index, propose AGENTS.md edits.
 
 ## Files

@@ -12,11 +12,13 @@ interface Props {
   gallery: string[];
   /** The photo for the shopper's color pick (useProductDetail().imageUrl); null before a pick. */
   selectedImage: string | null;
+  /** Changes on every color pick, so re-picking the current color shows its photo again. */
+  selectionKey: number;
 }
 
 const SOON = '3D view coming soon';
 
-export default function ProductGallery({ name, gallery, selectedImage }: Props) {
+export default function ProductGallery({ name, gallery, selectedImage, selectionKey }: Props) {
   const [active, setActive] = useState(0);
   // A picked photo that matches no gallery item; shown until the shopper next moves.
   const [unmatched, setUnmatched] = useState<string | null>(null);
@@ -32,7 +34,7 @@ export default function ProductGallery({ name, gallery, selectedImage }: Props) 
       setActive(index);
       setUnmatched(null);
     } else setUnmatched(selectedImage);
-  }, [selectedImage, gallery]);
+  }, [selectedImage, selectionKey, gallery]);
 
   const show = (index: number) => {
     setActive((index + total) % total);
@@ -46,7 +48,7 @@ export default function ProductGallery({ name, gallery, selectedImage }: Props) 
     <div className="ui-gallery">
       <ul className="ui-gallery__rail" aria-label="Photos">
         {gallery.map((url, index) => (
-          <li key={url}>
+          <li key={`${index}-${url}`}>
             <button
               type="button"
               className="ui-thumbnail"
