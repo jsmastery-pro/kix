@@ -571,7 +571,7 @@ a.ui-button { text-decoration: none; }
 .ui-buy-row__cta { flex: 1; min-height: clamp(56px, 5.56vw, 80px); border-radius: var(--radius-xs); box-shadow: none; font-family: var(--font-sans); font-size: clamp(17px, 1.53vw, 22px); font-weight: 500; }
 .ui-buy-row__cta svg { width: clamp(22px, 1.8vw, 26px); height: clamp(22px, 1.8vw, 26px); stroke-width: 1.6; }
 /* The hook gates the add; the button keeps the design's black and explains with the status line. */
-.ui-buy-row__cta[aria-disabled="true"]:not([aria-busy="true"]) { opacity: 1; cursor: pointer; }
+.ui-button.ui-buy-row__cta[aria-disabled="true"]:not([aria-busy="true"]) { opacity: 1; cursor: pointer; }
 .ui-buy-row__wish { width: clamp(56px, 4.65vw, 67px); height: auto; }
 .ui-buy-row__wish svg { width: clamp(22px, 1.8vw, 26px); height: clamp(22px, 1.8vw, 26px); stroke-width: 1.6; }
 
@@ -599,7 +599,7 @@ a.ui-button { text-decoration: none; }
 .ui-info-block__title { font-family: var(--font-display); font-size: clamp(20px, 1.74vw, 25px); font-weight: 700; line-height: 1.2; }
 .ui-info-block__text { margin-top: 4px; color: var(--color-text-secondary); font-size: clamp(15px, 1.32vw, 19px); line-height: 1.5; }
 
-.ui-lightbox { width: min(90vw, 90vh); max-width: none; max-height: none; padding: 0; overflow: visible; border: 0; border-radius: var(--radius-md); background: var(--color-white); }
+.ui-lightbox { width: min(90vw, 90vh); max-width: none; max-height: none; margin: auto; padding: 0; overflow: visible; border: 0; border-radius: var(--radius-md); background: var(--color-white); }
 .ui-lightbox::backdrop { background: var(--color-scrim); }
 .ui-lightbox img { display: block; width: 100%; aspect-ratio: 1; border-radius: var(--radius-md); object-fit: cover; }
 .ui-lightbox__close { position: absolute; top: 12px; right: 12px; }

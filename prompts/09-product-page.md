@@ -251,19 +251,19 @@ Each step ends with `npm run check` passing and a commit.
   - `curl -s -o /dev/null -w '%{http_code}'` gives 200 for `kix-nightshift-high` and 404 for `no-such-shoe`;
   - the HTML holds the product name, the SEO tags, 3 Features items, Colorway/Material/Product Care rows, "Available in sizes 7 to 12" and 4 recommendation cards, none of them Nightshift High;
   - `kix-mini-court` shows 3 cards and "1Y to 7Y".)
-- [ ] 3. **Gallery.** `ProductGallery.tsx` inside a new `ProductView.tsx` island: rail, frame, arrows, expand lightbox, the disabled 3D pill and the 3D View tile. (check in the browser:
+- [x] 3. **Gallery.** `ProductGallery.tsx` inside a new `ProductView.tsx` island: rail, frame, arrows, expand lightbox, the disabled 3D pill and the 3D View tile. (check in the browser:
   - the thumbnails and arrows swap the photo, and the arrows wrap;
   - picking the second color (step 4) swaps the photo and marks its thumbnail through `mediaKey()`, and afterwards the thumbnails and arrows still change the photo;
   - Escape and the close button shut the lightbox and focus returns to expand;
   - the 3D controls do nothing, have their tooltip, and are reachable by Tab;
   - no hydration warning in the console.)
-- [ ] 4. **Buy column.** Eyebrow, name, ribbons, price, summary, `OptionGroup` for Color (swatches) and Size (pills), the buy row with the disabled heart, the status line. (check:
+- [x] 4. **Buy column.** Eyebrow, name, ribbons, price, summary, `OptionGroup` for Color (swatches) and Size (pills), the buy row with the disabled heart, the status line. (check:
   - before picking, the line reads "Choose Color and Size", and pressing Add to Cart focuses the Color group without a network request;
   - after picking both, the add request in the Network panel carries the picked variant's ID, and the response's line item shows the picked Color and Size;
   - "Added to your bag." appears;
   - "Was $220.00" is struck on Nightshift High.)
 - [ ] 5. **Header bag count.** `BagButton.tsx` in `SiteLayout` with its fallback. (check: the count shows after an add, survives a reload, and reads "Bag, 1 item" to a screen reader; other pages still render their header with JS disabled.)
-- [ ] 6. **Analytics.** Add `product_added_to_cart` to the catalog and `'cart_add'` to `ErrorArea`, and call both. (check: the PostHog debug log shows the event with only `product_id`.)
+- [x] 6. **Analytics.** Add `product_added_to_cart` to the catalog and `'cart_add'` to `ErrorArea`, and call both. (check: the PostHog debug log shows the event with only `product_id`.)
 - [ ] 7. **Phone and tablet layouts** per Decisions. (check:
   - at 390 × 664 the photo band, name, price, Color swatches and the sticky Add to Cart are in the first screen, with no horizontal scroll;
   - at 1440 × 900 Add to Cart is fully visible without scrolling;

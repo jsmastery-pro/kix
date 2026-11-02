@@ -19,9 +19,11 @@ export interface AnalyticsEvents {
   signed_out: { source: 'header' | 'account' | 'auth_page' };
   /** Which explore filter changed (plan 08). `category` is the page's category slug or 'all'; never the search text or values. */
   catalog_filtered: { filter: 'category' | 'price' | 'color' | 'search' | 'clear'; category: string };
+  /** A successful add from the product page (plan 09). `product_id` is the Wix catalog ID, not personal data. */
+  product_added_to_cart: { product_id: string };
 }
 
-export type ErrorArea = 'auth_submit' | 'auth_code' | 'profile_save' | 'pending_name';
+export type ErrorArea = 'auth_submit' | 'auth_code' | 'profile_save' | 'pending_name' | 'cart_add';
 
 /** The part of posthog-js we call. The snippet's stub queues capture, identify and reset until
  * the SDK loads; the getters and captureException exist only after (see whenReady). */

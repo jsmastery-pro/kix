@@ -9,6 +9,7 @@ import { WIX_APPS } from '@wix/essentials';
 import { seoTags } from '@wix/seo';
 import { SEO } from '@wix/seo/components';
 import { loadSEOTagsServiceConfig } from '@wix/seo/services';
+import ProductView from '../../components/storefront/ProductView';
 import { pickRelated, productPage } from '../../components/storefront/product-page';
 import FeatureList from '../../components/ui/FeatureList.astro';
 import InfoBlock from '../../components/ui/InfoBlock.astro';
@@ -70,7 +71,7 @@ if (product && page) {
   <SiteLayout title={product.name}>
     {seoTagsServiceConfig && <SEO.Tags seoTagsServiceConfig={seoTagsServiceConfig} slot="seo-tags" />}
     <div class="pdp">
-      <div class="pdp__top" data-island-placeholder></div>
+      <ProductView client:load initial={product} eyebrow={page.eyebrow} summaryHtml={page.summaryHtml} />
 
       <section class="pdp__perks" aria-labelledby="pdp-perks">
         <h2 id="pdp-perks" class="sr-only">Shopping with Kix</h2>
