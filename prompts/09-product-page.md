@@ -268,7 +268,7 @@ Each step ends with `npm run check` passing and a commit.
   - at 390 × 664 the photo band, name, price, Color swatches and the sticky Add to Cart are in the first screen, with no horizontal scroll;
   - at 1440 × 900 Add to Cart is fully visible without scrolling;
   - 768px and 1024px have no overlap.)
-- [ ] 8. **Compare with the design** at 1440px and 390px through Claude in Chrome (390px through a same-origin iframe, scrolled so lazy images load). List every difference, then fix or explain each, and repeat. Then force each failure by a temporary edit, reverting after each:
+- [x] 8. **Compare with the design** at 1440px and 390px through Claude in Chrome (390px through a same-origin iframe, scrolled so lazy images load). List every difference, then fix or explain each, and repeat. Then force each failure by a temporary edit, reverting after each:
   - the recommendation reads throw: the section hides, the log shows `[product] recommendations read failed`;
   - `fetchCategories` throws: no eyebrow, no recommendations, the page renders;
   - `add()` rejects: our error copy shows, `captureError` fires, the button works again.
