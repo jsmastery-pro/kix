@@ -264,7 +264,7 @@ Each step ends with `npm run check` passing and a commit.
   - "Was $220.00" is struck on Nightshift High.)
 - [x] 5. **Header bag count.** `BagButton.tsx` in `SiteLayout` with its fallback. (check: the count shows after an add, survives a reload, and reads "Bag, 1 item" to a screen reader; other pages still render their header with JS disabled.)
 - [x] 6. **Analytics.** Add `product_added_to_cart` to the catalog and `'cart_add'` to `ErrorArea`, and call both. (check: the PostHog debug log shows the event with only `product_id`.)
-- [ ] 7. **Phone and tablet layouts** per Decisions. (check:
+- [x] 7. **Phone and tablet layouts** per Decisions. (check:
   - at 390 × 664 the photo band, name, price, Color swatches and the sticky Add to Cart are in the first screen, with no horizontal scroll;
   - at 1440 × 900 Add to Cart is fully visible without scrolling;
   - 768px and 1024px have no overlap.)
