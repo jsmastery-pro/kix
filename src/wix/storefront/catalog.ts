@@ -57,8 +57,10 @@ export async function searchCatalog(o: CatalogSearchOptions = {}): Promise<{ pro
   const query = searchQuery(o);
   const [res, count] = await Promise.all([
     products.searchProducts(query as any, { fields: LIST_FIELDS as any }) as Promise<Raw>,
-    // the count is a nicety — the page is still valid without it
-    !o.cursor && query.filter ? (products.countProducts({ filter: query.filter }) as Promise<Raw>).catch(() => null) : Promise.resolve(null),
+    // the count is a nicety — the page is still valid without it.
+    // Kix change (plan 08): the count carries the search too, or "?q=orbit" counts the whole scope.
+    // A kit re-deploy of this file drops it.
+    !o.cursor && query.filter ? (products.countProducts({ filter: query.filter, ...(query.search ? { search: query.search } : {}) }) as Promise<Raw>).catch(() => null) : Promise.resolve(null),
   ]);
   return {
     products: ((res.products ?? []) as Raw[]).map((p) => toSummary(p, imgSrc, mediaKey)),

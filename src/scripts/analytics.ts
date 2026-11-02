@@ -17,6 +17,8 @@ export interface AnalyticsEvents {
   password_reset_requested: { source: 'forgot_password' | 'account'; outcome: ResetOutcome };
   profile_name_saved: { source: 'account' | 'signup' };
   signed_out: { source: 'header' | 'account' | 'auth_page' };
+  /** Which explore filter changed (plan 08). `category` is the page's category slug or 'all'; never the search text or values. */
+  catalog_filtered: { filter: 'category' | 'price' | 'color' | 'search' | 'clear'; category: string };
 }
 
 export type ErrorArea = 'auth_submit' | 'auth_code' | 'profile_save' | 'pending_name';
