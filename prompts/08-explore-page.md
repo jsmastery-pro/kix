@@ -1,6 +1,6 @@
 # 08 · Explore page: category list, price and color filters, search and the product grid
 
-Status: approved
+Status: done
 
 <!-- review → approved → done, or dropped. Only the user approves. -->
 
@@ -196,8 +196,8 @@ Each step ends with `npm run check` passing and a commit.
 
   If PostHog isn't configured locally, say so and leave this unchecked.
 - [x] 10. **Design comparison** at 1440px and 390px (390 through a same-origin iframe, scrolled so lazy images load), side by side with the design. List every difference, fix, repeat. Also check 1024px and 768px for layout breaks.
-- [ ] 11. **Final checks and review.** `npm run check` and `npm run build`; a reviewer subagent compares the work with this plan; fix real gaps.
-- [ ] 12. **Close out.** Write Result, set `Status: done`, update the index, propose AGENTS.md edits, and ask about releasing.
+- [x] 11. **Final checks and review.** `npm run check` and `npm run build`; a reviewer subagent compares the work with this plan; fix real gaps.
+- [x] 12. **Close out.** Write Result, set `Status: done`, update the index, propose AGENTS.md edits, and ask about releasing.
 
 ## Files
 
@@ -237,4 +237,48 @@ Each step ends with `npm run check` passing and a commit.
 
 ## Result
 
-Filled at close-out.
+**What shipped**
+
+- `/shop` (every sneaker, scoped to Sports) and `/category/[slug]` (any category, with the kit's SEO item-page machinery) render on the server from Wix with the URL's filters, then hand over to the `ShopView` island on the kit's `useShop`.
+- **Sidebar:** All plus the five sports with Wix's counts (4, 2, 2, 2, 2), the price slider and 24 color dots. On phones it becomes category pills and a Filters toggle.
+- **Main column:** the headline count, search, a 3-column grid (2 below 1024px), skeleton, no-match, empty and error states, and Load more.
+- **Shareable URLs:** filters live in the URL (`min`, `max`, `q`, `choice`), and a shared link renders filtered from the first byte.
+- **Analytics:** `catalog_filtered` goes to PostHog. Search text never reaches PostHog: URL properties are masked, and referrers are masked in `before_send`.
+- **Kit fix:** the result count now includes the search.
+
+**Differences from the plan and why**
+
+- `src/components/storefront/explore.ts` (nav, labels, URL view) holds logic the two pages share. It wasn't in the file list.
+- The slider commits on the native `change` event, with a 500ms pause for keyboard steps. My first version committed on every key-up, and 50 arrow presses sent 50 queries.
+- After the build review:
+  - invalid or page-less URL keys (`min=abc`, `min>max`, an over-long `q`, `sort`, `category`) redirect to the cleaned URL;
+  - color dots hide if the store's facets never arrive;
+  - a missing category logs before its 404;
+  - masking also covers one level of nested properties;
+  - swatch border and shadow became tokens (`--color-swatch-border`, `--shadow-swatch`).
+- Small fixes found in testing:
+  - no count beside an error;
+  - the no-match hint mentions search;
+  - a full-width search on phones (a desktop `justify-content` leaked into the phone grid).
+- `lucide-react` resolved to 1.66.0 (`^1.66.0` in `package.json`).
+- `SEO.Tags` renders only when the SEO read succeeded; otherwise SiteLayout's `<title>` is used.
+
+**Known differences from the design:**
+
+- the shared header (logo outside the sidebar column, larger nav type);
+- Wix's `$229.00` prices;
+- merchant ribbons on cards;
+- no stars or reviews;
+- "Sneakers" instead of "SNEAKER'S";
+- an "All" link at the top of the list.
+
+Every size is estimated from the 1055px image as ×1.365.
+
+**Lessons**
+
+- A kit store's `loading` flag is true during SSR and its own revalidation. Dim only on the shopper's changes.
+- React's `onChange` on a range input fires per step. Commit on the native `change` event.
+- PostHog's `mask_personal_data_properties` doesn't touch `$referrer`.
+- The kit's `countProducts` dropped the search. Check that counts and lists use the same query.
+
+**One-shot prompt:** "Build plan 08's explore page: kit `useShop` in a React island with our own sidebar UI (sport links with Wix counts, native two-thumb price range committing on native change, color facet dots), server-render `/shop` (Sports scope) and `/category/[slug]` from the URL's filters with `fetchFacetData`, include search in the kit's count, mask `q` in PostHog URLs and referrers, and redirect invalid filter URLs."
