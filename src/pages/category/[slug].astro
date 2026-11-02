@@ -1,0 +1,92 @@
+---
+// A category's explore page (plan 08): the same ShopView as /shop, scoped to one category. A Wix
+// item page: wixMetadata + loadSEOTagsServiceConfig + <SEO.Tags> exactly as the kit's skeleton, so
+// the owner edits its SEO in the dashboard. Server-rendered with the URL's filters; reads are
+// guarded and logged. An unknown or hidden slug is a real 404 with a way back.
+import { WIX_APPS } from '@wix/essentials';
+import { seoTags } from '@wix/seo';
+import { SEO } from '@wix/seo/components';
+import { loadSEOTagsServiceConfig } from '@wix/seo/services';
+import ShopView from '../../components/storefront/ShopView';
+import { scopeLabel, sneakerNav, urlView } from '../../components/storefront/explore';
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import { fetchCategories, fetchCategoryBySlug, fetchFacetData, searchCatalog } from '../../wix/storefront/catalog';
+import { parseShopUrl } from '../../wix/storefront/shop-url';
+import type { Category, FacetData, ProductSummary } from '../../wix/storefront/types';
+
+export const wixMetadata = {
+  appDefId: WIX_APPS.checkoutAndOrders.id,
+  pageIdentifier: WIX_APPS.checkoutAndOrders.categoryPageMetadata.pageIdentifier,
+  identifiers: { slug: WIX_APPS.checkoutAndOrders.categoryPageMetadata.identifiers.collection },
+};
+
+const slug = Astro.params.slug!;
+const forwardedUrl = Astro.request.headers.get('x-wix-forwarded-url');
+const pageUrl =
+  forwardedUrl && URL.canParse(forwardedUrl) && /^https?:$/.test(new URL(forwardedUrl).protocol)
+    ? forwardedUrl
+    : Astro.url.href;
+
+const url = parseShopUrl(Astro.url.searchParams);
+const { choiceIds: _choiceIds, ...filters } = url;
+let category: Category | null = null;
+let categories: Category[] = [];
+let products: ProductSummary[] | undefined;
+let total: number | null = null;
+let facetData: FacetData = { facets: [], priceRange: null };
+let seoTagsServiceConfig = null;
+try {
+  category = await fetchCategoryBySlug(slug);
+  if (category) {
+    // A sub-category is its own SEO item type (the owner's settings differ per type).
+    const itemType = category.parentId ? seoTags.ItemType.STORES_SUB_CATEGORY : seoTags.ItemType.STORES_CATEGORY;
+    const [page, list, facets, seo] = await Promise.allSettled([
+      searchCatalog({ limit: 24, categoryId: category.id, ...filters }),
+      fetchCategories(),
+      fetchFacetData({ categoryId: category.id }),
+      loadSEOTagsServiceConfig({ pageUrl, itemType, itemData: { slug } }),
+    ]);
+    if (page.status === 'fulfilled') {
+      products = page.value.products;
+      total = page.value.total;
+    } else console.error('[category] product read failed', slug, page.reason);
+    if (list.status === 'fulfilled') categories = list.value;
+    if (categories.length === 0) console.error('[category] no categories from Wix');
+    if (facets.status === 'fulfilled') facetData = facets.value;
+    if (seo.status === 'fulfilled') seoTagsServiceConfig = seo.value;
+    else console.error('[category] SEO tags read failed', slug, seo.reason);
+  }
+} catch (error) {
+  console.error('[category] catalog read failed', slug, error);
+}
+
+if (!category) Astro.response.status = 404;
+const sportsId = categories.find((c) => c.slug === 'sports')?.id ?? null;
+---
+
+{category ? (
+  <SiteLayout title={category.name}>
+    {seoTagsServiceConfig && <SEO.Tags seoTagsServiceConfig={seoTagsServiceConfig} slot="seo-tags" />}
+    <ShopView
+      client:load
+      initialProducts={products}
+      initialCategories={categories}
+      initialCategoryId={category.id}
+      initialTotal={total}
+      initialFacetData={facetData}
+      urlState={urlView(url)}
+      scope={{ slug: category.slug, label: scopeLabel(category, sportsId) }}
+      categoryNav={sneakerNav(categories, sportsId, category.id)}
+    />
+  </SiteLayout>
+) : (
+  <SiteLayout title="Category not found · Kix">
+    <div class="explore-missing ui-empty">
+      <h1 class="ui-page-title">This category doesn't exist.</h1>
+      <p class="ui-empty__text">It may have moved or been renamed.</p>
+      <div class="ui-empty__actions">
+        <a class="ui-button ui-button--primary" href="/shop">See all sneakers</a>
+      </div>
+    </div>
+  </SiteLayout>
+)}

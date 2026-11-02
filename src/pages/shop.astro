@@ -1,0 +1,51 @@
+---
+// Explore: every Kix sneaker (plan 08). Scoped to the Sports category, which holds all 12 sneakers
+// through its five sport children, so Wix's sample products (still in the store) never list here.
+// Server-rendered with the URL's filters, so a shared link opens filtered; ShopView takes over in
+// the browser. Every read is guarded and logged: an unhandled throw truncates the streamed page.
+import ShopView from '../components/storefront/ShopView';
+import { scopeLabel, sneakerNav, urlView } from '../components/storefront/explore';
+import SiteLayout from '../layouts/SiteLayout.astro';
+import { fetchCategories, fetchFacetData, searchCatalog } from '../wix/storefront/catalog';
+import { parseShopUrl } from '../wix/storefront/shop-url';
+import type { Category, FacetData, ProductSummary } from '../wix/storefront/types';
+
+const url = parseShopUrl(Astro.url.searchParams);
+const { choiceIds: _choiceIds, ...filters } = url;
+let categories: Category[] = [];
+let sports: Category | null = null;
+let products: ProductSummary[] | undefined;
+let total: number | null = null;
+let facetData: FacetData = { facets: [], priceRange: null };
+try {
+  // fetchCategories() swallows its own errors and returns [], so an empty list is the failure signal.
+  categories = await fetchCategories();
+  if (categories.length === 0) console.error('[shop] no categories from Wix');
+  sports = categories.find((c) => c.slug === 'sports') ?? null;
+  if (categories.length > 0 && !sports) console.error('[shop] category missing: sports');
+  const categoryId = sports?.id ?? null;
+  const [page, facets] = await Promise.allSettled([searchCatalog({ limit: 24, categoryId, ...filters }), fetchFacetData({ categoryId })]);
+  if (page.status === 'fulfilled') {
+    products = page.value.products;
+    total = page.value.total;
+  } else console.error('[shop] product read failed', page.reason);
+  if (facets.status === 'fulfilled') facetData = facets.value;
+} catch (error) {
+  console.error('[shop] catalog read failed', error);
+}
+const sportsId = sports?.id ?? null;
+---
+
+<SiteLayout title="Sneakers · Kix" description="Every Kix sneaker. Filter by sport, price and color.">
+  <ShopView
+    client:load
+    initialProducts={products}
+    initialCategories={categories}
+    initialCategoryId={sportsId}
+    initialTotal={total}
+    initialFacetData={facetData}
+    urlState={urlView(url)}
+    scope={{ slug: 'all', label: scopeLabel(null, sportsId) }}
+    categoryNav={sneakerNav(categories, sportsId, null)}
+  />
+</SiteLayout>
