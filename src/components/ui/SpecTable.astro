@@ -1,0 +1,13 @@
+---
+// Label and value rows (the product page's Product Details).
+interface Props {
+  rows: { label: string; value: string }[];
+  className?: string;
+}
+const { rows, className = '' } = Astro.props;
+---
+<table class:list={['ui-spec-table', className]}>
+  <tbody>
+    {rows.map((row) => <tr><th scope="row">{row.label}</th><td>{row.value}</td></tr>)}
+  </tbody>
+</table>

@@ -1,0 +1,128 @@
+---
+// The product page (plan 09). A Wix item page: wixMetadata + loadSEOTagsServiceConfig + <SEO.Tags>
+// as the kit's skeleton, read with allSettled so a failed SEO read never 404s the product (as the
+// category page does). The gallery and buy column are the ProductView island on the kit's
+// useProductDetail; everything below it renders here, on the server, with no JS. Reads are guarded
+// and logged; an unknown slug is a real 404 with a way back.
+import { Footprints, Lock, RotateCcw, Truck } from '@lucide/astro';
+import { WIX_APPS } from '@wix/essentials';
+import { seoTags } from '@wix/seo';
+import { SEO } from '@wix/seo/components';
+import { loadSEOTagsServiceConfig } from '@wix/seo/services';
+import { pickRelated, productPage } from '../../components/storefront/product-page';
+import FeatureList from '../../components/ui/FeatureList.astro';
+import InfoBlock from '../../components/ui/InfoBlock.astro';
+import PerkCard from '../../components/ui/PerkCard.astro';
+import ProductCard from '../../components/ui/ProductCard.astro';
+import SectionHeading from '../../components/ui/SectionHeading.astro';
+import SpecTable from '../../components/ui/SpecTable.astro';
+import type { TileTone } from '../../components/ui/tones';
+import SiteLayout from '../../layouts/SiteLayout.astro';
+import { fetchCategories, fetchProductBySlug, fetchProductsByCategory } from '../../wix/storefront/catalog';
+import type { Category, ProductDetail, ProductSummary } from '../../wix/storefront/types';
+
+export const wixMetadata = {
+  appDefId: WIX_APPS.checkoutAndOrders.id,
+  pageIdentifier: WIX_APPS.checkoutAndOrders.productPageMetadata.pageIdentifier,
+  identifiers: { slug: WIX_APPS.checkoutAndOrders.productPageMetadata.identifiers.handle },
+};
+
+const slug = Astro.params.slug!;
+const forwardedUrl = Astro.request.headers.get('x-wix-forwarded-url');
+const pageUrl =
+  forwardedUrl && URL.canParse(forwardedUrl) && /^https?:$/.test(new URL(forwardedUrl).protocol)
+    ? forwardedUrl
+    : Astro.url.href;
+
+// The design's tile order for You Might Also Like.
+const relatedTones: TileTone[] = ['mint', 'peach', 'periwinkle', 'lilac'];
+
+let product: ProductDetail | null = null;
+let categories: Category[] = [];
+let related: ProductSummary[] = [];
+let seoTagsServiceConfig = null;
+const [productRead, seoRead, categoriesRead] = await Promise.allSettled([
+  fetchProductBySlug(slug),
+  loadSEOTagsServiceConfig({ pageUrl, itemType: seoTags.ItemType.STORES_PRODUCT, itemData: { slug } }),
+  fetchCategories(),
+]);
+if (productRead.status === 'fulfilled') product = productRead.value;
+if (categoriesRead.status === 'fulfilled') categories = categoriesRead.value;
+const page = product ? productPage(product, categories) : null;
+
+if (product && page) {
+  if (seoRead.status === 'fulfilled') seoTagsServiceConfig = seoRead.value;
+  else console.error('[product] SEO tags read failed', slug, seoRead.reason);
+  // fetchCategories() swallows its own errors and returns [], so an empty list is the failure signal.
+  if (categories.length === 0) console.error('[product] categories read failed', slug);
+  const scopes = [page.sportId, page.genderId].filter((id): id is string => id !== null);
+  const lists = await Promise.allSettled(scopes.map((id) => fetchProductsByCategory(id, { limit: 5 })));
+  for (const list of lists) if (list.status === 'rejected') console.error('[product] recommendations read failed', slug, list.reason);
+  related = pickRelated(lists.flatMap((list) => (list.status === 'fulfilled' ? [list.value] : [])), product.id, 4);
+} else {
+  // fetchProductBySlug returns null for a missing slug and for a failed read alike.
+  console.error('[product] not found or read failed:', slug);
+  Astro.response.status = 404;
+}
+---
+
+{product && page ? (
+  <SiteLayout title={product.name}>
+    {seoTagsServiceConfig && <SEO.Tags seoTagsServiceConfig={seoTagsServiceConfig} slot="seo-tags" />}
+    <div class="pdp">
+      <div class="pdp__top" data-island-placeholder></div>
+
+      <section class="pdp__perks" aria-labelledby="pdp-perks">
+        <h2 id="pdp-perks" class="sr-only">Shopping with Kix</h2>
+        <PerkCard title="Shipping" text="Calculated at checkout"><Truck /></PerkCard>
+        <PerkCard title="Returns" text="Per our store policy"><RotateCcw /></PerkCard>
+        <PerkCard title="Secure Checkout" text="Hosted by Wix"><Lock /></PerkCard>
+      </section>
+
+      {(page.aboutHtml.length > 0 || page.features.length > 0) && (
+        <section class="pdp__section" aria-labelledby="pdp-about">
+          <div class="pdp__col">
+            <h2 id="pdp-about" class="ui-pdp-heading">About This Product</h2>
+            {page.aboutHtml.length > 0 && <div class="pdp__copy ui-pdp-copy">{page.aboutHtml.map((html) => <p set:html={html} />)}</div>}
+          </div>
+          {page.features.length > 0 && <div class="pdp__col"><FeatureList items={page.features} className="pdp__features" /></div>}
+        </section>
+      )}
+
+      <section class="pdp__section" aria-labelledby="pdp-details">
+        <div class="pdp__col">
+          <h2 id="pdp-details" class="ui-pdp-heading">Product Details</h2>
+          {page.details.length > 0 && <SpecTable rows={page.details} className="pdp__table" />}
+        </div>
+        <div class="pdp__col pdp__info">
+          {page.sizeRange && (
+            <InfoBlock
+              title="Fit & Sizing"
+              text={page.sizeRange.first === page.sizeRange.last ? `Available in size ${page.sizeRange.first}.` : `Available in sizes ${page.sizeRange.first} to ${page.sizeRange.last}.`}
+            ><Footprints /></InfoBlock>
+          )}
+          <InfoBlock title="Shipping & Returns" text="Shipping is calculated at checkout. Returns follow our store policy."><Truck /></InfoBlock>
+        </div>
+      </section>
+
+      {related.length > 0 && (
+        <section class="pdp__related" aria-labelledby="pdp-related">
+          <SectionHeading id="pdp-related" title="You Might Also Like" href={page.viewAllHref ?? undefined} compact />
+          <div class="pdp__related-grid">
+            {related.map((item, index) => <ProductCard product={item} tone={relatedTones[index % relatedTones.length]} size="wide" />)}
+          </div>
+        </section>
+      )}
+    </div>
+  </SiteLayout>
+) : (
+  <SiteLayout title="Sneaker not found · Kix">
+    <div class="explore-missing ui-empty">
+      <h1 class="ui-page-title">This sneaker doesn't exist.</h1>
+      <p class="ui-empty__text">It may have sold out or moved.</p>
+      <div class="ui-empty__actions">
+        <a class="ui-button ui-button--primary" href="/shop">See all sneakers</a>
+      </div>
+    </div>
+  </SiteLayout>
+)}

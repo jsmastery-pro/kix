@@ -4,10 +4,12 @@ interface Props {
   title: string;
   href?: string;
   linkLabel?: string;
+  /** The product page's smaller heading with a quiet link (plan 09). */
+  compact?: boolean;
 }
-const { id, title, href, linkLabel = 'View All' } = Astro.props;
+const { id, title, href, linkLabel = 'View All', compact = false } = Astro.props;
 ---
-<div class="ui-section-heading">
+<div class:list={['ui-section-heading', { 'ui-section-heading--compact': compact }]}>
   <h2 id={id}>{title}</h2>
   {href && <a href={href}>{linkLabel}<span class="sr-only"> {title}</span></a>}
 </div>

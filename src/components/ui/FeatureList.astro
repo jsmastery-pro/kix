@@ -1,0 +1,13 @@
+---
+// Icon and text rows (the product page's feature list). Every row uses the same icon: our data
+// carries no per-feature icon, and one guessed from the text would mislead.
+import { Check } from '@lucide/astro';
+interface Props {
+  items: string[];
+  className?: string;
+}
+const { items, className = '' } = Astro.props;
+---
+<ul class:list={['ui-feature-list', className]}>
+  {items.map((item) => <li><Check aria-hidden="true" />{item}</li>)}
+</ul>

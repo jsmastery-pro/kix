@@ -1,0 +1,16 @@
+---
+// An icon beside a heading and a line of text (the product page's Fit & Sizing, Shipping & Returns).
+interface Props {
+  title: string;
+  text: string;
+  className?: string;
+}
+const { title, text, className = '' } = Astro.props;
+---
+<div class:list={['ui-info-block', className]}>
+  <span class="ui-info-block__icon" aria-hidden="true"><slot /></span>
+  <div>
+    <h3 class="ui-info-block__title">{title}</h3>
+    <p class="ui-info-block__text">{text}</p>
+  </div>
+</div>

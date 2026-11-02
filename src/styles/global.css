@@ -610,6 +610,10 @@ html:has(.ui-lightbox[open]) { overflow: hidden; }
 
 .ui-product-card--wide .ui-product-card__image { aspect-ratio: 1.41; }
 
+.ui-section-heading--compact h2 { font-size: clamp(26px, 2.3vw, 33px); font-weight: 700; }
+.ui-section-heading--compact a { color: var(--color-text-secondary); font-family: var(--font-sans); font-size: clamp(16px, 1.39vw, 20px); font-weight: 400; }
+.ui-section-heading--compact a:hover { color: var(--color-black); }
+
 @media (max-width: 767px) {
   .ui-gallery__expand { width: 44px; height: 44px; }
   .ui-gallery__arrow { width: 44px; height: 44px; }
