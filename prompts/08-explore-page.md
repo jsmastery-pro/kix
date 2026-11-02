@@ -188,7 +188,7 @@ Each step ends with `npm run check` passing and a commit.
   - a filter that matches nothing shows "No sneakers match these filters." and Clear filters restores the grid;
   - sidebar links go to `/category/<slug>` with the right item marked;
   - force failures by temporary edits, reverted after each: `searchCatalog` throwing in the page (skeletons, then the client grid) and in the client (error state with Try again).
-- [ ] 9. **Analytics check.** With `?__posthog_debug=true` and the browser console:
+- [x] 9. **Analytics check.** With `?__posthog_debug=true` and the browser console:
   - one `catalog_filtered` per action, with the expected `filter` and `category`;
   - on a page with `?q=court`, the `$pageview` and `catalog_filtered` events carry `q=<MASKED>` in `$current_url`;
   - after following a link from `/shop?q=court` to another page, `$referrer` (and `$initial_referrer` in a fresh session) carry `q=<MASKED>`;
