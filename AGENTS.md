@@ -12,7 +12,7 @@ This file is the project's memory: it holds every decision that is still true. P
 
 ## Commands
 
-Use Node.js 24.18.0 or newer for Wix CLI commands.
+Use Node.js 24.18.0 or newer for Wix CLI commands. The shell defaults to Node 22.12; prefix `PATH="$HOME/.nvm/versions/node/v24.18.0/bin:$PATH"` for Wix commands and the kit's scripts.
 
 ```bash
 npm run dev                       # wix dev → Astro on http://localhost:4321; Wix CLI 1.2.2 currently exits 1 while preparing its dashboard
@@ -41,12 +41,12 @@ Every tool here changes fast. Never assume a version. Read declared ranges in `p
 
 Each tool has one job. Ask before moving a responsibility to a different tool. Close-outs fill in details here.
 
-The UI primitives, tokens, site layout (`src/layouts/SiteLayout.astro`, shaped like the kit's) and mock data (`src/data/mock.ts`, typed by a verbatim copy of the kit's `src/wix/storefront/types.ts`) exist. The kit's members data layer and auth seam (`src/wix/sdk.ts`, `src/wix/members/`) are deployed; the storefront data layer is still planned. The kit's deploy never overwrites existing files, so wiring merges its `CartButton`/`CartDrawer` into `SiteLayout` by hand.
+The UI primitives, tokens and site layout (`src/layouts/SiteLayout.astro`, shaped like the kit's) exist. The kit's members and storefront data layers (`src/wix/sdk.ts`, `src/wix/members/`, `src/wix/storefront/`) are deployed. Wix Stores holds 12 placeholder Kix sneakers (USD, untracked stock, Color and Size options) in categories `men`, `women`, `kids`, `sports` (children `lifestyle`, `running`, `basketball`, `skate`, `training`) and the curated `new-arrivals` and `popular`. The home page reads Stores; `src/data/mock.ts` keeps only the home slides, member perks and header nav. The kit's deploy never overwrites existing files, so wiring merges its `CartButton`/`CartDrawer` into `SiteLayout` by hand.
 
 - **Hosting, deploys, secrets:** Wix (CLI). Secrets are declared in `astro.config.mjs` with `envField` and set with `wix env set`; read server secrets from `astro:env/server`.
 - **UI:** our own primitives in `src/components/ui/`, built from the design system sheet. Pages compose them; callers pass layout classes only, and a caller needing a new color means a variant is missing.
 - **Mock data:** until a page is wired to Wix, it reads `src/data/mock.ts`, shaped exactly like the storefront DTOs the `wix-headless-kit` skill ships (`storefront/app/wix/storefront/types.ts` in the templates it downloads), so wiring it is a swap, not a rewrite.
-- **Catalog, cart, checkout, orders:** Wix Stores and Wix eCommerce (Wix's hosted checkout), through the data layer and hooks shipped by `wix-headless-kit` (`src/wix/storefront/`, `src/hooks/storefront/`). Don't rewrite that logic. Its UI components are used only where they match the designs.
+- **Catalog, cart, checkout, orders:** Wix Stores and Wix eCommerce (Wix's hosted checkout), through the data layer and hooks shipped by `wix-headless-kit` (`src/wix/storefront/`, `src/hooks/storefront/`). Don't rewrite that logic. Its UI components are used only where they match the designs, and they use theme tokens we don't define yet (`bg-foreground`, `text-muted-foreground`, `rounded-control`…): alias them in `global.css` before mounting one. Seed inputs and scripts live in git-ignored `.seed/`; their plan holds their content.
 - **Other data (3D model links, saved designs):** Wix CMS collections, keyed by product ID as a text field. CMS can't reference Stores products.
 - **Accounts:** Wix Members through `@wix/astro`'s built-in `/api/auth/*` routes and the kit's framework-free `member-store.ts`, used from Astro scripts (`src/scripts/auth-form.ts`, `account-menu.ts`); the kit's React members UI stays unused. No custom callback pages. `@wix/astro` has no reset route: forgot password calls Send Recovery Email (`src/wix/members/recovery.ts`). Signup takes email and password only, so names wait in `sessionStorage` and are saved with `updateMember` as the member (`profile.ts`). Pages read the member on the server with `fetchCurrentMember()` (needs the Members Area app, installed). The site's signup security requires reCAPTCHA, which our forms don't render, so email signup fails until it's added or switched off. No remember-me (the session cookie's lifetime can't be set).
 - **3D models:** made by the user in Tripo Studio (the web app; no Tripo API or key) and downloaded as GLB into `models/raw/`. The agent optimizes them with glTF Transform into `models/web/`, stores them in Wix, and renders them with React Three Fiber islands (`client:only="react"`). Not set up yet.
@@ -57,7 +57,7 @@ The UI primitives, tokens, site layout (`src/layouts/SiteLayout.astro`, shaped l
 
 - Secrets (PostHog server key, the Wix client secret in `.env.local`) never reach the browser, because anything `PUBLIC_` ships in the bundle.
 - `auth.elevate()` runs only in server code, and only after checking who is calling, because it grants app-level permissions.
-- Backend requests are limited to 1000 CPU-ms and 20 sub-requests: keep server work small, one external call per request, and never process 3D files on the server.
+- Backend requests are limited to 1000 CPU-ms and 20 sub-requests: keep server work small, with few external calls per request, in parallel where possible and well under 20 sub-requests (`fetchCategories` and each product list cost 2), and never process 3D files on the server.
 - Wix event extensions, dashboard pages and data collections only work after `release`; collections and the first event extension need `--version-type major`.
 - Analytics goes through one `track()` wrapper with a typed event catalog. Never send personal data or text the shopper typed (search terms included). Analytics failures never block the UI.
 - Colors, fonts, radii and motion values live only in `src/styles/global.css`. A missing value means a missing token.
