@@ -13,6 +13,7 @@ import {
   type LoginResult,
 } from "./auth";
 import type { CurrentMember } from "./types";
+import { identifyMember, resetIdentity } from "../../scripts/analytics";
 
 export interface MemberState {
   member: CurrentMember | null;
@@ -34,9 +35,30 @@ const EMPTY: MemberState = {
 let state: MemberState = EMPTY;
 const listeners = new Set<() => void>();
 let started = false;
+// This page-local guard makes the session read the single identity boundary: PostHog persists the
+// resulting identity itself, while a fresh page still verifies it from the authenticated member.
+let identifiedMemberId: string | null = null;
+
+function syncAnalyticsIdentity(): void {
+  if (typeof window === "undefined") return;
+  if (state.member) {
+    if (identifiedMemberId !== state.member.id) {
+      identifyMember(state.member.id);
+      identifiedMemberId = state.member.id;
+    }
+    return;
+  }
+  // On a settled anonymous session, reset only if PostHog still has an identified person. This
+  // preserves an ordinary anonymous arrival while cleaning up an expired server session.
+  if (!state.loading && !state.loggedIn) {
+    resetIdentity({ ifIdentified: true });
+    identifiedMemberId = null;
+  }
+}
 
 function setState(patch: Partial<MemberState>): void {
   state = { ...state, ...patch };
+  syncAnalyticsIdentity();
   for (const l of listeners) l();
 }
 
@@ -49,6 +71,7 @@ export function hydrateMember(member: CurrentMember | null): void {
   if (started) return;
   started = true;
   state = { member, loggedIn: member !== null, loading: false, error: null };
+  syncAnalyticsIdentity();
 }
 
 export function subscribeMember(listener: () => void): () => void {

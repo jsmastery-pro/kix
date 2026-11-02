@@ -5,7 +5,7 @@
 // redacted from exception text. Helpers and the event catalog live in src/scripts/analytics.ts.
 import { PUBLIC_POSTHOG_HOST, PUBLIC_POSTHOG_PROJECT_TOKEN } from 'astro:env/client';
 ---
-<script is:inline define:vars={{ token: PUBLIC_POSTHOG_PROJECT_TOKEN, host: PUBLIC_POSTHOG_HOST, dev: import.meta.env.DEV }}>
+<script is:inline define:vars={{ token: PUBLIC_POSTHOG_PROJECT_TOKEN, host: PUBLIC_POSTHOG_HOST, dev: import.meta.env.DEV, environment: import.meta.env.MODE }}>
   const missing = !token ? 'PUBLIC_POSTHOG_PROJECT_TOKEN' : !host ? 'PUBLIC_POSTHOG_HOST' : '';
   if (missing) {
     if (dev) throw new Error(missing + ' variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once ' + missing + ' is configured');
@@ -17,7 +17,15 @@ import { PUBLIC_POSTHOG_HOST, PUBLIC_POSTHOG_PROJECT_TOKEN } from 'astro:env/cli
     posthog.init(token, {
       api_host: host,
       defaults: '2026-08-30',
-      capture_exceptions: true,
+      capture_exceptions: {
+        capture_unhandled_errors: true,
+        capture_unhandled_rejections: true,
+        capture_console_errors: false,
+      },
+      logs: {
+        serviceName: 'kix-web',
+        environment,
+      },
       mask_all_element_attributes: true,
       session_recording: { maskAllInputs: true, recordBody: false, recordHeaders: false },
       before_send: (event) => {

@@ -6,6 +6,7 @@ import { updateMemberName } from '../wix/members/profile';
 import { renderAvatar } from './account-menu';
 import { createFormControls, firstNameRule, lastNameRule } from './form-controls';
 import { resetEmail, resetFailure } from './password-reset';
+import { logPasswordResetRequested, resetIdentity, track } from './analytics';
 
 export function initAccount(root: HTMLElement) {
   const memberId = root.dataset.memberId ?? '';
@@ -13,6 +14,9 @@ export function initAccount(root: HTMLElement) {
   const avatar = root.querySelector<HTMLElement>('[data-avatar]');
   const nameForm = root.querySelector<HTMLFormElement>('[data-account-name-form]');
   const resetForm = root.querySelector<HTMLFormElement>('[data-account-reset-form]');
+  const signOutForm = root.querySelector<HTMLFormElement>('form[action*="/api/auth/logout"]');
+
+  signOutForm?.addEventListener('submit', () => resetIdentity());
 
   if (nameForm) {
     const controls = createFormControls(nameForm, { 'account-first-name': firstNameRule, 'account-last-name': lastNameRule });
@@ -40,6 +44,7 @@ export function initAccount(root: HTMLElement) {
           lastName: controls.value('account-last-name').trim(),
         });
         if (avatar) renderAvatar(avatar, member);
+        track('profile_name_saved', { source: 'account' });
         controls.showAlert({ tone: 'info', text: 'Saved.' }, true);
         void refreshMember(); // The header menu shows the new name.
       } catch {
@@ -63,6 +68,8 @@ export function initAccount(root: HTMLElement) {
         controls.showAlert(resetFailure(outcome), true);
         return;
       }
+      logPasswordResetRequested('account');
+      track('password_reset_requested', { source: 'account', outcome });
       // One email per visit: each send counts toward Wix's 200-a-day limit.
       resetForm.querySelector<HTMLElement>('button[type="submit"]')?.setAttribute('hidden', '');
       controls.showAlert({ tone: 'info', text: 'Check your email for the link.' }, true);

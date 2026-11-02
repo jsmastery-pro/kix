@@ -4,6 +4,7 @@
 import { refreshMember } from '../wix/members/member-store';
 import { updateMemberName, type MemberName } from '../wix/members/profile';
 import type { CurrentMember } from '../wix/members/types';
+import { track } from './analytics';
 
 const KEY = 'kix:pending-name';
 
@@ -49,6 +50,7 @@ export async function applyPendingName(member: CurrentMember): Promise<void> {
   applying = true;
   try {
     await updateMemberName(member.id, { firstName: pending.firstName, lastName: pending.lastName });
+    track('profile_name_saved', { source: 'signup' });
     clearPendingName();
     await refreshMember();
   } catch {

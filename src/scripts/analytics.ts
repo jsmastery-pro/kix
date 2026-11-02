@@ -23,8 +23,13 @@ export type ErrorArea = 'auth_submit' | 'auth_code' | 'profile_save' | 'pending_
 
 /** The part of posthog-js we call. The snippet's stub queues capture, identify and reset until
  * the SDK loads; the getters and captureException exist only after (see whenReady). */
+interface PostHogLogger {
+  info(message: string, attributes?: Record<string, string>): void;
+}
+
 interface PostHogLike {
   __loaded?: boolean;
+  logger?: PostHogLogger;
   capture(event: string, properties?: Record<string, unknown>, options?: { transport?: 'sendBeacon' }): void;
   identify(distinctId: string): void;
   reset(): void;
@@ -66,6 +71,23 @@ function whenReady(run: (posthog: PostHogLike) => void) {
 }
 
 const isIdentified = (posthog: PostHogLike) => posthog.get_property('$user_state') === 'identified';
+
+/** The only logger exported to PostHog; it deliberately does not capture existing console output. */
+const posthogLog = {
+  info(message: string, attributes: Record<string, string>) {
+    whenReady((posthog) => posthog.logger?.info(message, attributes));
+  },
+};
+
+/** Records an authentication completion without including member or credential data. */
+export function logAuthenticationCompleted(flow: AuthFlow) {
+  posthogLog.info('authentication_completed', { flow, method: 'email' });
+}
+
+/** Records that Wix accepted a password-reset request without including its email recipient. */
+export function logPasswordResetRequested(source: 'forgot_password' | 'account') {
+  posthogLog.info('password_reset_email_requested', { source });
+}
 
 /** Sends a catalog event. `beacon` survives a navigation that starts in the same task. */
 export function track<E extends keyof AnalyticsEvents>(event: E, properties: AnalyticsEvents[E], options: { beacon?: boolean } = {}) {

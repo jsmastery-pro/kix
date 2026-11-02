@@ -7,6 +7,7 @@ import type { LoginResult } from '../wix/members/auth';
 import { createFormControls, emailRule, firstNameRule, lastNameRule, NETWORK_ERROR, type Message, type Rule } from './form-controls';
 import { clearPendingName, savePendingName } from './pending-profile';
 import { DEFAULT_RETURN_TO, googleLoginHref, safeReturnTo, withReturnTo } from './return-to';
+import { logAuthenticationCompleted, track } from './analytics';
 
 export type AuthMode = 'login' | 'register';
 
@@ -154,16 +155,23 @@ export function initAuthForm(form: HTMLFormElement, mode: AuthMode) {
     try {
       result = await verifyEmail(verify.value('verify-code').trim());
     } catch {
+      track('auth_failed', { flow: mode === 'login' ? 'sign_in' : 'create_account', step: 'email_code', reason: 'network' });
       verify.setBusy(false);
       verify.showAlert(NETWORK_ERROR, true);
       return;
     }
-    if (result.state === 'SUCCESS') return; // The store is navigating through Wix to returnTo.
+    if (result.state === 'SUCCESS') {
+      logAuthenticationCompleted(mode === 'login' ? 'sign_in' : 'create_account');
+      track(mode === 'login' ? 'signed_in' : 'account_created', { method: 'email' }, { beacon: true });
+      return; // The store is navigating through Wix to returnTo.
+    }
     verify.setBusy(false);
     const code = verify.input('verify-code');
     if (result.state === 'EMAIL_VERIFICATION_REQUIRED' && code) {
+      track('email_code_requested', { flow: mode === 'login' ? 'sign_in' : 'create_account' });
       verify.resetField(code);
       verify.showResult({ tone: 'error', text: 'Enter the new code from your email.', fieldId: 'verify-code' });
+      return;
     } else if (result.state === 'OWNER_APPROVAL_REQUIRED') {
       verify.showAlert(AWAITING_APPROVAL, true);
     } else if (result.errorCode === 'VERIFICATION_FAILED') {
@@ -173,6 +181,11 @@ export function initAuthForm(form: HTMLFormElement, mode: AuthMode) {
     } else {
       verify.showAlert({ tone: 'error', text: 'Something went wrong. Try again, or start over.', action: restart }, true);
     }
+    track('auth_failed', {
+      flow: mode === 'login' ? 'sign_in' : 'create_account',
+      step: 'email_code',
+      reason: result.errorCode ?? result.state,
+    });
   });
 
   // ---- Google ------------------------------------------------------------------------------------
@@ -187,6 +200,7 @@ export function initAuthForm(form: HTMLFormElement, mode: AuthMode) {
       }
     }
     clearPendingName();
+    track('auth_submitted', { flow: mode === 'login' ? 'sign_in' : 'create_account', method: 'google' }, { beacon: true });
     controls.setBusy(true);
     location.assign(googleLoginHref(destination));
   });
@@ -201,6 +215,8 @@ export function initAuthForm(form: HTMLFormElement, mode: AuthMode) {
 
     const email = controls.value(emailId).trim();
     const options = { returnTo: destination };
+    const flow = mode === 'login' ? 'sign_in' : 'create_account';
+    track('auth_submitted', { flow, method: 'email' });
     // Hidden before anything is sent, so a revealed password never shows while busy or navigating.
     hidePasswords();
     controls.setBusy(true);
@@ -217,12 +233,15 @@ export function initAuthForm(form: HTMLFormElement, mode: AuthMode) {
       }
     } catch {
       if (mode === 'register') clearPendingName();
+      track('auth_failed', { flow, step: 'credentials', reason: 'network' });
       controls.setBusy(false);
       controls.showAlert(NETWORK_ERROR, true);
       return;
     }
 
     if (result.state === 'SUCCESS') {
+      logAuthenticationCompleted(flow);
+      track(mode === 'login' ? 'signed_in' : 'account_created', { method: 'email' }, { beacon: true });
       // The form stays busy while the browser navigates (the store already does when redirectUrl is set).
       if (!result.redirectUrl) location.assign(destination);
       return;
@@ -230,9 +249,11 @@ export function initAuthForm(form: HTMLFormElement, mode: AuthMode) {
 
     controls.setBusy(false);
     if (result.state === 'EMAIL_VERIFICATION_REQUIRED') {
+      track('email_code_requested', { flow });
       showVerifyStep(email);
       return;
     }
+    track('auth_failed', { flow, step: 'credentials', reason: result.errorCode ?? result.state });
     controls.showResult(messageFor(result, mode, returnTo));
   });
 

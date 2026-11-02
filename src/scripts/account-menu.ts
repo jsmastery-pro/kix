@@ -4,6 +4,7 @@
 import { getMemberState, subscribeMember } from '../wix/members/member-store';
 import type { CurrentMember } from '../wix/members/types';
 import { applyPendingName } from './pending-profile';
+import { resetIdentity, track } from './analytics';
 
 /** The member's photo, or the first letter of their name (also when the photo fails to load). */
 export function renderAvatar(target: HTMLElement, member: CurrentMember) {
@@ -29,6 +30,7 @@ export function initAccountMenu(root: HTMLElement) {
   const avatar = root.querySelector<HTMLElement>('[data-avatar]');
   const name = root.querySelector<HTMLElement>('[data-account-name]');
   const email = root.querySelector<HTMLElement>('[data-account-email]');
+  const signOutForm = root.querySelector<HTMLFormElement>('form[action*="/api/auth/logout"]');
   if (!signIn || !button || !panel) return;
 
   const setOpen = (open: boolean) => {
@@ -60,6 +62,13 @@ export function initAccountMenu(root: HTMLElement) {
 
   subscribeMember(render);
   render();
+
+  // The managed Wix logout submits a native form and unloads immediately, so clear the browser
+  // identity before that navigation; the next anonymous visitor receives a fresh PostHog ID.
+  signOutForm?.addEventListener('submit', () => {
+    track('signed_out', { source: 'header' }, { beacon: true });
+    resetIdentity();
+  });
 
   button.addEventListener('click', () => setOpen(panel.hidden));
   root.addEventListener('keydown', (event) => {

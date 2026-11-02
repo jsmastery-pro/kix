@@ -4,6 +4,7 @@
 import { WIX_CLIENT_ID } from 'astro:env/client';
 import { sendPasswordReset, type ResetOutcome } from '../wix/members/recovery';
 import { createFormControls, emailRule, NETWORK_ERROR, type Message } from './form-controls';
+import { logPasswordResetRequested, track } from './analytics';
 
 export function resetEmail(email: string): Promise<ResetOutcome> {
   return sendPasswordReset(email, { url: new URL('/login?reset=done', location.origin).href, clientId: WIX_CLIENT_ID });
@@ -30,6 +31,8 @@ export function initForgotPassword(form: HTMLFormElement) {
       controls.showAlert(resetFailure(outcome), true);
       return;
     }
+    logPasswordResetRequested('forgot_password');
+    track('password_reset_requested', { source: 'forgot_password', outcome });
     form.querySelectorAll<HTMLElement>('[data-reset-hide]').forEach((element) => { element.hidden = true; });
     controls.showAlert({ tone: 'info', text: `If there's a Kix account for ${email}, a reset link is on its way. It works for 3 hours.` }, true);
   });
