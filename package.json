@@ -26,7 +26,12 @@
     "astro": "^7.3.2",
     "posthog-js": "^1.444.0",
     "tailwindcss": "^4.3.3",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "@wix/stores": "^1.0.888",
+    "@wix/categories": "^1.0.220",
+    "@wix/ecom": "^1.0.2451",
+    "@wix/redirects": "^1.0.125",
+    "@wix/seo": "^1.0.79"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.5",

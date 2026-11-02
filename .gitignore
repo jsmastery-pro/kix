@@ -30,3 +30,7 @@ pnpm-debug.log*
 
 # PostHog wizard spell books
 .posthog/
+
+# Wix kit install marker and seed inputs (plan 07)
+.install-exit
+.seed/
