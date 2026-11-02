@@ -25,6 +25,9 @@ try {
   const categories = await fetchCategories();
   if (categories.length === 0) console.error('[home] no categories from Wix');
   const bySlug = (slug: string) => categories.find((c) => c.slug === slug);
+  if (categories.length > 0) {
+    for (const slug of ['sports', 'new-arrivals', 'popular']) if (!bySlug(slug)) console.error('[home] category missing:', slug);
+  }
   const sports = bySlug('sports');
   shopCategories = sports
     ? categories.filter((c) => c.parentId === sports.id).sort((a, b) => a.index - b.index || a.name.localeCompare(b.name))
