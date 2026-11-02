@@ -160,7 +160,7 @@ Every color maps to an existing token: field fill `--color-muted-fill`, inactive
 Each step ends with `npm run check` passing and a commit.
 
 - [x] 1. **Dependency and tokens.** `npm install lucide-react@^1.61.0`. Add the new tokens and primitive styles to `global.css`. (check: `npm ls lucide-react` shows one version; `npm run check` passes.)
-- [ ] 2. **React primitives** in `src/components/ui/`. Add a keep-in-step comment to `ProductCard.astro`. (check: `npm run check`.)
+- [x] 2. **React primitives** in `src/components/ui/`. Add a keep-in-step comment to `ProductCard.astro`. (check: `npm run check`.)
   - `ProductCard.tsx`: props `product`, `tone`; the listing look; exports `ProductCardSkeleton`. The image fallback works like `Photo.astro`'s: `onError`, plus an effect that checks `complete && naturalWidth === 0` for failures before hydration.
   - `RangeSlider.tsx`: props `min`, `max`, `value: [lo, hi]`, `onCommit([lo, hi])`, `format`; the thumb names, value text and clamping from Decisions.
   - `ColorDot.tsx`: props `name`, `hex: string | null`, `count`, `pressed`, `pending`, `onToggle`. `pending` renders `aria-disabled`.
