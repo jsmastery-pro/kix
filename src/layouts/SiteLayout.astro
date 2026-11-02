@@ -2,10 +2,12 @@
 // Site chrome for storefront pages, shaped like the Headless kit's SiteLayout (seo-tags slot,
 // title/description props, global.css import). Wiring Wix adds the kit's CartButton and
 // CartDrawer mounts and reads the nav categories with fetchCategories() (plan 03). AccountMenu is
-// the member control (plan 05). PostHog loads analytics (plan 06).
+// the member control (plan 05). PostHog loads analytics (plan 06). BagButton adds the live cart
+// count to the bag link, with the plain link as its fallback (plan 09).
 import { Font } from 'astro:assets';
 import { ShoppingBag } from '@lucide/astro';
 import AccountMenu from '../components/AccountMenu.astro';
+import BagButton from '../components/storefront/BagButton';
 import PostHog from '../components/PostHog.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import IconButton from '../components/ui/IconButton.astro';
@@ -46,7 +48,9 @@ const navItems = [
         <Wordmark />
         <SiteNav items={navItems} className="site-header__nav" />
         <div class="site-header__actions">
-          <IconButton href="/cart" label="Bag" shape="plain"><ShoppingBag /></IconButton>
+          <BagButton client:only="react">
+            <IconButton slot="fallback" href="/cart" label="Bag" shape="plain"><ShoppingBag /></IconButton>
+          </BagButton>
           <AccountMenu />
         </div>
       </div>
