@@ -57,7 +57,8 @@ export default function ShopView({ initialProducts, initialCategories, initialCa
     if (shop.total !== null) lastTotal.current = shop.total;
   }, [shop.total]);
 
-  const total = shop.total ?? lastTotal.current;
+  // No count beside an error: the last one no longer describes what's on screen.
+  const total = shop.error ? null : (shop.total ?? lastTotal.current);
   const facetsLoaded = shop.facets.length > 0 || shop.priceRange !== null;
   const facets = facetsLoaded ? shop.facets : initialFacetData.facets;
   const priceRange = facetsLoaded ? shop.priceRange : initialFacetData.priceRange;
@@ -191,7 +192,7 @@ export default function ShopView({ initialProducts, initialCategories, initialCa
           hasFilters ? (
             <div className="ui-empty">
               <p className="ui-empty__title">No sneakers match these filters.</p>
-              <p className="ui-empty__text">Widen the price range or pick fewer colors.</p>
+              <p className="ui-empty__text">Try another search, a wider price range or fewer colors.</p>
               <div className="ui-empty__actions">
                 <button type="button" className="ui-button ui-button--primary" onClick={clear}>Clear filters</button>
               </div>

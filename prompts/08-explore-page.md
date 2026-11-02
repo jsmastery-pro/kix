@@ -179,7 +179,7 @@ Each step ends with `npm run check` passing and a commit.
   - `/shop?q=orbit` server HTML contains "Kix Orbit High", no other product names, and "1 Sneaker";
   - `/shop?min=150` server HTML contains no product under $150;
   - `curl -s -o /dev/null -w '%{http_code}' localhost:4321/category/nope` prints 404.)
-- [ ] 8. **Behaviour in the browser** (Claude in Chrome, `localhost:4321`):
+- [x] 8. **Behaviour in the browser** (Claude in Chrome, `localhost:4321`):
   - click a color: the URL gains `choice=`, the grid and count update, the dot shows pressed;
   - drag and release a price thumb, then use arrow keys: the URL gains `min`/`max` and the grid updates;
   - search "court": the URL gains `q=court`; an empty search removes it;
