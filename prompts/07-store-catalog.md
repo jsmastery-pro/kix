@@ -1,6 +1,6 @@
 # 07 · Store data map, 12 Kix sneakers and the storefront data layer
 
-Status: approved
+Status: done
 
 <!-- review → approved → done, or dropped. Only the user approves. -->
 
@@ -60,7 +60,7 @@ When this is done, every element of the six designs has a named data owner (Wix 
   - the expected `$229.00` price format
   - tile tones, and two wording fixes
 
-  One suggestion was changed: it named the field `PRODUCT_CHOICES_MEDIA_REFERENCES`, but the docs list `PRODUCT_CHOICES_DISPLAY_IMAGE`, so step 4 uses that and confirms it first.
+  At planning time I overruled its field name `PRODUCT_CHOICES_MEDIA_REFERENCES` in favour of `PRODUCT_CHOICES_DISPLAY_IMAGE`. That was wrong: the docs list both, and `PRODUCT_CHOICES_MEDIA_REFERENCES` is the one that returns each choice's linked gallery image (`choices[].media.items[].mediaId`). Step 4 used it.
 
 ## Context
 
@@ -310,8 +310,8 @@ No new tokens, events or secrets.
 - [x] 6. **Verify product slugs.** Read `products[].slug` from `.seed/seed-result.json`. (check: the 12 slugs are `kix-court-1-retro`, `kix-summit-high`, `kix-strap-high-lx`, `kix-nightshift-high`, `kix-sandlot-suede`, `kix-meridian-premium`, `kix-orbit-high`, `kix-tempo-run`, `kix-pacer-2`, `kix-drill-tr`, `kix-circuit-trainer`, `kix-mini-court`; the slide links in `mock.ts` match.)
 - [x] 7. **Wire the home sections** as in Approach. (check: `npm run check` and `npm run build` pass; `curl -s localhost:4321/ | grep -c 'Kix Sandlot Suede'` ≥ 1 and `grep -c 'static.wixstatic.com'` ≥ 1, both of which only live data produces (the mock had the name only in uppercase, in the removed `popularNow`); `mock.ts` has no product prices left.) Commit.
 - [x] 8. **Compare with the home design** at 1440px and 390px through Claude in Chrome (390px via a same-origin iframe). (check: the three sections show live names, prices, struck prices on sale items, "New"/"Sale" ribbons and AI photos; tiles link to `/category/<slug>`; every difference from the design is listed and fixed or explained, with Wix's `$229.00` price format expected.) Then force each failure path by temporarily editing the frontmatter, and revert after each: a throw from `fetchProductsByCategory` for `popular` (check: Popular Right Now hides, New Arrivals and categories still render, the server log shows `[home] popular read failed`), and an empty category list (check: all three sections hide, the page renders, the log shows `[home] no categories from Wix`). Commit fixes.
-- [ ] 9. **Review.** A reviewer subagent compares the work with this plan; fix real gaps.
-- [ ] 10. **Close out.** Write Result, set `Status: done`, update the index, and propose AGENTS.md edits (storefront data layer deployed, catalog and category tree, the "one external call" rule reworded, Node path).
+- [x] 9. **Review.** A reviewer subagent compares the work with this plan; fix real gaps.
+- [x] 10. **Close out.** Write Result, set `Status: done`, update the index, and propose AGENTS.md edits (storefront data layer deployed, catalog and category tree, the "one external call" rule reworded, Node path).
 
 ## Files
 
@@ -349,4 +349,33 @@ No new tokens, events or secrets.
 
 ## Result
 
-Filled at close-out.
+**What shipped**
+
+- **Data map:** above, under Approach.
+- **Kit storefront code:** deployed unchanged into `src/wix/storefront/`, `src/hooks/storefront/` and `src/components/storefront/`, with `@wix/stores`, `@wix/categories`, `@wix/ecom`, `@wix/redirects` and `@wix/seo`. Our `config.ts`, `SiteLayout.astro` and `global.css` are unchanged.
+- **Live Wix store:** Stores installed, currency USD, and the 12 sneakers with 24 colorway photos linked to their colors and sizes as variants, all untracked stock. 11 categories with the planned slugs: Sports with Lifestyle, Running, Basketball, Skate and Training under it, in that order and each with an image.
+- **Home page:** Shop by Category, New Arrivals and Popular Right Now are server-rendered from Wix. They log and hide on any failure: an empty category list, a missing curated slug, or a failed product read. `mock.ts` now holds only the slides, perks and header nav.
+
+**Differences from the plan**
+
+- **Photos.** Step 4 failed 3 products:
+  - Nightshift High: both photos are low-tops, and they show two different models.
+  - Drill TR: two different models.
+  - Court 1 Retro: no marks, but the panel layout closely resembles a real brand's famous high-top.
+
+  The user approved regenerating those 6 photos with more specific prompts. Wix's image service then answered `428 Request is not eligible for credits`, and the store was left unchanged. The user chose to keep the current photos as placeholders. The new prompts are already in `.seed/store-plan.json`, so a later seed re-run generates only those 6. They'll be added to the end of each gallery, so the rejected photos stay first (and stay the main image) until the owner deletes them. Orbit High, Sandlot Suede, Tempo Run and Pacer 2 were borderline on the same-shoe check and were accepted as placeholders.
+- **Category images are set by `url`.** Create Category rejected `{ id }` alone ("url is not a valid Web URL"), so Wix stored a copy of each photo.
+- **Product order.** New Arrivals and Popular render in Wix's order (Strap, Summit, Court; Orbit, Meridian, Sandlot, Nightshift), the reverse of the plan's lists.
+- **Prices** render as `$229.00`, straight from the DTOs.
+- **Extra log.** The review added logging for a missing curated category.
+- **Extra files in the git-ignored `.seed/` folder:** `store-plan.v1.json`, `seed-result-2.json`, the seed logs and `category-tree-result.json`.
+- **npm audit** reports 19 findings, the same 19 as before this plan. The 5 new packages added none.
+
+**Lessons**
+
+- Generate both colorways of a product from one detailed silhouette description. Feature lists alone produced different shoes per call.
+- Check Wix AI credit eligibility before planning a regeneration.
+- `fetchCategories()` never throws, so failure has to be detected from an empty result.
+- The kit's components use tokens we don't define yet (`bg-secondary`, `bg-foreground`, `text-foreground`, `text-muted-foreground`, `text-primary-foreground`, `text-destructive`, `rounded-control`). The explore and cart plans must alias them in `global.css` before mounting `FilterPanel`, `QuickAdd`, `OptionPicker` or `CartDrawer`.
+
+**One-shot prompt:** "Using the wix-headless-kit storefront, deploy the store data layer, seed these 12 sneakers (table) in USD with untracked stock, two colorways each with one AI photo per colorway, generated from one fixed silhouette description per shoe, then create Sports and its five sport subcategories with a script, and wire the home page's category and curated sections to live data with logged, hidden failures."
