@@ -1,10 +1,9 @@
 ---
-// Home page. Reads placeholder data from src/data/mock.ts, shaped like the Headless kit's DTOs.
-// Wiring Wix (plan 03): fetch inside a guarded try, as the kit's page skeletons do —
+// Home page (plans 03 and 07). Live from Wix Stores, fetched inside a guarded try as the kit's page skeletons do:
 //   shopCategories → fetchCategories() filtered to children of the `sports` category, by index
 //   newArrivals / popularNow → fetchProductsByCategory() of the owner-curated `new-arrivals` / `popular`
-//   heroSlides / collectionSlides → a Wix CMS collection
-// An empty list hides its section, heading included.
+// Still placeholder copy in src/data/mock.ts: heroSlides / collectionSlides (a Wix CMS collection later) and memberPerks.
+// An empty list hides its section, heading included; failures are logged on the server.
 import { LockKeyhole, RefreshCcw, Truck } from '@lucide/astro';
 import CategoryTile from '../components/ui/CategoryTile.astro';
 import Carousel from '../components/ui/Carousel.astro';
@@ -14,7 +13,36 @@ import ProductCard from '../components/ui/ProductCard.astro';
 import SectionHeading from '../components/ui/SectionHeading.astro';
 import type { TileTone } from '../components/ui/tones';
 import SiteLayout from '../layouts/SiteLayout.astro';
-import { collectionSlides, heroSlides, memberPerks, newArrivals, popularNow, shopCategories } from '../data/mock';
+import { collectionSlides, heroSlides, memberPerks } from '../data/mock';
+import { fetchCategories, fetchProductsByCategory } from '../wix/storefront/catalog';
+import type { Category, ProductSummary } from '../wix/storefront/types';
+
+let shopCategories: Category[] = [];
+let newArrivals: ProductSummary[] = [];
+let popularNow: ProductSummary[] = [];
+try {
+  // fetchCategories() swallows its own errors and returns [], so an empty list is the failure signal.
+  const categories = await fetchCategories();
+  if (categories.length === 0) console.error('[home] no categories from Wix');
+  const bySlug = (slug: string) => categories.find((c) => c.slug === slug);
+  const sports = bySlug('sports');
+  shopCategories = sports
+    ? categories.filter((c) => c.parentId === sports.id).sort((a, b) => a.index - b.index || a.name.localeCompare(b.name))
+    : [];
+  const fresh = bySlug('new-arrivals');
+  const popular = bySlug('popular');
+  // allSettled: one curated read failing never hides the other section.
+  const [freshResult, popularResult] = await Promise.allSettled([
+    fresh ? fetchProductsByCategory(fresh.id, { limit: 3 }) : Promise.resolve([]),
+    popular ? fetchProductsByCategory(popular.id, { limit: 4 }) : Promise.resolve([]),
+  ]);
+  if (freshResult.status === 'fulfilled') newArrivals = freshResult.value;
+  else console.error('[home] new arrivals read failed', freshResult.reason);
+  if (popularResult.status === 'fulfilled') popularNow = popularResult.value;
+  else console.error('[home] popular read failed', popularResult.reason);
+} catch (error) {
+  console.error('[home] catalog read failed', error);
+}
 
 const categoryTones: TileTone[] = ['beige', 'mint', 'peach', 'coral', 'periwinkle'];
 const newTones: TileTone[] = ['tan', 'aqua', 'rose'];
