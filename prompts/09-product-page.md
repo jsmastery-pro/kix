@@ -1,6 +1,6 @@
 # 09 · Product page: gallery, color and size pickers, add to cart, details and recommendations
 
-Status: review
+Status: approved
 
 <!-- review → approved → done, or dropped. Only the user approves. -->
 
