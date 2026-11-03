@@ -4,7 +4,9 @@
 // can't add, it is aria-disabled, the kit's reason shows under it, and a press moves focus to the
 // first option with no pick. The add confirms inline; the header bag shows the new count. In 3D, the
 // Customize panel (plan 12) sits under the Color picker; this island owns the design, its saves and
-// the ?design= / ?resume=design links, since the gallery and the buy column are siblings.
+// the ?design= / ?resume=design links, since the gallery and the buy column are siblings. A
+// customized pair goes into the cart with its design code in the products' "Design code" field, and
+// ?code= opens a code in 3D (plan 13).
 import { Heart, LoaderCircle, ShoppingBag } from 'lucide-react';
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMember } from '../../hooks/members/useMember';
@@ -16,7 +18,8 @@ import { DesignError, getDesign, listDesigns, saveDesign, toZones, type SavedDes
 import { modelZones, type Preset, type ProductModel, type ZoneColors } from '../../wix/models/presets';
 import type { ProductDetail } from '../../wix/storefront/types';
 import OptionGroup from '../ui/OptionGroup';
-import CustomizePanel, { type ListState, type SaveState, type Status } from './CustomizePanel';
+import { DESIGN_CODE_FIELD, decodeDesignCode, encodeDesignCode, isCustomCode } from '../../wix/models/design-code';
+import CustomizePanel, { CART_NOTE_BLOCKED, type CartNote, type ListState, type SaveState, type Status } from './CustomizePanel';
 import ProductGallery, { type Mode, type ProductGalleryHandle } from '../ui/ProductGallery';
 
 interface Props {
@@ -61,8 +64,10 @@ export default function ProductView({ initial, eyebrow, summaryHtml, model }: Pr
     setOutcome(null);
     if (d.optionGroups.find((g) => g.id === optionId)?.isColor) {
       setColorPicks((n) => n + 1);
-      // A stock color pick starts the design over from that color's preset.
-      if (design.override) {
+      // A stock color pick starts the design over from that color's preset. Picking the color the
+      // design already starts from (Add to Cart sends a shopper with no pick here) keeps it.
+      const keeps = choiceId === design.base?.choiceId && !design.ownBase;
+      if (design.override && !keeps) {
         design.startOver();
         const name = colorGroup?.choices.find((c) => c.choiceId === choiceId)?.name;
         if (design.open && name) setDesignStatus({ text: `Started over from ${name}.` });
@@ -157,8 +162,9 @@ export default function ProductView({ initial, eyebrow, summaryHtml, model }: Pr
     track('design_opened', { product_id: product.id, source: 'panel' });
   };
 
-  // ?resume=design (back from Sign In to Save) and ?design=<id> (Open on /account), once the member
-  // session has settled. Both params leave the URL as soon as they're read.
+  // ?resume=design (back from Sign In to Save), ?design=<id> (Open on /account) and
+  // ?code=<design code>&color=<Color> (cart, thank-you and order links, plan 13), once the member
+  // session has settled. The params leave the URL as soon as they're read.
   const linkHandled = useRef(false);
   useEffect(() => {
     if (linkHandled.current || member.loading) return;
@@ -166,12 +172,34 @@ export default function ProductView({ initial, eyebrow, summaryHtml, model }: Pr
     const params = new URLSearchParams(location.search);
     const resume = params.get('resume');
     const designId = params.get('design');
-    if (!resume && !designId) return;
-    params.delete('resume');
-    params.delete('design');
+    const code = params.get('code');
+    const codeColor = params.get('color');
+    if (!resume && !designId && !code) return;
+    for (const name of ['resume', 'design', 'code', 'color']) params.delete(name);
     const query = params.toString();
     history.replaceState(history.state, '', `${location.pathname}${query ? `?${query}` : ''}${location.hash}`);
     const gallery = galleryRef.current;
+
+    if (code) {
+      if (!gallery) return;
+      if (!model) {
+        gallery.showNote("3D isn't available for this sneaker, so the design can't open.");
+        return;
+      }
+      // "S" reads the named Color's preset, in stock or not; without a Color, the colors on show.
+      const choice = codeColor ? colorGroup?.choices.find((c) => c.name === codeColor) : undefined;
+      const choicePreset = choice ? model.presets.find((p) => p.choiceId === choice.choiceId) : undefined;
+      const base = choice && choicePreset ? { choiceId: choice.choiceId, colorName: choice.name, zones: choicePreset.zones } : codeColor ? null : preset;
+      const zones = decodeDesignCode(code, base?.zones ?? null, zonesOnModel);
+      if (!zones) {
+        gallery.showNote("This design code doesn't fit this sneaker.");
+        return;
+      }
+      if (!gallery.open3d()) return;
+      applyDesign({ baseChoiceId: base?.choiceId ?? '', baseColor: base?.colorName ?? '', zones });
+      track('design_code_opened', { product_id: product.id });
+      return;
+    }
 
     if (resume === 'design') {
       const pending = takePendingDesign(product.id);
@@ -214,6 +242,20 @@ export default function ProductView({ initial, eyebrow, summaryHtml, model }: Pr
     })();
   }, [member.loading]); // runs once, when the session settles
 
+  // What Add to Cart sends (plan 13): the stock pair, or the pair with its design code in the
+  // products' "Design code" field. The code is read against the picked Color's preset; before a
+  // pick, against the colors the design starts from (a pick of that color keeps the design).
+  const designField = product.modifiers.find((m) => m.type === 'text' && (m.title === DESIGN_CODE_FIELD || m.name === DESIGN_CODE_FIELD)) ?? null;
+  const pickedColor = colorGroup?.choices.find((c) => c.selected) ?? null;
+  const pickedStock = pickedColor ? model?.presets.find((p) => p.choiceId === pickedColor.choiceId)?.zones ?? null : null;
+  const cartNote: CartNote = (() => {
+    if (!design.override || !design.shown) return { kind: 'stock' };
+    const code = encodeDesignCode(design.shown, pickedStock ?? (design.ownBase ? {} : design.base?.zones ?? {}), zonesOnModel);
+    if (!code) return { kind: 'unencodable' };
+    if (!isCustomCode(code)) return { kind: 'stock' };
+    return designField ? { kind: 'code', code } : { kind: 'no_field' };
+  })();
+
   const saveState: SaveState = member.loading
     ? { kind: 'checking' }
     : memberId
@@ -233,6 +275,7 @@ export default function ProductView({ initial, eyebrow, summaryHtml, model }: Pr
       presetZones={(choiceId) => model?.presets.find((preset) => preset.choiceId === choiceId)?.zones}
       activeId={design.savedId}
       status={designStatus}
+      cartNote={cartNote}
       onZone={design.selectZone}
       onPick={(zone, hex) => { design.pick(zone, hex); setDesignStatus(null); }}
       onReset={() => { design.reset(); setDesignStatus(null); }}
@@ -255,11 +298,18 @@ export default function ProductView({ initial, eyebrow, summaryHtml, model }: Pr
       }
       return;
     }
+    if (cartNote.kind === 'unencodable' || cartNote.kind === 'no_field') {
+      setOutcome({ tone: 'error', text: CART_NOTE_BLOCKED[cartNote.kind] });
+      if (cartNote.kind === 'no_field') captureError(new Error('design_code_field_missing'), 'design_code');
+      return;
+    }
     setOutcome(null);
     try {
+      // The store reads the field when add() runs; '' sends nothing, so a stock add carries no code.
+      if (designField) d.setModifier(designField.key, cartNote.kind === 'code' ? cartNote.code : '');
       await d.add();
-      track('product_added_to_cart', { product_id: product.id });
-      setOutcome({ tone: 'done', text: 'Added to your bag.' });
+      track('product_added_to_cart', { product_id: product.id, customized: cartNote.kind === 'code' });
+      setOutcome({ tone: 'done', text: 'Added to your bag.', link: { href: '/cart', label: 'View bag' } });
     } catch (error) {
       captureError(error, 'cart_add');
       setOutcome({ tone: 'error', text: "We couldn't add this to your bag. Try again." });

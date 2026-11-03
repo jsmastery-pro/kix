@@ -39,6 +39,8 @@ interface Props {
   /** The saved design on show, if any. */
   activeId: string | null;
   status: Status | null;
+  /** What Add to Cart sends now (plan 13). */
+  cartNote: CartNote;
   onZone: (zone: Zone) => void;
   onPick: (zone: Zone, hex: string) => void;
   onReset: () => void;
@@ -47,6 +49,21 @@ interface Props {
   onSignIn: () => void;
   onOpenDesign: (design: SavedDesign) => void;
   onRetryList: () => void;
+}
+
+/** What Add to Cart sends (plan 13): the stock pair, this design with its code, or nothing (blocked). */
+export type CartNote = { kind: 'stock' } | { kind: 'code'; code: string } | { kind: 'unencodable' } | { kind: 'no_field' };
+
+/** The buy column's status text when a customized add is blocked. */
+export const CART_NOTE_BLOCKED = {
+  unencodable: "This design has colors we can't order. Reset a part or pick from the palette.",
+  no_field: "Custom pairs can't be ordered for this sneaker yet.",
+} as const;
+
+function cartNoteText(note: CartNote): string {
+  if (note.kind === 'code') return `Add to Cart adds this design. Design code ${note.code}.`;
+  if (note.kind === 'stock') return 'Add to Cart adds the stock color. Change a part to make it yours.';
+  return CART_NOTE_BLOCKED[note.kind];
 }
 
 const savedDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
@@ -158,7 +175,7 @@ export default function CustomizePanel(p: Props) {
         {p.status?.text}
         {p.status?.link && <> <a href={p.status.link.href}>{p.status.link.label}</a></>}
       </p>
-      <p className="ui-customize__note">Add to Cart adds the stock color. Save your design to keep it.</p>
+      <p className="ui-customize__note" aria-live="polite">{cartNoteText(p.cartNote)}</p>
 
       {p.list.kind !== 'hidden' && !(p.list.kind === 'ready' && p.list.designs.length === 0) && (
         <div className="ui-customize__designs">

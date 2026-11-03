@@ -62,6 +62,8 @@ export function useDesign(preset: Preset | null, zonesOnModel: Zone[]) {
       /** Colors the gallery shows instead of its own preset; null lets the preset show. */
       override: state.zones ?? state.baseOverride?.zones ?? null,
       customized: state.zones !== null,
+      /** A loaded design whose stock color can't be picked: its own colors stand in as Original. */
+      ownBase: state.baseOverride !== null,
       savedId: state.savedId,
       rev: state.rev,
       openPanel,

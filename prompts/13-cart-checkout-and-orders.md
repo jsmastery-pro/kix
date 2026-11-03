@@ -282,8 +282,8 @@ Status: approved
   - checkout can't return to localhost. The fallback is testing the return on `npm run preview`.
   - `productUrl` doesn't give the product slug. The 3D links then need a slug lookup this plan didn't approve.
 - [x] 2. **The field on all 12.** Run the script for every product, then re-run it. (check: 12 updated, then 12 skipped; `/shop` filters unchanged at 1440 (no new facet); a PDP stock add still works.)
-- [ ] 3. **Analytics catalog** additions and `ServerAnalyticsEvents`. (check: `npm run check`.)
-- [ ] 4. **Design code on the product page.** Add `design-code.ts`, the palette comment, the add-with-code path, the note, View bag, and the `?code=` link. (check in Chrome:
+- [x] 3. **Analytics catalog** additions and `ServerAnalyticsEvents`. (check: `npm run check`.)
+- [x] 4. **Design code on the product page.** Add `design-code.ts`, the palette comment, the add-with-code path, the note, View bag, and the `?code=` link. (check in Chrome:
   - customize Court 1 Retro, then add: the cart line carries the right code;
   - a stock add has no code;
   - `?code=` reopens the same colors signed out;

@@ -1,6 +1,8 @@
 // The Customize panel's colors (plan 12): the same 16 for every zone. Shoe color data like the
 // presets' hexes in ProductModels, not UI styling, so it lives here rather than in global.css.
 // Hexes tuned by eye in the 3D view (RoomEnvironment lighting, neutral-shaded models).
+// Order is order data (plan 13): a design code names a color by its index here (0-F), so never
+// reorder, remove or recolor an entry. Append only, 16 at most; a 17th needs a new code format.
 export interface PaletteColor {
   name: string;
   hex: string;

@@ -19,8 +19,8 @@ export interface AnalyticsEvents {
   signed_out: { source: 'header' | 'account' | 'auth_page' };
   /** Which explore filter changed (plan 08). `category` is the page's category slug or 'all'; never the search text or values. */
   catalog_filtered: { filter: 'category' | 'price' | 'color' | 'search' | 'clear'; category: string };
-  /** A successful add from the product page (plan 09). `product_id` is the Wix catalog ID, not personal data. */
-  product_added_to_cart: { product_id: string };
+  /** A successful add from the product page (plan 09). `product_id` is the Wix catalog ID, not personal data. `customized`: added with a design code (plan 13). */
+  product_added_to_cart: { product_id: string; customized: boolean };
   /** The 3D view opened on the product page (plan 11), once per open. */
   product_3d_opened: { product_id: string; source: 'pill' | 'thumbnail' | 'design' };
   /** The 3D view fell back to photos (plan 11). */
@@ -33,9 +33,28 @@ export interface AnalyticsEvents {
   design_opened: { product_id: string; source: 'panel' | 'account' | 'resume' };
   design_deleted: { product_id: string };
   design_sign_in_prompted: { product_id: string };
+  /** A ?code= design link opened in 3D (plan 13). Never the code itself. */
+  design_code_opened: { product_id: string };
+  /** Cart page changes (plan 13). The coupon text the shopper typed is never sent. */
+  cart_quantity_changed: Record<string, never>;
+  cart_line_removed: Record<string, never>;
+  coupon_submitted: { outcome: 'applied' | 'rejected' };
+  checkout_started: { item_count: number; customized_count: number };
+  /** `reason` is a Wix error code or 'network'. */
+  checkout_failed: { reason: string };
+  /** The thank-you page showed an order (plan 13). Revenue comes from the server's order_paid. */
+  order_completed: { order_id: string };
 }
 
-export type ErrorArea = 'auth_submit' | 'auth_code' | 'profile_save' | 'pending_name' | 'cart_add' | 'model_load' | 'design_save' | 'design_list' | 'design_load' | 'design_delete';
+/**
+ * Events sent from server code (plan 13) through analytics-server.ts, the server twin of track().
+ * Same rules: no personal data. `order_paid` is the one revenue event, sent once per paid order.
+ */
+export interface ServerAnalyticsEvents {
+  order_paid: { revenue: number; currency: string; order_id: string; order_number: number | null; item_count: number; customized_count: number };
+}
+
+export type ErrorArea = 'auth_submit' | 'auth_code' | 'profile_save' | 'pending_name' | 'cart_add' | 'model_load' | 'design_save' | 'design_list' | 'design_load' | 'design_delete' | 'cart_update' | 'checkout' | 'order_load' | 'order_list' | 'design_code';
 
 /** The part of posthog-js we call. The snippet's stub queues capture, identify and reset until
  * the SDK loads; the getters and captureException exist only after (see whenReady). */
