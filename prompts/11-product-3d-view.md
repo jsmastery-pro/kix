@@ -1,6 +1,6 @@
 # 11 · Product 3D view: spin the shoe in the color the shopper picked
 
-Status: approved
+Status: done
 
 <!-- review → approved → done, or dropped. Only the user approves. -->
 
@@ -192,7 +192,7 @@ export function resolvePreset(model, colorGroup, framePhotoUrl): { zones; colorN
   - `WEBGL_lose_context.loseContext()` on the live canvas (context lost).
 - [x] 6. **Analytics.** Add both events and `'model_load'` to the catalog; call them from the gallery (check: `npm run check`; the network panel shows a PostHog capture for `product_3d_opened` with `product_id` and `source`, and one `product_3d_failed` per fallback in step 5).
 - [x] 7. **Styles and design check.** Add the classes above. Screenshot 1440 and 390 in photo mode (unchanged from plan 09), loading, 3D, and the fallback note. Fix differences and repeat (check: screenshots in the report).
-- [ ] 8. Verification below, then a reviewer subagent, then close-out.
+- [x] 8. Verification below, then a reviewer subagent, then close-out.
 
 Each step is committed when its check passes.
 
@@ -231,4 +231,50 @@ Each step is committed when its check passes.
 
 ## Result
 
-Filled at close-out.
+**Shipped.** On every Kix product page, the 3D pill and the 3D View tile open the product's `ProductModels` model in the photo frame. The model shows in the picked color, or in the color of the photo in the frame. A pick recolors it in place, and drag or the arrow keys spin it. "Photos" or a photo thumbnail goes back. No WebGL, a load error, a 20 s timeout or a lost context fall back to photos with a note, and 3D turns off for the visit. Products without a row get disabled controls labelled "3D view not available". three, R3F, drei and the model load only on a press.
+
+**Measured.**
+- 3D chunk: 938 KB minified, 247 KB gzipped, with a single three (r186). Vite's ">500 kB" warning is expected.
+- `dist/server`: 7,792 → 7,808 KB (three stays out of the server build).
+- The page makes one extra Wix sub-request (Get Data Item).
+
+**Differed from the plan, and why:**
+- **No `?debug3d` hook.** Step 3 was checked through the real gallery wiring (step 4): the chunk can't be measured until something imports it.
+- **Framing (step 7, design loop).** `Fit` fills a square frame edge to edge (margin 1.0, not 1.15); the 1.15 shoe looked small next to the photos. On wide frames (phones, aspect ≈ 1.46) the margin is `√aspect`, and `camera.setViewOffset` lifts the image 8%, so the "Photos" pill doesn't cover the sole. The orbit pivot stays on the shoe's center.
+- **The fallback note sits top-left** (the hint's spot; the two never show together), not bottom-left: on a 245px-tall phone frame there's no room above the pill.
+- **No Wix sample products exist in Stores** (only the 12 Kix sneakers), so the no-model state was checked by passing `model={null}` temporarily (reverted). A missing row returns 404 `WDE0073`, which maps to no model.
+- **Review fixes after the build:**
+  - The empty note keeps its live region in the accessibility tree.
+  - Focus moves to the pill when a fallback unmounts the focused viewer.
+  - The viewer is `aria-hidden` and not tabbable until ready.
+  - A color pick clears the note.
+  - `RoomEnvironment` is disposed.
+  - The controls' type comes from drei's `ElementRef`, not from `three-stdlib`, which isn't a direct dependency.
+
+**Verification (run):**
+- `npm run check`: 0 errors, 0 warnings. `npm run build`: Complete.
+- The SSR props for Court 1 Retro carry the model URL, 6 parts and 2 presets.
+- In Chrome:
+  - No `.glb` or 3D chunk before a press, and one `.glb` from `static.wixstatic.com` after it. Reopening sends no new request.
+  - The pill and the tile open 3D, and "Photos" goes back, with no false context-lost after 1.5 s.
+  - With no pick, opening from the Black / Sail photo shows Black / Sail.
+  - A Black / Sail pick in 3D recolors the shoe in place.
+  - A drag spins it, including down to the sole. The wheel scrolls the page (scrollY 0 → 375). The arrow keys spin it.
+- **Fallbacks:** each ends on photos with the note and disabled controls, and fires `product_3d_failed`:
+  - `no_webgl` (stubbed `getContext`);
+  - `load_error` (rejected `.glb` fetch; `captureException` got "model_load: Error");
+  - `timeout` (a hanging fetch, fired at 20 s);
+  - `context_lost` (`loseContext()`).
+- `product_3d_opened` fired with `product_id` and `source`. It was seen through a `posthog.capture` spy; the PostHog MCP isn't authorized.
+- Screenshots at 1440 (photos, loading, 3D, fallback note) and 390 (3D) for Court 1 Retro, Nightshift High and Pacer 2.
+- Not tested: real phones, Safari and Firefox.
+
+**Dev-server note.** The first 3D press after adding the packages failed once with `load_error`: Vite re-optimized its dependencies on that first dynamic import and reloaded. Later presses worked. Production builds don't do this.
+
+**Lessons:**
+- drei's `Bounds` aims from the camera's absolute position, so compute the fit yourself for a model standing on y = 0.
+- R3F 8 force-loses the WebGL context about 500 ms after unmount, so a context-loss listener must be removed on unmount.
+- A `role="status"` line hidden with `display: none` when empty may never be announced.
+
+**One-pass prompt:** "Turn on plan 09's 3D controls: read the product's ProductModels row on the server (Get Data Item through wixFetch) and, on a 3D press, lazy-load an R3F 8 + drei 9 viewer (three 0.186.1) in the photo frame. Color it from the picked color's preset, spin only, and fall back to photos with a note on no WebGL, a load error, a timeout or a lost context."
+
