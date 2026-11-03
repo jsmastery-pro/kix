@@ -22,12 +22,20 @@ export interface AnalyticsEvents {
   /** A successful add from the product page (plan 09). `product_id` is the Wix catalog ID, not personal data. */
   product_added_to_cart: { product_id: string };
   /** The 3D view opened on the product page (plan 11), once per open. */
-  product_3d_opened: { product_id: string; source: 'pill' | 'thumbnail' };
+  product_3d_opened: { product_id: string; source: 'pill' | 'thumbnail' | 'design' };
   /** The 3D view fell back to photos (plan 11). */
   product_3d_failed: { product_id: string; reason: 'no_webgl' | 'load_error' | 'timeout' | 'context_lost' };
+  /** The Customize panel opened in the 3D view (plan 12). Designs never send their colors. */
+  design_customize_opened: { product_id: string };
+  design_saved: { product_id: string; kind: 'new' | 'update' };
+  /** `reason` is a Wix error code, an HTTP status, or 'network'. */
+  design_save_failed: { product_id: string; reason: string };
+  design_opened: { product_id: string; source: 'panel' | 'account' | 'resume' };
+  design_deleted: { product_id: string };
+  design_sign_in_prompted: { product_id: string };
 }
 
-export type ErrorArea = 'auth_submit' | 'auth_code' | 'profile_save' | 'pending_name' | 'cart_add' | 'model_load';
+export type ErrorArea = 'auth_submit' | 'auth_code' | 'profile_save' | 'pending_name' | 'cart_add' | 'model_load' | 'design_save' | 'design_list' | 'design_load' | 'design_delete';
 
 /** The part of posthog-js we call. The snippet's stub queues capture, identify and reset until
  * the SDK loads; the getters and captureException exist only after (see whenReady). */
