@@ -162,7 +162,7 @@ export function resolvePreset(model, colorGroup, framePhotoUrl): { zones; colorN
 
 - [x] 1. **Read the row.** Write `src/wix/models/presets.ts` (types, `resolvePreset`) and `src/wix/models/product-models.ts` (`fetchProductModel(productId)`: Get Data Item through `wixFetch`, 404 → null, validate → DTO). Wire it into the second wave in `[slug].astro` and pass `model` to `ProductView` (unused for now). (check: `npm run check`. On the dev server, the page's SSR props for `kix-court-1-retro` carry its `modelUrl`, 6 parts and 2 presets. A Wix sample product's carry `model: null`, its page still renders, and the server log shows no error for the 404.)
 - [x] 2. **Packages.** `npm i -E three@0.186.1 @react-three/fiber@8.18.0 @react-three/drei@9.122.0` and `npm i -D -E @types/three@0.186.0` (check: `npm ls` shows no peer-dependency errors; the only extra three is stats-gl's nested 0.170.0, see Decisions).
-- [ ] 3. **Viewer.** `src/components/storefront/ShoeViewer.tsx`, as in Approach:
+- [x] 3. **Viewer.** `src/components/storefront/ShoeViewer.tsx`, as in Approach:
   - the Canvas with Neutral tone mapping and RoomEnvironment;
   - `useGLTF(url, false)`;
   - materials cloned once, with their original colors kept;
@@ -178,7 +178,7 @@ export function resolvePreset(model, colorGroup, framePhotoUrl): { zones; colorN
   - `dist/server` is about the same size as before this plan (7.6 MB).
 
   Both sizes go in the report.)
-- [ ] 4. **Gallery wiring.** `ProductGallery` gets `model`, `colorGroup` and `productId`. It adds the modes, the lazy import, the WebGL check, the 20 s timeout, the pill toggle, the pressed tile, hidden arrows and expand, loading, hint, note and the disabled states. Remove the `?debug3d` hook. `ProductView` passes the props through. (check in the browser on Court 1 Retro:
+- [x] 4. **Gallery wiring.** `ProductGallery` gets `model`, `colorGroup` and `productId`. It adds the modes, the lazy import, the WebGL check, the 20 s timeout, the pill toggle, the pressed tile, hidden arrows and expand, loading, hint, note and the disabled states. Remove the `?debug3d` hook. `ProductView` passes the props through. (check in the browser on Court 1 Retro:
   - no `.glb` or three chunk requested before a press;
   - the tile and the pill each open 3D; "Photos" and a photo thumbnail go back;
   - with no pick, opening from the Black / Sail photo shows Black / Sail;
@@ -186,11 +186,11 @@ export function resolvePreset(model, colorGroup, framePhotoUrl): { zones; colorN
   - picking Team Red / White in 3D recolors in place;
   - drag spins, the wheel scrolls the page, and the arrow keys spin;
   - a Wix sample product shows both controls disabled, labelled "3D view not available".)
-- [ ] 5. **Fallbacks.** Check each in the browser with a JS stub set before pressing 3D. Each must end on photos with the note and disabled controls:
+- [x] 5. **Fallbacks.** Check each in the browser with a JS stub set before pressing 3D. Each must end on photos with the note and disabled controls:
   - `HTMLCanvasElement.prototype.getContext = () => null` (no WebGL);
   - `window.fetch` rejecting `.glb` URLs (load error). three's FileLoader passes a `Request`, so the stub checks `String(input?.url ?? input).includes('.glb')`;
   - `WEBGL_lose_context.loseContext()` on the live canvas (context lost).
-- [ ] 6. **Analytics.** Add both events and `'model_load'` to the catalog; call them from the gallery (check: `npm run check`; the network panel shows a PostHog capture for `product_3d_opened` with `product_id` and `source`, and one `product_3d_failed` per fallback in step 5).
+- [x] 6. **Analytics.** Add both events and `'model_load'` to the catalog; call them from the gallery (check: `npm run check`; the network panel shows a PostHog capture for `product_3d_opened` with `product_id` and `source`, and one `product_3d_failed` per fallback in step 5).
 - [ ] 7. **Styles and design check.** Add the classes above. Screenshot 1440 and 390 in photo mode (unchanged from plan 09), loading, 3D, and the fallback note. Fix differences and repeat (check: screenshots in the report).
 - [ ] 8. Verification below, then a reviewer subagent, then close-out.
 

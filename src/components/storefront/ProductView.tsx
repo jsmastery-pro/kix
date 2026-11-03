@@ -68,7 +68,15 @@ export default function ProductView({ initial, eyebrow, summaryHtml, model }: Pr
 
   return (
     <div className="pdp__top">
-      <ProductGallery name={product.name} gallery={product.gallery} selectedImage={d.imageUrl} selectionKey={colorPicks} />
+      <ProductGallery
+        name={product.name}
+        gallery={product.gallery}
+        selectedImage={d.imageUrl}
+        selectionKey={colorPicks}
+        productId={product.id}
+        model={model}
+        colors={d.optionGroups.find((g) => g.isColor) ?? null}
+      />
 
       <div ref={buyRef} className="pdp__buy">
         {eyebrow && <p className="ui-pdp-eyebrow">{eyebrow}</p>}

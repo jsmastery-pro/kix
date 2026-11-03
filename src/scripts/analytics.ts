@@ -21,9 +21,13 @@ export interface AnalyticsEvents {
   catalog_filtered: { filter: 'category' | 'price' | 'color' | 'search' | 'clear'; category: string };
   /** A successful add from the product page (plan 09). `product_id` is the Wix catalog ID, not personal data. */
   product_added_to_cart: { product_id: string };
+  /** The 3D view opened on the product page (plan 11), once per open. */
+  product_3d_opened: { product_id: string; source: 'pill' | 'thumbnail' };
+  /** The 3D view fell back to photos (plan 11). */
+  product_3d_failed: { product_id: string; reason: 'no_webgl' | 'load_error' | 'timeout' | 'context_lost' };
 }
 
-export type ErrorArea = 'auth_submit' | 'auth_code' | 'profile_save' | 'pending_name' | 'cart_add';
+export type ErrorArea = 'auth_submit' | 'auth_code' | 'profile_save' | 'pending_name' | 'cart_add' | 'model_load';
 
 /** The part of posthog-js we call. The snippet's stub queues capture, identify and reset until
  * the SDK loads; the getters and captureException exist only after (see whenReady). */
