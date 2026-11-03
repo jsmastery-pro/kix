@@ -34,6 +34,8 @@ interface Props {
   original: ZoneColors;
   save: SaveState;
   list: ListState;
+  /** A stock color's preset colors, to name a saved design's untouched zones "original". */
+  presetZones: (choiceId: string) => ZoneColors | undefined;
   /** The saved design on show, if any. */
   activeId: string | null;
   status: Status | null;
@@ -68,8 +70,11 @@ export default function CustomizePanel(p: Props) {
   const current = p.shown[p.zone];
   const original = p.original[p.zone];
   const label = ZONE_LABELS[p.zone];
-  const describe = (d: SavedDesign) =>
-    `Design saved ${savedDate.format(new Date(d.savedAt))}: ${p.zones.filter((z) => d.zones[z]).map((z) => `${ZONE_LABELS[z].toLowerCase()} ${paletteName(d.zones[z]) ?? 'custom'}`).join(', ')}`;
+  const describe = (d: SavedDesign) => {
+    const base = p.presetZones(d.baseChoiceId);
+    const names = p.zones.filter((z) => d.zones[z]).map((z) => `${ZONE_LABELS[z].toLowerCase()} ${colorLabel(d.zones[z], base?.[z]).toLowerCase()}`);
+    return `Design saved ${savedDate.format(new Date(d.savedAt))}: ${names.join(', ')}`;
+  };
 
   return (
     <section id={p.id} className="ui-customize pdp__customize" aria-labelledby={`${p.id}-title`}>

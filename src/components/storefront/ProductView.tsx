@@ -214,6 +214,7 @@ export default function ProductView({ initial, eyebrow, summaryHtml, model }: Pr
       original={design.base.zones}
       save={saveState}
       list={memberId ? list : { kind: 'hidden' }}
+      presetZones={(choiceId) => model?.presets.find((preset) => preset.choiceId === choiceId)?.zones}
       activeId={design.savedId}
       status={designStatus}
       onZone={design.selectZone}
