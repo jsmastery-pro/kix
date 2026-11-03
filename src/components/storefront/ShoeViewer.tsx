@@ -25,7 +25,7 @@ interface Props {
 
 // The side view the dev viewer uses, relative to the shoe's center (plan 10 turned every model toe-left).
 const SIDE = new Vector3(0, 0.15, 1).normalize();
-const MARGIN = 1.15;
+const MARGIN = 1.0;
 const KEY_STEP = Math.PI / 12;
 
 // drei caches one parsed scene per URL for the page's life: clone each material once and keep its
@@ -74,7 +74,13 @@ function Fit({ object, onFit }: { object: Object3D; onFit: () => void }) {
     const dims = box.getSize(new Vector3());
     const vfov = MathUtils.degToRad(camera.fov);
     const hfov = 2 * Math.atan(Math.tan(vfov / 2) * camera.aspect);
-    const dist = MARGIN * Math.max(dims.y / 2 / Math.tan(vfov / 2), dims.x / 2 / Math.tan(hfov / 2)) + dims.z / 2;
+    // A short, wide frame (phones) gives the shoe more room and lifts the image (not the orbit
+    // pivot), so the pill doesn't cover the sole.
+    const wide = camera.aspect > 1;
+    const margin = MARGIN * Math.max(1, Math.sqrt(camera.aspect));
+    if (wide) camera.setViewOffset(size.width, size.height, 0, size.height * 0.08, size.width, size.height);
+    else camera.clearViewOffset();
+    const dist = margin * Math.max(dims.y / 2 / Math.tan(vfov / 2), dims.x / 2 / Math.tan(hfov / 2)) + dims.z / 2;
     controls.target.copy(center);
     camera.position.copy(center).addScaledVector(SIDE, dist);
     controls.update();

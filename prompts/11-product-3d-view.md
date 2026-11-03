@@ -191,7 +191,7 @@ export function resolvePreset(model, colorGroup, framePhotoUrl): { zones; colorN
   - `window.fetch` rejecting `.glb` URLs (load error). three's FileLoader passes a `Request`, so the stub checks `String(input?.url ?? input).includes('.glb')`;
   - `WEBGL_lose_context.loseContext()` on the live canvas (context lost).
 - [x] 6. **Analytics.** Add both events and `'model_load'` to the catalog; call them from the gallery (check: `npm run check`; the network panel shows a PostHog capture for `product_3d_opened` with `product_id` and `source`, and one `product_3d_failed` per fallback in step 5).
-- [ ] 7. **Styles and design check.** Add the classes above. Screenshot 1440 and 390 in photo mode (unchanged from plan 09), loading, 3D, and the fallback note. Fix differences and repeat (check: screenshots in the report).
+- [x] 7. **Styles and design check.** Add the classes above. Screenshot 1440 and 390 in photo mode (unchanged from plan 09), loading, 3D, and the fallback note. Fix differences and repeat (check: screenshots in the report).
 - [ ] 8. Verification below, then a reviewer subagent, then close-out.
 
 Each step is committed when its check passes.
