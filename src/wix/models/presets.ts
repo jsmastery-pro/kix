@@ -1,6 +1,6 @@
 // A product's 3D model as the product page needs it (plan 11): the ProductModels row (plan 10)
-// trimmed to the model URL, each part's zone and each color's zone colors. Client-safe: no SDK
-// imports, so the gallery island can use it. resolvePreset picks the colors to show.
+// trimmed to the model URL, each part's zone and each color's zone colors. Client-safe: no
+// server-only imports, so the gallery island can use it. resolvePreset picks the colors to show.
 import { mediaKey } from '../media';
 import type { OptionChoice } from '../storefront/types';
 

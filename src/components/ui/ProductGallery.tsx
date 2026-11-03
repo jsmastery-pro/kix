@@ -76,6 +76,8 @@ export default function ProductGallery({ name, gallery, selectedImage, selection
   modeRef.current = mode;
   const dialogRef = useRef<HTMLDialogElement>(null);
   const expandRef = useRef<HTMLButtonElement>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const pillRef = useRef<HTMLButtonElement>(null);
   const total = gallery.length;
 
   useEffect(() => {
@@ -86,9 +88,12 @@ export default function ProductGallery({ name, gallery, selectedImage, selection
       setActive(index);
       setUnmatched(null);
     } else setUnmatched(selectedImage);
+    setNote('');
   }, [selectedImage, selectionKey, gallery]);
 
   const fail = useCallback((reason: FailReason, error?: unknown) => {
+    // The stage is about to unmount: keep keyboard focus in the gallery, on the pill.
+    if (frameRef.current?.contains(document.activeElement)) pillRef.current?.focus();
     setMode('photos');
     setFailed(true);
     setNote(FAILED_NOTE);
@@ -167,7 +172,7 @@ export default function ProductGallery({ name, gallery, selectedImage, selection
         </li>
       </ul>
 
-      <div className="ui-gallery__frame" data-mode={mode}>
+      <div ref={frameRef} className="ui-gallery__frame" data-mode={mode}>
         {'src' in photo ? (
           <img {...photo} loading="eager" alt={viewing3d ? '' : alt} />
         ) : (
@@ -203,15 +208,15 @@ export default function ProductGallery({ name, gallery, selectedImage, selection
           </>
         )}
         {!available ? (
-          <button type="button" className="ui-gallery__3d ui-soon" aria-disabled="true" aria-label={offLabel} title={offLabel}>
+          <button ref={pillRef} type="button" className="ui-gallery__3d ui-soon" aria-disabled="true" aria-label={offLabel} title={offLabel}>
             <Rotate3d aria-hidden="true" />3D
           </button>
         ) : viewing3d ? (
-          <button type="button" className="ui-gallery__3d" aria-label="Show photos" onClick={() => { setMode('photos'); setNote(''); }}>
+          <button ref={pillRef} type="button" className="ui-gallery__3d" aria-label="Show photos" onClick={() => { setMode('photos'); setNote(''); }}>
             <Images aria-hidden="true" />Photos
           </button>
         ) : (
-          <button type="button" className="ui-gallery__3d" aria-label="Show 3D view" onClick={() => open3d('pill')}>
+          <button ref={pillRef} type="button" className="ui-gallery__3d" aria-label="Show 3D view" onClick={() => open3d('pill')}>
             <Rotate3d aria-hidden="true" />3D
           </button>
         )}

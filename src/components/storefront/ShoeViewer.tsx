@@ -4,10 +4,9 @@
 // so the wheel keeps scrolling the page. Load errors throw to the gallery's error boundary.
 import { OrbitControls, useGLTF } from '@react-three/drei';
 import { Canvas, useThree } from '@react-three/fiber';
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ElementRef, type KeyboardEvent } from 'react';
 import { Box3, Color, MathUtils, NeutralToneMapping, PMREMGenerator, Vector3, type Mesh, type MeshStandardMaterial, type Object3D, type PerspectiveCamera } from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
-import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import type { ProductModel, ZoneColors } from '../../wix/models/presets';
 
 interface Props {
@@ -25,8 +24,9 @@ interface Props {
 
 // The side view the dev viewer uses, relative to the shoe's center (plan 10 turned every model toe-left).
 const SIDE = new Vector3(0, 0.15, 1).normalize();
-const MARGIN = 1.0;
 const KEY_STEP = Math.PI / 12;
+
+type OrbitControlsImpl = ElementRef<typeof OrbitControls>;
 
 // drei caches one parsed scene per URL for the page's life: clone each material once and keep its
 // original color, so every recolor starts from the file's own colors.
@@ -50,7 +50,9 @@ function Lighting() {
   const scene = useThree((s) => s.scene);
   useEffect(() => {
     const pmrem = new PMREMGenerator(gl);
-    const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+    const room = new RoomEnvironment();
+    const env = pmrem.fromScene(room, 0.04).texture;
+    room.dispose();
     pmrem.dispose();
     scene.environment = env;
     return () => {
@@ -74,10 +76,11 @@ function Fit({ object, onFit }: { object: Object3D; onFit: () => void }) {
     const dims = box.getSize(new Vector3());
     const vfov = MathUtils.degToRad(camera.fov);
     const hfov = 2 * Math.atan(Math.tan(vfov / 2) * camera.aspect);
-    // A short, wide frame (phones) gives the shoe more room and lifts the image (not the orbit
-    // pivot), so the pill doesn't cover the sole.
+    // The box fills a square frame edge to edge (the depth term leaves room to spin). A short, wide
+    // frame (phones) gives the shoe more room and lifts the image (not the orbit pivot), so the pill
+    // doesn't cover the sole.
     const wide = camera.aspect > 1;
-    const margin = MARGIN * Math.max(1, Math.sqrt(camera.aspect));
+    const margin = Math.max(1, Math.sqrt(camera.aspect));
     if (wide) camera.setViewOffset(size.width, size.height, 0, size.height * 0.08, size.width, size.height);
     else camera.clearViewOffset();
     const dist = margin * Math.max(dims.y / 2 / Math.tan(vfov / 2), dims.x / 2 / Math.tan(hfov / 2)) + dims.z / 2;
@@ -143,7 +146,7 @@ export default function ShoeViewer({ url, parts, zones, label, onReady, onSpin, 
   };
 
   return (
-    <div className={`ui-gallery__stage${ready ? ' is-ready' : ''}`} role="group" aria-roledescription="3D viewer" aria-label={label} tabIndex={0} onKeyDown={onKeyDown}>
+    <div className={`ui-gallery__stage${ready ? ' is-ready' : ''}`} role="group" aria-roledescription="3D viewer" aria-label={label} aria-hidden={!ready} tabIndex={ready ? 0 : -1} onKeyDown={onKeyDown}>
       <Canvas frameloop="demand" dpr={[1, 2]} camera={{ fov: 30, near: 0.01, far: 100 }} gl={{ alpha: true, toneMapping: NeutralToneMapping }}>
         <Lighting />
         <ContextLoss onLost={onContextLost} />
