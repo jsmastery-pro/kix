@@ -78,7 +78,8 @@ export default function ProductView({ initial, eyebrow, summaryHtml, model }: Pr
   };
   const closeCustomize = () => {
     design.closePanel();
-    document.getElementById('pdp-customize-pill')?.focus();
+    // The Customize pill shows only in 3D mode; while 3D still loads, the 3D/Photos pill takes focus.
+    (document.getElementById('pdp-customize-pill') ?? document.querySelector<HTMLElement>('.ui-gallery__3d'))?.focus();
   };
   useEffect(() => {
     if (design.open) headingRef.current?.focus();
@@ -87,23 +88,30 @@ export default function ProductView({ initial, eyebrow, summaryHtml, model }: Pr
   /** Shows a design: picks its stock color when the product still offers it, else keeps its own colors as Original. */
   const applyDesign = (loaded: LoadableDesign) => {
     const choice = colorGroup?.choices.find((c) => c.choiceId === loaded.baseChoiceId);
-    const pickable = Boolean(colorGroup && choice && model?.presets.some((p) => p.choiceId === loaded.baseChoiceId));
+    const pickable = Boolean(colorGroup && choice?.inStock && choice.exists && model?.presets.some((p) => p.choiceId === loaded.baseChoiceId));
     if (pickable && colorGroup && !choice!.selected) d.selectOption(colorGroup.id, loaded.baseChoiceId);
     setDesignStatus(null);
     design.load(loaded, !pickable);
   };
+  // Async work (a save, the ?design= read) compares against the latest render, not its own closure.
+  const latest = useRef({ rev: design.rev, custom: design.custom, open: design.open, applyDesign });
+  latest.current = { rev: design.rev, custom: design.custom, open: design.open, applyDesign };
 
   /** Only the model's zones, so a design never stores a part the shoe doesn't have. */
   const savedZones = (colors: ZoneColors): ZoneColors => Object.fromEntries(zonesOnModel.filter((z) => colors[z]).map((z) => [z, colors[z]]));
 
+  // Only the newest list read lands (a slow first read mustn't hide a design saved since).
+  const listRequest = useRef(0);
   const loadList = useCallback(async (fresh = false) => {
     if (!memberId) return;
+    const request = ++listRequest.current;
     setList((current) => (current.kind === 'ready' ? current : { kind: 'loading' }));
     try {
-      setList({ kind: 'ready', designs: await listDesigns(memberId, { productId: product.id, limit: 6, fresh }) });
+      const designs = await listDesigns(memberId, { productId: product.id, limit: 6, fresh });
+      if (request === listRequest.current) setList({ kind: 'ready', designs });
     } catch (error) {
       captureError(error, 'design_list');
-      setList({ kind: 'error' });
+      if (request === listRequest.current) setList({ kind: 'error' });
     }
   }, [memberId, product.id]);
   useEffect(() => {
@@ -113,6 +121,7 @@ export default function ProductView({ initial, eyebrow, summaryHtml, model }: Pr
   async function save(asNew: boolean) {
     if (!memberId || !design.base || !design.shown || saving) return;
     const kind = design.savedId && !asNew ? 'update' : 'new';
+    const rev = design.rev;
     setSaving(true);
     setDesignStatus(null);
     try {
@@ -120,9 +129,12 @@ export default function ProductView({ initial, eyebrow, summaryHtml, model }: Pr
         { title: product.name, productId: product.id, productSlug: product.slug, baseChoiceId: design.base.choiceId, baseColor: design.base.colorName, zones: savedZones(design.shown) },
         kind === 'update' ? design.savedId! : undefined,
       );
-      design.saved(saved.id);
       track('design_saved', { product_id: product.id, kind });
-      setDesignStatus({ tone: 'done', text: 'Saved to your account.', link: { href: '/account#saved-designs-title', label: 'See all' } });
+      // Reset, a stock color pick or another design while saving: the shoe isn't this design any more.
+      if (latest.current.rev === rev) {
+        design.saved(saved.id);
+        setDesignStatus({ tone: 'done', text: 'Saved to your account.', link: { href: '/account#saved-designs-title', label: 'See all' } });
+      }
       void loadList(true);
     } catch (error) {
       captureError(error, 'design_save');
@@ -179,6 +191,7 @@ export default function ProductView({ initial, eyebrow, summaryHtml, model }: Pr
       gallery.showNote("3D isn't available for this sneaker, so the design can't open.");
       return;
     }
+    const before = latest.current;
     galleryRef.current?.showNote('Opening your design…');
     void (async () => {
       try {
@@ -186,10 +199,13 @@ export default function ProductView({ initial, eyebrow, summaryHtml, model }: Pr
         // The handle is rebuilt each render: read it fresh after the await.
         const current = galleryRef.current;
         if (!current) return;
+        // The shopper started customizing meanwhile: keep their work.
+        const now = latest.current;
+        if (now.rev !== before.rev || now.custom !== before.custom || now.open !== before.open) return current.showNote('');
         if (!found || found.productId !== product.id) return current.showNote("This design isn't available.");
         current.showNote('');
         if (!current.open3d()) return;
-        applyDesign(found);
+        now.applyDesign(found);
         track('design_opened', { product_id: product.id, source: 'account' });
       } catch (error) {
         captureError(error, 'design_load');
@@ -218,7 +234,7 @@ export default function ProductView({ initial, eyebrow, summaryHtml, model }: Pr
       activeId={design.savedId}
       status={designStatus}
       onZone={design.selectZone}
-      onPick={design.pick}
+      onPick={(zone, hex) => { design.pick(zone, hex); setDesignStatus(null); }}
       onReset={() => { design.reset(); setDesignStatus(null); }}
       onClose={closeCustomize}
       onSave={(asNew) => void save(asNew)}

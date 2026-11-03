@@ -150,7 +150,7 @@ export default function CustomizePanel(p: Props) {
           </button>
         )}
         {p.save.kind === 'signed_in' && p.save.editing && (
-          <button type="button" className="ui-text-button" disabled={p.save.busy} onClick={() => p.onSave(true)}>Save as New</button>
+          <button type="button" className="ui-text-button" aria-disabled={p.save.busy} onClick={() => p.save.kind === 'signed_in' && !p.save.busy && p.onSave(true)}>Save as New</button>
         )}
       </div>
 

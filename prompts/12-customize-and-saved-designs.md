@@ -168,7 +168,7 @@ Focus: opening the panel moves focus to its heading (`tabIndex=-1`), and closing
 - [x] 7. **Account card.** Add the server list, Open, Delete with inline confirm, and the empty and error states. (check: `/account` lists the designs newest first. Open lands on the product with the design loaded. Delete removes the item in Wix and the row. A forced read error shows the error text, and with no designs the empty state shows.)
 - [x] 8. **Layouts and design-system match.** Compare in Claude in Chrome at 1440px and 390px (390 through a same-origin iframe) against the design system sheet's primitives, since there's no page design. List every difference, fix it, and repeat. (check: screenshots of the product page (3D + panel, signed in and out) and `/account` at both widths; no horizontal overflow at 390; tap targets ≥ 44px.)
 - [x] 9. **Checks.** `npm run check` and `npm run build`. (check: 0 errors, build Complete, and `dist/server` doesn't contain three.)
-- [ ] 10. **Review.** A reviewer subagent compares the work with this plan; fix real gaps.
+- [x] 10. **Review.** A reviewer subagent compares the work with this plan; fix real gaps.
 - [ ] 11. **Close out.** Write Result, set `Status: done`, update the index, and propose AGENTS.md edits ("Who owns what": `SavedDesigns`; Commands: `setup-designs`).
 
 Each step is committed when its check passes.

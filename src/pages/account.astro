@@ -29,6 +29,7 @@ try {
   designsFailed = true;
   console.error('[account] saved designs read failed', error);
 }
+// UTC here; saved-designs.ts rewrites each <time> in the shopper's time zone, as the product page shows it.
 const savedDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 const zoneLabel = { upper: 'upper', sole: 'sole', laces: 'laces', accent: 'accent' } as const;
 const colorsOf = (design: SavedDesign) => ZONES.filter((z) => design.zones[z]).map((z) => ({ zone: z, hex: design.zones[z]! }));
@@ -92,6 +93,8 @@ const memberSince = member.memberSince
               <ul class="ui-design-list">
                 {designs.map((design) => {
                   const href = `/products/${encodeURIComponent(design.productSlug)}?design=${encodeURIComponent(design.id)}`;
+                  // Several designs of one shoe: the base color and date tell their buttons apart.
+                  const name = `${design.title || 'design'}${design.baseColor ? `, ${design.baseColor}` : ''}, saved ${savedDate.format(new Date(design.savedAt))}`;
                   return (
                     <li class="ui-design-row" data-design-row data-design-id={design.id} data-product-id={design.productId}>
                       <span class="ui-design-dots" aria-hidden="true">
@@ -100,13 +103,13 @@ const memberSince = member.memberSince
                       <div class="ui-design-row__text">
                         <a class="ui-design-row__name" href={href}>{design.title || 'Kix sneaker'}</a>
                         <p class="ui-design-row__meta">
-                          {design.baseColor && <>{design.baseColor} · </>}Saved {savedDate.format(new Date(design.savedAt))}
+                          {design.baseColor && <>{design.baseColor} · </>}Saved <time datetime={design.savedAt} data-saved-at>{savedDate.format(new Date(design.savedAt))}</time>
                           <span class="sr-only">. Colors: {describe(design)}</span>
                         </p>
                       </div>
                       <div class="ui-design-row__actions" data-design-actions>
-                        <a class="ui-button ui-button--quiet ui-design-row__open" href={href} aria-label={`Open ${design.title || 'design'}`}>Open</a>
-                        <button type="button" class="ui-icon-button ui-design-row__delete" aria-label={`Delete ${design.title || 'design'}`} title="Delete design" data-design-delete>
+                        <a class="ui-button ui-button--quiet ui-design-row__open" href={href} aria-label={`Open ${name}`} data-design-label>Open</a>
+                        <button type="button" class="ui-icon-button ui-design-row__delete" aria-label={`Delete ${name}`} data-design-label title="Delete design" data-design-delete>
                           <Trash2 aria-hidden="true" />
                         </button>
                       </div>

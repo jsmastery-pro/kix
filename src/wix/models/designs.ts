@@ -135,8 +135,8 @@ export async function saveDesign(input: DesignInput, id?: string): Promise<Saved
   return saved;
 }
 
-/** Removes a design. Throws DesignError. */
+/** Removes a design; one already gone (deleted in another tab) counts as removed. Throws DesignError. */
 export async function deleteDesign(id: string): Promise<void> {
   const res = await request(`/wix-data/v2/items/${encodeURIComponent(id)}?dataCollectionId=${COLLECTION}`, { method: 'DELETE' });
-  if (!res.ok) throw await failure(res);
+  if (!res.ok && res.status !== 404) throw await failure(res);
 }

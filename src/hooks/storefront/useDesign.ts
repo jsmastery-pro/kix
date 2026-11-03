@@ -12,9 +12,11 @@ interface State {
   zones: ZoneColors | null;
   savedId: string | null;
   baseOverride: Preset | null;
+  /** Bumped when the design is replaced (reset, start over, load), so late async results can tell. */
+  rev: number;
 }
 
-const INITIAL: State = { open: false, zone: null, zones: null, savedId: null, baseOverride: null };
+const INITIAL: State = { open: false, zone: null, zones: null, savedId: null, baseOverride: null, rev: 0 };
 
 /** A design to load: a saved one (with its id) or a pending one from before sign-in (without). */
 export type LoadableDesign = Pick<SavedDesign, 'baseChoiceId' | 'baseColor' | 'zones'> & { id?: string };
@@ -32,9 +34,9 @@ export function useDesign(preset: Preset | null, zonesOnModel: Zone[]) {
     [preset],
   );
   /** Back to the base colors; the link to an opened saved design goes too. */
-  const reset = useCallback(() => setState((s) => ({ ...s, zones: null, savedId: null })), []);
+  const reset = useCallback(() => setState((s) => ({ ...s, zones: null, savedId: null, rev: s.rev + 1 })), []);
   /** A stock color pick: drop the custom colors and any loaded design's base. */
-  const startOver = useCallback(() => setState((s) => ({ ...s, zones: null, savedId: null, baseOverride: null })), []);
+  const startOver = useCallback(() => setState((s) => ({ ...s, zones: null, savedId: null, baseOverride: null, rev: s.rev + 1 })), []);
   /** Shows a design and opens the panel. `ownBase` keeps its colors as Original when its stock color can't be picked. */
   const load = useCallback((design: LoadableDesign, ownBase: boolean) => {
     setState((s) => ({
@@ -43,6 +45,7 @@ export function useDesign(preset: Preset | null, zonesOnModel: Zone[]) {
       zones: { ...design.zones },
       savedId: design.id ?? null,
       baseOverride: ownBase ? { choiceId: design.baseChoiceId, colorName: design.baseColor, zones: design.zones } : null,
+      rev: s.rev + 1,
     }));
   }, []);
   const saved = useCallback((id: string) => setState((s) => ({ ...s, savedId: id })), []);
@@ -60,6 +63,7 @@ export function useDesign(preset: Preset | null, zonesOnModel: Zone[]) {
       override: state.zones ?? state.baseOverride?.zones ?? null,
       customized: state.zones !== null,
       savedId: state.savedId,
+      rev: state.rev,
       openPanel,
       closePanel,
       selectZone,

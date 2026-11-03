@@ -4,9 +4,24 @@
 import { DesignError, deleteDesign } from '../wix/models/designs';
 import { captureError, track } from './analytics';
 
+const savedDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
+
 export function initSavedDesigns(root: HTMLElement) {
   const status = root.querySelector<HTMLElement>('[data-designs-status]');
   if (root.hasAttribute('data-designs-error')) captureError(new Error('saved designs read failed on the server'), 'design_list');
+
+  // The server formats dates in UTC; show them in the shopper's time zone, like the product page.
+  for (const time of root.querySelectorAll<HTMLTimeElement>('time[data-saved-at]')) {
+    const date = new Date(time.dateTime);
+    if (Number.isNaN(date.getTime())) continue;
+    const before = time.textContent ?? '';
+    const local = savedDate.format(date);
+    if (local === before) continue;
+    time.textContent = local;
+    for (const labelled of time.closest('[data-design-row]')?.querySelectorAll<HTMLElement>('[data-design-label]') ?? []) {
+      labelled.setAttribute('aria-label', (labelled.getAttribute('aria-label') ?? '').replace(`saved ${before}`, `saved ${local}`));
+    }
+  }
 
   for (const row of root.querySelectorAll<HTMLElement>('[data-design-row]')) {
     const id = row.dataset.designId ?? '';
@@ -47,6 +62,8 @@ export function initSavedDesigns(root: HTMLElement) {
       } catch (failure) {
         captureError(failure, 'design_delete');
         error.textContent = failure instanceof DesignError && failure.reason === 'network' ? "We couldn't reach the store. Try again." : "We couldn't delete this design. Try again.";
+        // Focus goes back to the trash button, so the live region carries the error.
+        if (status) status.textContent = error.textContent;
         yes.removeAttribute('aria-busy');
         yes.textContent = 'Delete';
         showConfirm(false);
