@@ -37,7 +37,8 @@ export class DesignError extends Error {
 
 const isText = (value: unknown): value is string => typeof value === 'string' && value.length > 0;
 
-function toZones(value: unknown): ZoneColors | null {
+/** Valid zone colors (known zones, #RRGGBB, at least one), or null. */
+export function toZones(value: unknown): ZoneColors | null {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
   const zones: ZoneColors = {};
   for (const [zone, hex] of Object.entries(value)) {

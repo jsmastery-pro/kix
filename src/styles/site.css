@@ -93,6 +93,7 @@
 .pdp__summary { margin-top: clamp(12px, 1.1vw, 16px); }
 .pdp__color { margin-top: clamp(18px, 1.8vw, 26px); }
 .pdp__size { margin-top: clamp(16px, 1.7vw, 24px); }
+.pdp__customize { margin-top: clamp(16px, 1.7vw, 24px); }
 .pdp__buy-action { margin-top: clamp(20px, 2.1vw, 30px); }
 .pdp__status { margin-top: 10px; }
 .pdp__perks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(12px, 1vw, 15px); margin-top: clamp(32px, 3vw, 43px); }
@@ -185,6 +186,9 @@
   .pdp__summary { order: 1; margin-top: 20px; }
   .pdp__color { margin-top: 12px; }
   .pdp__size { margin-top: 16px; }
+  .pdp__customize { margin-top: 16px; }
+  /* While the Customize panel is open, the shoe stays in view above the swatches (plan 12). */
+  .pdp__top[data-customizing] .ui-gallery__frame { position: sticky; top: 0; z-index: 3; }
   .pdp__buy-action { position: sticky; bottom: 0; z-index: 2; margin: 16px -16px 0; padding: 8px 16px; border-top: 1px solid var(--color-border); background: var(--color-panel); }
   .pdp__status { margin-top: 4px; }
   .pdp__perks { grid-template-columns: minmax(0, 1fr); gap: 12px; }

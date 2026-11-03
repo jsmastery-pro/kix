@@ -548,6 +548,45 @@ a.ui-button { text-decoration: none; }
 /* Empty, the note keeps its place in the accessibility tree so its status is announced. */
 .ui-gallery__note:empty { padding: 0; background: none; box-shadow: none; }
 
+/* The Customize panel (plan 12): the form card's look at a smaller padding, zone chips (the size
+   pill with a color dot), small swatches with a 44px hit area, and this shoe's saved designs. The
+   chip and swatch variants double their class: the base rules come later in this file. */
+.ui-customize { padding: var(--ds-space-5); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-white); box-shadow: var(--ds-panel-shadow); }
+.ui-customize__head { display: flex; align-items: center; gap: var(--ds-space-2); }
+.ui-customize__title { flex: 1; font-family: var(--font-display); font-size: clamp(22px, 1.94vw, 28px); font-weight: 700; line-height: 1.1; text-transform: uppercase; }
+.ui-customize__title:focus { outline: none; } /* focused by script when the panel opens; not interactive */
+.ui-customize__close { margin-right: -10px; }
+.ui-customize__close svg { width: 22px; height: 22px; }
+.ui-customize__zones { display: flex; flex-wrap: wrap; gap: var(--ds-space-2); margin-top: var(--ds-space-4); }
+.ui-size-option.ui-zone-option { display: inline-flex; align-items: center; gap: var(--ds-space-2); height: 44px; padding: 0 var(--ds-space-4); font-size: 17px; }
+.ui-zone-option__dot { width: 14px; height: 14px; border: 1px solid var(--color-swatch-border); border-radius: 50%; background: var(--swatch-color, var(--color-muted-fill)); }
+.ui-customize__label { float: none; margin: var(--ds-space-5) 0 var(--ds-space-3); }
+.ui-customize__swatches { display: flex; flex-wrap: wrap; gap: var(--ds-space-3); }
+.ui-swatch.ui-swatch--sm { width: var(--ds-option-swatch); height: var(--ds-option-swatch); }
+.ui-swatch--sm::before { content: ""; position: absolute; inset: -6px; border-radius: 50%; }
+.ui-swatch.ui-swatch--sm[aria-pressed="true"]::after { inset: -4px; }
+.ui-customize__save { display: grid; justify-items: start; gap: var(--ds-space-1); margin-top: var(--ds-space-5); }
+.ui-customize__status { margin-top: var(--ds-space-2); }
+/* Empty, the status keeps its place in the accessibility tree so it is announced. */
+.ui-customize__status:empty { display: block; margin: 0; }
+.ui-status-line a, .ui-customize__error a { color: var(--color-black); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.ui-customize__note { margin-top: var(--ds-space-2); color: var(--color-text-secondary); font-size: 14px; line-height: 1.4; }
+.ui-customize__designs { margin-top: var(--ds-space-5); padding-top: var(--ds-space-4); border-top: 1px solid var(--color-border); }
+.ui-customize__subtitle { font-size: 16px; font-weight: 600; line-height: 1.3; }
+.ui-customize__list { display: grid; gap: var(--ds-space-2); margin: var(--ds-space-3) 0 0; padding: 0; list-style: none; }
+.ui-customize__list .ui-skeleton-line { height: 44px; border-radius: var(--radius-sm); }
+.ui-customize__design { display: flex; align-items: center; gap: var(--ds-space-3); width: 100%; min-height: 44px; padding: 0 var(--ds-space-3); border: 1px solid var(--color-control-border); border-radius: var(--radius-sm); background: var(--color-white); color: var(--color-black); font-size: 15px; text-align: left; transition: border-color var(--ds-motion-fast); }
+.ui-customize__design:hover { border-color: var(--color-black); }
+.ui-customize__design[aria-pressed="true"] { border-color: var(--color-black); box-shadow: inset 0 0 0 1px var(--color-black); }
+.ui-customize__error { margin-top: var(--ds-space-2); color: var(--color-text-secondary); font-size: 15px; line-height: 1.5; }
+.ui-design-dots { display: inline-flex; flex: none; }
+.ui-design-dots > span { width: 16px; height: 16px; border: 1px solid var(--color-swatch-border); border-radius: 50%; background: var(--swatch-color, var(--color-muted-fill)); }
+.ui-design-dots > span + span { margin-left: -4px; }
+/* An underlined text action with a 44px target (Reset, Save as New, Retry). */
+.ui-text-button { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 4px; border: 0; background: none; color: var(--color-black); font: inherit; font-size: 15px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.ui-text-button svg { width: 16px; height: 16px; stroke-width: 2; }
+.ui-text-button:disabled { cursor: not-allowed; opacity: var(--ds-busy-opacity); }
+
 .ui-thumbnail { display: block; width: 100%; padding: 0; border: 0; background: transparent; color: var(--color-text-secondary); }
 .ui-thumbnail__image { position: relative; display: block; aspect-ratio: .92; overflow: hidden; border: 2px solid transparent; border-radius: var(--radius-sm); background: var(--color-muted-fill); transition: border-color var(--ds-motion-fast); }
 .ui-thumbnail__image img { display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -643,6 +682,9 @@ html:has(.ui-lightbox[open]) { overflow: hidden; }
   .ui-gallery__expand { width: 44px; height: 44px; }
   .ui-gallery__arrow { width: 44px; height: 44px; }
   .ui-swatch { width: 44px; height: 44px; }
+  .ui-swatch.ui-swatch--sm { width: var(--ds-option-swatch); height: var(--ds-option-swatch); }
+  .ui-customize { padding: var(--ds-space-4); }
+  .ui-gallery__3d { padding: 0 var(--ds-space-4); }
   .ui-thumbnail__label { font-size: 11px; }
   .ui-thumbnail--3d .ui-thumbnail__image { gap: 2px; }
   .ui-thumbnail--3d svg { width: 20px; height: 20px; }

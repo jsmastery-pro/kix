@@ -72,3 +72,31 @@ export function useDesign(preset: Preset | null, zonesOnModel: Zone[]) {
     [state, zone, base, openPanel, closePanel, selectZone, pick, reset, startOver, load, saved],
   );
 }
+
+// A design waiting for sign-in: stored before the Sign In to Save link navigates, read once on return
+// (?resume=design). Storage can be off (private mode, blocked): then the shopper just returns to the page.
+const PENDING_KEY = 'kix-pending-design';
+
+export interface PendingDesign extends LoadableDesign {
+  productId: string;
+}
+
+export function storePendingDesign(pending: PendingDesign): void {
+  try {
+    sessionStorage.setItem(PENDING_KEY, JSON.stringify(pending));
+  } catch {
+    /* storage off: nothing to resume */
+  }
+}
+
+/** The pending design for this product, removed whether or not it matches. Zones are re-checked by the caller's validator. */
+export function takePendingDesign(productId: string): PendingDesign | null {
+  try {
+    const raw = sessionStorage.getItem(PENDING_KEY);
+    sessionStorage.removeItem(PENDING_KEY);
+    const pending = raw ? (JSON.parse(raw) as PendingDesign) : null;
+    return pending?.productId === productId ? pending : null;
+  } catch {
+    return null;
+  }
+}
