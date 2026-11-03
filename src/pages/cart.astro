@@ -1,0 +1,44 @@
+---
+// The cart page (plan 13). The cart itself is the CartView island (client-only: it lives in the
+// visitor's Wix session), with a skeleton of the same layout as its server fallback. You Might Also
+// Like renders here from the curated "popular" category (3 sub-requests); a failed read hides it.
+import { ArrowRight } from '@lucide/astro';
+import CartView, { CartSkeleton } from '../components/storefront/CartView';
+import ProductCard from '../components/ui/ProductCard.astro';
+import type { TileTone } from '../components/ui/tones';
+import SiteLayout from '../layouts/SiteLayout.astro';
+import { fetchCategoryBySlug, fetchProductsByCategory } from '../wix/storefront/catalog';
+import type { ProductSummary } from '../wix/storefront/types';
+
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+
+// The design's tile order for the recommendations.
+const relatedTones: TileTone[] = ['aqua', 'peach', 'coral', 'periwinkle'];
+
+let related: ProductSummary[] = [];
+try {
+  const popular = await fetchCategoryBySlug('popular');
+  if (popular) related = await fetchProductsByCategory(popular.id, { limit: 4 });
+  else console.error('[cart] popular category not found');
+} catch (error) {
+  console.error('[cart] recommendations read failed', error);
+}
+---
+
+<SiteLayout title="Your Cart · Kix" description="Your Kix bag.">
+  <CartView client:only="react">
+    <CartSkeleton slot="fallback" />
+  </CartView>
+
+  {related.length > 0 && (
+    <section class="cart-related" aria-labelledby="cart-related">
+      <div class="ui-section-heading ui-section-heading--caps">
+        <h2 id="cart-related">You Might Also Like</h2>
+        <a class="ui-arrow-link" href="/category/popular">View All<span class="sr-only"> popular sneakers</span><ArrowRight aria-hidden="true" /></a>
+      </div>
+      <div class="pdp__related-grid">
+        {related.map((item, index) => <ProductCard product={item} tone={relatedTones[index % relatedTones.length]} size="wide" />)}
+      </div>
+    </section>
+  )}
+</SiteLayout>

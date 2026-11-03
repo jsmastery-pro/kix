@@ -195,3 +195,21 @@
   .pdp__perks { grid-template-columns: minmax(0, 1fr); gap: 12px; }
   .pdp__related-grid { gap: 24px 12px; }
 }
+
+/* Cart (plan 13): the header bar's content box; lines left, summary and promo right. The cards
+   start above the lines, as in the design. */
+.cart { display: grid; grid-template-columns: minmax(0, 742fr) minmax(0, 516fr); align-items: start; column-gap: clamp(32px, 3.9vw, 56px); width: min(var(--site-wide-max), 100% - 2 * var(--site-wide-inset)); margin: clamp(32px, 6vw, 88px) auto 0; padding-inline: clamp(16px, 2.6vw, 37px); }
+.cart__head { grid-column: 1; }
+.cart__count-skeleton { width: 4.5em; }
+.cart__continue { grid-column: 2; grid-row: 1; justify-self: end; margin-top: clamp(12px, 2vw, 29px); }
+.cart__lines { grid-column: 1; margin-top: clamp(32px, 3.4vw, 48px); }
+.cart__error { margin-bottom: 16px; }
+.cart__aside { grid-column: 2; display: grid; gap: clamp(20px, 2.2vw, 32px); margin-top: calc(clamp(32px, 3.4vw, 48px) - clamp(0px, 4.4vw, 63px)); }
+.cart-related { width: min(var(--site-wide-max), 100% - 2 * var(--site-wide-inset)); margin: var(--site-section-gap) auto 0; padding-inline: clamp(16px, 2.6vw, 37px); }
+
+@media (max-width: 1023px) {
+  .cart { grid-template-columns: minmax(0, 1fr); }
+  .cart__continue { grid-column: 1; grid-row: auto; justify-self: start; margin-top: 4px; }
+  .cart__lines { margin-top: 24px; }
+  .cart__aside { grid-column: 1; margin-top: 32px; }
+}
