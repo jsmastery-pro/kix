@@ -12,3 +12,4 @@
 - [10 · Product 3D models: shrink, upload to Wix Media, parts map and color presets in CMS](10-product-3d-models.md) — done (no laces zone on 9 models; 3 colorways lose their accent color)
 - [11 · Product 3D view: spin the shoe in the color the shopper picked](11-product-3d-view.md) — done (3D chunk 247 KB gz, loaded on press; untested on real phones and Safari)
 - [12 · Customize in 3D and saved designs](12-customize-and-saved-designs.md) — done (member isolation checked with one account; untested on real phones and Safari)
+- [13 · Cart page, checkout, design codes on orders, order history and paid-order revenue](13-cart-checkout-and-orders.md) — approved
