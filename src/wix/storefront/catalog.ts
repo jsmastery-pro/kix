@@ -120,6 +120,20 @@ export async function fetchProductBySlug(slug: string): Promise<ProductDetail | 
   }
 }
 
+/**
+ * Kix addition: the main photo (URL and alt text) of each visible product slug, from ONE Query
+ * Products call (slug filters there, not in search). Slugs not found are left out. Throws on failure.
+ */
+export async function fetchMainImagesBySlug(slugs: string[], size = 1024): Promise<Record<string, { url: string; alt: string }>> {
+  if (!slugs.length) return {};
+  const res = await products.queryProducts().in("slug", slugs).eq("visible", true).limit(slugs.length).find();
+  const entries = (res.items as Raw[]).flatMap((p) => {
+    const url = imgSrc(p.media?.main, size, size);
+    return p.slug && url ? [[p.slug as string, { url, alt: (p.media?.main?.altText ?? p.name ?? "") as string }] as const] : [];
+  });
+  return Object.fromEntries(entries);
+}
+
 // A slug arrives URL-encoded from some routers and plain from others; the API wants it plain.
 function decodeSlug(slug: string): string {
   try {

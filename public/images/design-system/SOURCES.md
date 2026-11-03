@@ -1,6 +1,6 @@
 # Design system specimen photos
 
-These free stock photographs are used only in the `/design-system` UI showcase. They are not Kix catalog products. Each local copy is an 800px-wide compressed preview from Pexels; the component falls back to a marked placeholder if an image fails.
+These free stock photographs are used in the `/design-system` UI showcase, and `black-training.jpg` also fills the home page's BUILT FOR WHAT'S NEXT banner slide. They are not Kix catalog products. Each local copy is an 800px-wide compressed preview from Pexels; the component falls back to a marked placeholder if an image fails.
 
 | Local file | Photographer | Source page |
 | --- | --- | --- |
@@ -9,4 +9,4 @@ These free stock photographs are used only in the `/design-system` UI showcase. 
 | `black-training.jpg` | Mikhail Nilov | https://www.pexels.com/photo/black-sneakers-on-gray-concrete-6740819/ |
 | `studio-white.jpg` | Youssef Mahmoud | https://www.pexels.com/photo/casual-black-pants-on-white-background-33055598/ |
 
-Pexels license: https://www.pexels.com/license/ . Each photo was visually inspected for visible brand marks before inclusion. Replace these specimens with Kix product photos when Wix catalog content exists.
+Pexels license: https://www.pexels.com/license/ . Each photo was visually inspected for visible brand marks before inclusion.

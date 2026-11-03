@@ -34,3 +34,6 @@ pnpm-debug.log*
 # Wix kit install marker and seed inputs (plan 07)
 .install-exit
 .seed/
+
+# Reference photos for making 3D models in Tripo Studio (one folder per product)
+3d/

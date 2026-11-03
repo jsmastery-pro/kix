@@ -2,6 +2,7 @@
 // Home page (plans 03 and 07). Live from Wix Stores, fetched inside a guarded try as the kit's page skeletons do:
 //   shopCategories → fetchCategories() filtered to children of the `sports` category, by index
 //   newArrivals / popularNow → fetchProductsByCategory() of the owner-curated `new-arrivals` / `popular`
+//   product slides' photos → fetchMainImagesBySlug(), in parallel with the rest
 // Still placeholder copy in src/data/mock.ts: heroSlides / collectionSlides (a Wix CMS collection later) and memberPerks.
 // An empty list hides its section, heading included; failures are logged on the server.
 import { LockKeyhole, RefreshCcw, Truck } from '@lucide/astro';
@@ -14,12 +15,18 @@ import SectionHeading from '../components/ui/SectionHeading.astro';
 import type { TileTone } from '../components/ui/tones';
 import SiteLayout from '../layouts/SiteLayout.astro';
 import { collectionSlides, heroSlides, memberPerks } from '../data/mock';
-import { fetchCategories, fetchProductsByCategory } from '../wix/storefront/catalog';
+import { fetchCategories, fetchMainImagesBySlug, fetchProductsByCategory } from '../wix/storefront/catalog';
 import type { Category, ProductSummary } from '../wix/storefront/types';
+import type { EditorialSlide } from '../data/mock';
 
 let shopCategories: Category[] = [];
 let newArrivals: ProductSummary[] = [];
 let popularNow: ProductSummary[] = [];
+const slideSlugs = [...heroSlides, ...collectionSlides].flatMap((slide) => (slide.productSlug ? [slide.productSlug] : []));
+const slideImagesRead = fetchMainImagesBySlug(slideSlugs).catch((error) => {
+  console.error('[home] slide photos read failed', error);
+  return null;
+});
 try {
   // fetchCategories() swallows its own errors and returns [], so an empty list is the failure signal.
   const categories = await fetchCategories();
@@ -47,6 +54,16 @@ try {
   console.error('[home] catalog read failed', error);
 }
 
+// A product slide whose photo didn't load keeps imageUrl "", so Photo shows its placeholder.
+const slideImages = await slideImagesRead;
+if (slideImages) for (const slug of slideSlugs) if (!slideImages[slug]) console.error('[home] slide product missing:', slug);
+const withPhoto = (slide: EditorialSlide): EditorialSlide => {
+  const photo = slide.productSlug ? slideImages?.[slide.productSlug] : undefined;
+  return photo ? { ...slide, imageUrl: photo.url, imageAlt: photo.alt } : slide;
+};
+const heroes = heroSlides.map(withPhoto);
+const collections = collectionSlides.map(withPhoto);
+
 const categoryTones: TileTone[] = ['beige', 'mint', 'peach', 'coral', 'periwinkle'];
 const newTones: TileTone[] = ['tan', 'aqua', 'rose'];
 const popularTones: TileTone[] = ['mint', 'peach', 'periwinkle', 'lilac'];
@@ -57,9 +74,9 @@ const perkIcons = { truck: Truck, returns: RefreshCcw, lock: LockKeyhole };
 <SiteLayout title="Kix · Sneakers" description="New releases, limited collections and every Kix category in one place.">
   <h1 class="sr-only">Kix sneakers</h1>
 
-  {heroSlides.length > 0 && (
-    <Carousel label="Featured releases" count={heroSlides.length} arrows className="home-hero">
-      {heroSlides.map((slide, index) => <FeatureSlide slide={slide} index={index} total={heroSlides.length} tone="sand" eager />)}
+  {heroes.length > 0 && (
+    <Carousel label="Featured releases" count={heroes.length} arrows className="home-hero">
+      {heroes.map((slide, index) => <FeatureSlide slide={slide} index={index} total={heroes.length} tone="sand" eager />)}
     </Carousel>
   )}
 
@@ -81,9 +98,9 @@ const perkIcons = { truck: Truck, returns: RefreshCcw, lock: LockKeyhole };
     </section>
   )}
 
-  {collectionSlides.length > 0 && (
-    <Carousel label="Limited collection" count={collectionSlides.length} dots="end" className="home-banner">
-      {collectionSlides.map((slide, index) => <FeatureSlide slide={slide} index={index} total={collectionSlides.length} tone="taupe" variant="banner" />)}
+  {collections.length > 0 && (
+    <Carousel label="Limited collection" count={collections.length} dots="end" className="home-banner">
+      {collections.map((slide, index) => <FeatureSlide slide={slide} index={index} total={collections.length} tone="taupe" variant="banner" />)}
     </Carousel>
   )}
 
