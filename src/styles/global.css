@@ -582,6 +582,26 @@ a.ui-button { text-decoration: none; }
 .ui-design-dots { display: inline-flex; flex: none; }
 .ui-design-dots > span { width: 16px; height: 16px; border: 1px solid var(--color-swatch-border); border-radius: 50%; background: var(--swatch-color, var(--color-muted-fill)); }
 .ui-design-dots > span + span { margin-left: -4px; }
+/* Saved designs on /account (plan 12): dots, name, base color and date, Open and Delete with an inline confirm. */
+.ui-design-list { display: grid; margin: 0; padding: 0; list-style: none; }
+.ui-design-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--ds-space-2) var(--ds-space-4); padding-block: var(--ds-space-4); border-top: 1px solid var(--color-border); }
+.ui-design-row:first-child { border-top: 0; padding-top: 0; }
+.ui-design-row .ui-design-dots > span { width: 22px; height: 22px; }
+.ui-design-row .ui-design-dots > span + span { margin-left: -6px; }
+.ui-design-row__name { color: var(--color-black); font-size: 16px; font-weight: 600; line-height: 1.3; text-decoration: none; }
+.ui-design-row__name:hover { text-decoration: underline; text-underline-offset: 3px; }
+.ui-design-row__meta { margin-top: 2px; color: var(--color-text-secondary); font-size: 14px; line-height: 1.4; }
+.ui-design-row__actions, .ui-design-row__confirm { display: flex; align-items: center; gap: var(--ds-space-2); }
+.ui-design-row__actions[hidden], .ui-design-row__confirm[hidden] { display: none; }
+.ui-design-row__open, .ui-design-row__yes { min-height: 44px; padding: 0 var(--ds-space-5); }
+.ui-design-row__delete { width: 44px; height: 44px; }
+.ui-design-row__delete svg { width: 20px; height: 20px; stroke-width: 1.75; }
+.ui-design-row__ask { font-size: 15px; font-weight: 600; }
+.ui-design-row__error { grid-column: 1 / -1; }
+.ui-design-list__empty { color: var(--color-text-secondary); font-size: 16px; line-height: 1.5; }
+.ui-design-list__empty a { color: var(--color-black); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
+.ui-design-list__empty[hidden] { display: none; }
+
 /* An underlined text action with a 44px target (Reset, Save as New, Retry). */
 .ui-text-button { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 4px; border: 0; background: none; color: var(--color-black); font: inherit; font-size: 15px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 .ui-text-button svg { width: 16px; height: 16px; stroke-width: 2; }

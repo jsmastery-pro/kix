@@ -62,6 +62,7 @@
 .account__since { margin-top: 8px; }
 .account__cards { display: grid; grid-template-columns: 1.4fr 1fr; align-items: start; gap: 24px; margin-top: clamp(32px, 3.3vw, 48px); }
 .account__value { margin-top: 10px; }
+.account__designs { grid-column: 1 / -1; }
 
 /* Explore (plan 08): sidebar beside a head row and the results; the sidebar text lines up with the logo. */
 .explore { display: grid; grid-template-columns: clamp(220px, 20.2vw, 290px) minmax(0, 1fr); grid-template-rows: auto 1fr; grid-template-areas: "side head" "side results"; width: min(var(--site-wide-max), 100% - 2 * var(--site-wide-inset)); margin-inline: auto; }

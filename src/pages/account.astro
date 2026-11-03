@@ -1,7 +1,9 @@
 ---
 // Account: the signed-in member's profile, a name form, a password reset link and sign out
 // (plan 05). Read on the server as the member; a visitor goes to sign in. Replaces the kit's
-// React shell (AccountPage/RequireAuth), which stays in src/components/members/ unused.
+// React shell (AccountPage/RequireAuth), which stays in src/components/members/ unused. Saved Designs
+// (plan 12) are read here as the member; Delete runs in the browser (saved-designs.ts).
+import { Trash2 } from '@lucide/astro';
 import Avatar from '../components/ui/Avatar.astro';
 import Button from '../components/ui/Button.astro';
 import FormAlert from '../components/ui/FormAlert.astro';
@@ -10,10 +12,27 @@ import TextField from '../components/ui/TextField.astro';
 import SiteLayout from '../layouts/SiteLayout.astro';
 import { logoutAction } from '../scripts/return-to';
 import { fetchCurrentMember } from '../wix/members/members';
+import { listDesigns, type SavedDesign } from '../wix/models/designs';
+import { paletteName } from '../wix/models/palette';
+import { ZONES } from '../wix/models/presets';
 
 Astro.response.headers.set('Cache-Control', 'private, no-store');
 const member = await fetchCurrentMember();
 if (!member) return Astro.redirect('/login?returnTo=%2Faccount');
+
+// One sub-request; a failure shows its message and is reported from the browser (no analytics here).
+let designs: SavedDesign[] = [];
+let designsFailed = false;
+try {
+  designs = await listDesigns(member.id, { limit: 50 });
+} catch (error) {
+  designsFailed = true;
+  console.error('[account] saved designs read failed', error);
+}
+const savedDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+const zoneLabel = { upper: 'upper', sole: 'sole', laces: 'laces', accent: 'accent' } as const;
+const colorsOf = (design: SavedDesign) => ZONES.filter((z) => design.zones[z]).map((z) => ({ zone: z, hex: design.zones[z]! }));
+const describe = (design: SavedDesign) => colorsOf(design).map(({ zone, hex }) => `${zoneLabel[zone]} ${paletteName(hex)?.toLowerCase() ?? 'original'}`).join(', ');
 
 // memberSince is "YYYY-MM-DD" (UTC); format in UTC so the 1st doesn't become the month before.
 const memberSince = member.memberSince
@@ -61,12 +80,61 @@ const memberSince = member.memberSince
           <p class="sr-only" aria-live="polite" data-form-status></p>
         </form>
       </FormCard>
+
+      <FormCard title="Saved Designs" level={2} className="account__designs">
+        <div data-saved-designs data-designs-error={designsFailed ? '' : undefined}>
+          {designsFailed ? (
+            <p class="ui-design-list__empty">We couldn't load your saved designs. Refresh to try again.</p>
+          ) : designs.length === 0 ? (
+            <p class="ui-design-list__empty" data-designs-empty>No saved designs yet. <a href="/shop">Find a pair to customize</a></p>
+          ) : (
+            <>
+              <ul class="ui-design-list">
+                {designs.map((design) => {
+                  const href = `/products/${encodeURIComponent(design.productSlug)}?design=${encodeURIComponent(design.id)}`;
+                  return (
+                    <li class="ui-design-row" data-design-row data-design-id={design.id} data-product-id={design.productId}>
+                      <span class="ui-design-dots" aria-hidden="true">
+                        {colorsOf(design).map(({ hex }) => <span style={`--swatch-color: ${hex}`} />)}
+                      </span>
+                      <div class="ui-design-row__text">
+                        <a class="ui-design-row__name" href={href}>{design.title || 'Kix sneaker'}</a>
+                        <p class="ui-design-row__meta">
+                          {design.baseColor && <>{design.baseColor} · </>}Saved {savedDate.format(new Date(design.savedAt))}
+                          <span class="sr-only">. Colors: {describe(design)}</span>
+                        </p>
+                      </div>
+                      <div class="ui-design-row__actions" data-design-actions>
+                        <a class="ui-button ui-button--quiet ui-design-row__open" href={href} aria-label={`Open ${design.title || 'design'}`}>Open</a>
+                        <button type="button" class="ui-icon-button ui-design-row__delete" aria-label={`Delete ${design.title || 'design'}`} title="Delete design" data-design-delete>
+                          <Trash2 aria-hidden="true" />
+                        </button>
+                      </div>
+                      <div class="ui-design-row__confirm" data-design-confirm hidden>
+                        <p class="ui-design-row__ask">Delete this design?</p>
+                        <button type="button" class="ui-button ui-button--primary ui-design-row__yes" data-design-yes>Delete</button>
+                        <button type="button" class="ui-text-button" data-design-keep>Keep</button>
+                      </div>
+                      <p class="ui-status-line ui-status-line--error ui-design-row__error" data-design-error></p>
+                    </li>
+                  );
+                })}
+              </ul>
+              <p class="ui-design-list__empty" data-designs-empty hidden>No saved designs yet. <a href="/shop">Find a pair to customize</a></p>
+            </>
+          )}
+          <p class="sr-only" aria-live="polite" data-designs-status></p>
+        </div>
+      </FormCard>
     </div>
   </div>
 </SiteLayout>
 
 <script>
   import { initAccount } from '../scripts/account';
+  import { initSavedDesigns } from '../scripts/saved-designs';
   const root = document.querySelector<HTMLElement>('[data-account]');
   if (root) initAccount(root);
+  const designs = document.querySelector<HTMLElement>('[data-saved-designs]');
+  if (designs) initSavedDesigns(designs);
 </script>
