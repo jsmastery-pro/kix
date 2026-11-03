@@ -9,7 +9,15 @@ import tailwindcss from "@tailwindcss/vite";
 
 // https://astro.build/config
 export default defineConfig({
-  vite: { plugins: [tailwindcss()] },
+  vite: {
+    plugins: [tailwindcss()],
+    // The lazy 3D viewer (plan 11): pre-bundle its packages at dev startup. Found mid-request, they
+    // make Vite re-bundle SSR deps while pages render, mixing two Reacts ("Invalid hook call").
+    // The Cloudflare adapter forwards this list to the server environment too.
+    optimizeDeps: {
+      include: ["three", "three/examples/jsm/environments/RoomEnvironment.js", "@react-three/fiber", "@react-three/drei"],
+    },
+  },
   // PostHog (plan 06). Public by design; optional so a missing value turns analytics off, never the site.
   env: {
     schema: {

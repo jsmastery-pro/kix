@@ -269,12 +269,15 @@ Each step is committed when its check passes.
 - Screenshots at 1440 (photos, loading, 3D, fallback note) and 390 (3D) for Court 1 Retro, Nightshift High and Pacer 2.
 - Not tested: real phones, Safari and Firefox.
 
-**Dev-server note.** The first 3D press after adding the packages failed once with `load_error`: Vite re-optimized its dependencies on that first dynamic import and reloaded. Later presses worked. Production builds don't do this.
+**Dev-server fix (after close-out).** In `wix dev`, Vite found three, R3F and drei mid-request through `ShoeViewer`'s dynamic import. In dev, the `import.meta.env.SSR` guard doesn't drop the import as the build does. Vite then re-bundled the SSR dependencies while product pages were rendering, and requests in flight mixed two copies of React ("Invalid hook call … reading 'useRef'"). The same discovery made the first client 3D press fall back once. `astro.config.mjs` now lists the four 3D entries in `vite.optimizeDeps.include`, which the Cloudflare adapter forwards to the server environment, so they're pre-bundled at startup. Checked after the change:
+- six product pages loaded at once all rendered, and the SSR dependency cache stayed unchanged;
+- the first 3D press opened in 1.0 s.
 
 **Lessons:**
 - drei's `Bounds` aims from the camera's absolute position, so compute the fit yourself for a model standing on y = 0.
 - R3F 8 force-loses the WebGL context about 500 ms after unmount, so a context-loss listener must be removed on unmount.
 - A `role="status"` line hidden with `display: none` when empty may never be announced.
+- A lazily imported package still gets discovered by Vite's dev optimizer: list heavy lazy dependencies in `vite.optimizeDeps.include`.
 
 **One-pass prompt:** "Turn on plan 09's 3D controls: read the product's ProductModels row on the server (Get Data Item through wixFetch) and, on a 3D press, lazy-load an R3F 8 + drei 9 viewer (three 0.186.1) in the photo frame. Color it from the picked color's preset, spin only, and fall back to photos with a note on no WebGL, a load error, a timeout or a lost context."
 
