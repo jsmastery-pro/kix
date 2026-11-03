@@ -1,6 +1,6 @@
 # 12 · Customize in 3D and saved designs
 
-Status: approved
+Status: done
 
 <!-- review → approved → done, or dropped. Only the user approves. -->
 
@@ -169,7 +169,7 @@ Focus: opening the panel moves focus to its heading (`tabIndex=-1`), and closing
 - [x] 8. **Layouts and design-system match.** Compare in Claude in Chrome at 1440px and 390px (390 through a same-origin iframe) against the design system sheet's primitives, since there's no page design. List every difference, fix it, and repeat. (check: screenshots of the product page (3D + panel, signed in and out) and `/account` at both widths; no horizontal overflow at 390; tap targets ≥ 44px.)
 - [x] 9. **Checks.** `npm run check` and `npm run build`. (check: 0 errors, build Complete, and `dist/server` doesn't contain three.)
 - [x] 10. **Review.** A reviewer subagent compares the work with this plan; fix real gaps.
-- [ ] 11. **Close out.** Write Result, set `Status: done`, update the index, and propose AGENTS.md edits ("Who owns what": `SavedDesigns`; Commands: `setup-designs`).
+- [x] 11. **Close out.** Write Result, set `Status: done`, update the index, and propose AGENTS.md edits ("Who owns what": `SavedDesigns`; Commands: `setup-designs`).
 
 Each step is committed when its check passes.
 
@@ -213,4 +213,66 @@ Each step is committed when its check passes.
 
 ## Result
 
-Filled at close-out.
+**Shipped.** In the 3D view, a Customize pill sits next to Photos and opens a panel in the buy column, under Color.
+- The panel has one chip per zone the model has (Court 1 Retro 4, Tempo Run 3, Nightshift High 2), each zone's Original swatch, and the 16-color palette. Every press recolors the shoe at once. Reset is there too.
+- Picking a stock color starts the design over from that color and says so.
+- Signed-in shoppers can Save Design, Save Changes and Save as New. Saves go to the `SavedDesigns` CMS collection straight from the browser as the member: no server route and no `elevate()`.
+- Signed-out shoppers get Sign In to Save, and the same unsaved design comes back after signing in.
+- The panel lists this shoe's designs.
+- `/account` has a Saved Designs card with Open (`/products/<slug>?design=<id>` opens 3D and the panel with it) and Delete with an inline confirm.
+- The panel tells the shopper that Add to Cart adds the stock color.
+
+**Measured.**
+- Members: Wix enforces `SITE_MEMBER_AUTHOR` and `SITE_MEMBER`. Signed out, query and insert return 403 `WDE0027`. As the member, every call works.
+- `_owner` is the member's `id`, not `contactId`. The kit's comment in `members/types.ts` suggests `contactId`, which is wrong for this.
+- Bundles: the `ProductView` chunk is 10 KB gzipped. The 3D chunk is unchanged (247 KB gzipped). `dist/server` holds no three (7,944 KB).
+- Sub-requests: the product page is unchanged. `/account` goes from 1 to 2.
+
+**Differed from the plan, and why:**
+- **The phone's sticky frame applies while the panel is open,** not "while customized". That's when the shopper scrolls to the swatches.
+- **A palette color that equals the zone's Original is hidden.** Court 1 Retro's white Original and the palette's White were twin swatches.
+- **The account rows stack their actions on phones** (Open fills the line). At 390 the name and meta wrapped into a column 4 words wide.
+- **Steps 4–6 were committed in a different grouping:** the panel commit carried the save and link code, which steps 5–6 then verified.
+- **Review fixes after the build:**
+  - A late save, or a late `?design=` read, no longer overwrites newer work (a revision counter in `useDesign`).
+  - Only the newest list read lands.
+  - A sold-out base color isn't picked.
+  - Save as New keeps focus.
+  - A pick clears a stale status.
+  - Deleting a design that's already gone counts as done.
+  - A failed delete is announced.
+  - Account dates show in local time.
+  - Open and Delete names include the base color and date.
+- **Not built:** the plan's `dirty` flag. Clearing the status on a pick covers it.
+
+**Verification (run):**
+- `npm run models -- setup-designs`: the collection was created with read `SITE_MEMBER_AUTHOR`, insert `SITE_MEMBER`, update and remove `SITE_MEMBER_AUTHOR`, and 6 fields. A re-run reports "exists".
+- Spike as the member: insert, query by `_owner`, get, update and remove all returned 2xx, and Get after delete returned nothing.
+- In Chrome, on Court 1 Retro, Nightshift High and Tempo Run:
+  - Chips, swatches, Reset, start-over with its announcement, and close returning focus to the pill.
+  - Save, Save Changes and Save as New, each read back as admin from Wix.
+  - A forced save failure showed the error, kept the colors and sent `design_save_failed`.
+  - The panel list and loading a design from it.
+  - `?design=`: own design, bad ID, another product's design, signed out.
+  - The resume round trip through a real sign-in.
+  - Account: list, Open, Delete (confirm, Keep, delete), a forced delete failure, a forced read error (`$exception` sent), and the empty state.
+  - Race: a stock color pick during a save leaves the panel on the new design.
+- Screenshots at 1440 and 390 (390 through a same-origin iframe): the panel signed in and signed out, the sticky frame, and `/account`. No horizontal overflow at 390.
+- `npm run check`: 0 errors. `npm run build`: Complete.
+- PostHog events were seen in the debug log: `design_customize_opened`, `design_opened`, `design_saved`, `design_save_failed`. The MCP isn't authorized.
+
+**Not tested:**
+- A second member reading the first member's designs (no second account). Isolation rests on Wix's `SITE_MEMBER_AUTHOR` plus the `_owner` filter.
+- Real phones, Safari and Firefox.
+- The deep link with no WebGL (it follows plan 11's fallback).
+
+**Estimated, with no design:** the palette hexes (tuned by eye in the viewer), and the panel's padding, gaps, 14px zone dots and 16–22px design dots.
+
+**Test data left in Wix:** the two Court 1 Retro designs in your account (delete them from `/account` if you like).
+
+**Lessons:**
+- A CMS collection with `SITE_MEMBER_AUTHOR` permissions lets a headless site store member data from the browser, with no server route. `_owner` is the member ID.
+- In `global.css`, a variant declared before its base rule loses on equal specificity.
+- Async results that change UI state need a revision check, not just the closure's values.
+
+**One-pass prompt:** "In plan 11's 3D view, add a Customize pill that opens a buy-column panel (design-system primitives): chips per model zone, Original + a 16-color palette, Reset, start over on a stock color pick. Save designs to a SITE_MEMBER_AUTHOR CMS collection from the browser (filter on `_owner` = member id), Sign In to Save with a sessionStorage resume, a panel list, a `?design=` link, and an /account card with Open and Delete. Add to Cart stays the stock color, with a note."
