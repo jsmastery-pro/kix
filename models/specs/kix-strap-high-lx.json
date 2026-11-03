@@ -1,0 +1,58 @@
+{
+  "slug": "kix-strap-high-lx",
+  "raw": "berry-pink-foam.glb",
+  "madeFrom": "Berry / Pink Foam",
+  "rotateY": 0,
+  "parts": [
+    {
+      "node": "tripo_part_0",
+      "zone": "upper",
+      "label": "Upper"
+    },
+    {
+      "node": "tripo_part_1",
+      "zone": "sole",
+      "label": "Vulcanized sole"
+    },
+    {
+      "node": "tripo_part_2",
+      "zone": "accent",
+      "label": "Lower strap"
+    },
+    {
+      "node": "tripo_part_3",
+      "zone": "accent",
+      "label": "Top strap"
+    },
+    {
+      "node": "tripo_part_4",
+      "zone": "upper",
+      "label": "Collar pad"
+    },
+    {
+      "node": "tripo_part_5",
+      "zone": "accent",
+      "label": "Middle strap"
+    }
+  ],
+  "presets": [
+    {
+      "choiceId": "ac98cc4d-4315-41f6-a263-45253ffecc33",
+      "color": "Berry / Pink Foam",
+      "zones": {
+        "upper": "#A3194F",
+        "sole": "#EC5FA0",
+        "accent": "#A3194F"
+      }
+    },
+    {
+      "choiceId": "65590b13-62c5-4e2c-a955-0f1fd0f04feb",
+      "color": "Burgundy / Sail",
+      "zones": {
+        "upper": "#6B1F2E",
+        "sole": "#EDE6D6",
+        "accent": "#EDE6D6"
+      }
+    }
+  ]
+}

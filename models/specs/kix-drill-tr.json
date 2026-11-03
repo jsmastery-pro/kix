@@ -1,0 +1,48 @@
+{
+  "slug": "kix-drill-tr",
+  "raw": "stone.glb",
+  "madeFrom": "Stone",
+  "rotateY": 0,
+  "parts": [
+    {
+      "node": "tripo_part_0",
+      "zone": "upper",
+      "label": "Upper, cage and laces"
+    },
+    {
+      "node": "tripo_part_1",
+      "zone": "sole",
+      "label": "Outsole"
+    },
+    {
+      "node": "tripo_part_2",
+      "zone": "accent",
+      "label": "Midsole"
+    },
+    {
+      "node": "tripo_part_3",
+      "zone": "accent",
+      "label": "Tongue top"
+    }
+  ],
+  "presets": [
+    {
+      "choiceId": "b94a71e8-22c7-4fc7-8893-da1c0b15499f",
+      "color": "Black / Blaze",
+      "zones": {
+        "upper": "#1C1C1C",
+        "sole": "#1C1C1C",
+        "accent": "#F2561D"
+      }
+    },
+    {
+      "choiceId": "3181f1aa-8a59-4d9b-aaa1-d90d4edb617e",
+      "color": "Stone",
+      "zones": {
+        "upper": "#A39A8B",
+        "sole": "#8C8476",
+        "accent": "#A39A8B"
+      }
+    }
+  ]
+}

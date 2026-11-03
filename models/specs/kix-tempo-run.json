@@ -1,0 +1,43 @@
+{
+  "slug": "kix-tempo-run",
+  "raw": "silver-sky.glb",
+  "madeFrom": "Silver / Sky",
+  "rotateY": 0,
+  "parts": [
+    {
+      "node": "tripo_part_0",
+      "zone": "upper",
+      "label": "Mesh upper and laces"
+    },
+    {
+      "node": "tripo_part_1",
+      "zone": "accent",
+      "label": "Outsole"
+    },
+    {
+      "node": "tripo_part_2",
+      "zone": "sole",
+      "label": "Midsole"
+    }
+  ],
+  "presets": [
+    {
+      "choiceId": "ca2d039c-8664-4d01-8ec8-391f06d4318d",
+      "color": "Silver / Sky",
+      "zones": {
+        "upper": "#C5CAD1",
+        "sole": "#F2F3F5",
+        "accent": "#5AA9E0"
+      }
+    },
+    {
+      "choiceId": "6874a05a-1754-4dff-a896-336f1d7e69bd",
+      "color": "Lavender Mist",
+      "zones": {
+        "upper": "#C9BBE8",
+        "sole": "#CBBFE6",
+        "accent": "#B9A8DE"
+      }
+    }
+  ]
+}

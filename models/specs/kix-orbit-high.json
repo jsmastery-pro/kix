@@ -1,0 +1,58 @@
+{
+  "slug": "kix-orbit-high",
+  "raw": "petal-pink.glb",
+  "madeFrom": "Petal Pink",
+  "rotateY": 180,
+  "parts": [
+    {
+      "node": "tripo_part_0",
+      "zone": "sole",
+      "label": "Cupsole"
+    },
+    {
+      "node": "tripo_part_1",
+      "zone": "upper",
+      "label": "Upper"
+    },
+    {
+      "node": "tripo_part_2",
+      "zone": "accent",
+      "label": "Collar strap"
+    },
+    {
+      "node": "tripo_part_3",
+      "zone": "accent",
+      "label": "Ankle strap"
+    },
+    {
+      "node": "tripo_part_4",
+      "zone": "accent",
+      "label": "Strap tab"
+    },
+    {
+      "node": "tripo_part_5",
+      "zone": "accent",
+      "label": "Strap tab"
+    }
+  ],
+  "presets": [
+    {
+      "choiceId": "f5cc48bc-8677-4c5e-af62-f19754beeb1f",
+      "color": "Grape / Teal",
+      "zones": {
+        "upper": "#5B2A86",
+        "sole": "#5B2A86",
+        "accent": "#5B2A86"
+      }
+    },
+    {
+      "choiceId": "3df606a0-ac0d-48c4-9fa3-8277b100d35e",
+      "color": "Petal Pink",
+      "zones": {
+        "upper": "#E9B8C2",
+        "sole": "#EEC9D0",
+        "accent": "#E9B8C2"
+      }
+    }
+  ]
+}

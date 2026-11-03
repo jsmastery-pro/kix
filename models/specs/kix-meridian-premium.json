@@ -1,0 +1,65 @@
+{
+  "slug": "kix-meridian-premium",
+  "raw": "white-sage.glb",
+  "madeFrom": "White / Sage",
+  "rotateY": 180,
+  "parts": [
+    {
+      "node": "tripo_part_0",
+      "zone": "sole",
+      "label": "Cupsole"
+    },
+    {
+      "node": "tripo_part_1",
+      "zone": "laces",
+      "label": "Laces and eyestay"
+    },
+    {
+      "node": "tripo_part_2",
+      "zone": "upper",
+      "label": "Quarter panel"
+    },
+    {
+      "node": "tripo_part_3",
+      "zone": "accent",
+      "label": "Heel tab and collar"
+    },
+    {
+      "node": "tripo_part_4",
+      "zone": "upper",
+      "label": "Heel panel"
+    },
+    {
+      "node": "tripo_part_5",
+      "zone": "upper",
+      "label": "Side panel"
+    },
+    {
+      "node": "tripo_part_6",
+      "zone": "upper",
+      "label": "Toe cap"
+    }
+  ],
+  "presets": [
+    {
+      "choiceId": "1e4b2e18-90cb-4e49-bec9-7f9b948d2ead",
+      "color": "Sail / Black",
+      "zones": {
+        "upper": "#EDE6D6",
+        "sole": "#EDE6D6",
+        "laces": "#EDE6D6",
+        "accent": "#1C1C1C"
+      }
+    },
+    {
+      "choiceId": "a01a6c21-e47c-45f6-9cc0-21e642f951b8",
+      "color": "White / Sage",
+      "zones": {
+        "upper": "#F5F5F2",
+        "sole": "#F5F5F2",
+        "laces": "#F5F5F2",
+        "accent": "#A9C2A4"
+      }
+    }
+  ]
+}

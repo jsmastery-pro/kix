@@ -1,0 +1,58 @@
+{
+  "slug": "kix-sandlot-suede",
+  "raw": "wheat.glb",
+  "madeFrom": "Wheat",
+  "rotateY": 0,
+  "parts": [
+    {
+      "node": "tripo_part_0",
+      "zone": "sole",
+      "label": "Cupsole"
+    },
+    {
+      "node": "tripo_part_1",
+      "zone": "upper",
+      "label": "Suede upper and laces"
+    },
+    {
+      "node": "tripo_part_2",
+      "zone": "accent",
+      "label": "Heel panel"
+    },
+    {
+      "node": "tripo_part_3",
+      "zone": "accent",
+      "label": "Collar"
+    },
+    {
+      "node": "tripo_part_4",
+      "zone": "accent",
+      "label": "Heel collar"
+    },
+    {
+      "node": "tripo_part_5",
+      "zone": "accent",
+      "label": "Collar lining"
+    }
+  ],
+  "presets": [
+    {
+      "choiceId": "1a062bb5-8cf6-46b9-977f-9a3d0dbbf0cc",
+      "color": "Wheat",
+      "zones": {
+        "upper": "#C99242",
+        "sole": "#B57A3F",
+        "accent": "#C99242"
+      }
+    },
+    {
+      "choiceId": "05de459d-e0ee-4c6b-9bc6-a1827d3b0414",
+      "color": "Mocha",
+      "zones": {
+        "upper": "#7A5238",
+        "sole": "#6E4B34",
+        "accent": "#7A5238"
+      }
+    }
+  ]
+}

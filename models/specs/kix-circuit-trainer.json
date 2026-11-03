@@ -1,0 +1,75 @@
+{
+  "slug": "kix-circuit-trainer",
+  "raw": "cloud-white.glb",
+  "madeFrom": "Cloud White",
+  "rotateY": 180,
+  "parts": [
+    {
+      "node": "tripo_part_0",
+      "zone": "sole",
+      "label": "Midsole and outsole"
+    },
+    {
+      "node": "tripo_part_1",
+      "zone": "upper",
+      "label": "Knit upper"
+    },
+    {
+      "node": "tripo_part_2",
+      "zone": "laces",
+      "label": "Laces"
+    },
+    {
+      "node": "tripo_part_3",
+      "zone": "accent",
+      "label": "Heel pull tab"
+    },
+    {
+      "node": "tripo_part_4",
+      "zone": "laces",
+      "label": "Lace loop"
+    },
+    {
+      "node": "tripo_part_5",
+      "zone": "accent",
+      "label": "Heel stripe"
+    },
+    {
+      "node": "tripo_part_6",
+      "zone": "laces",
+      "label": "Lace loop"
+    },
+    {
+      "node": "tripo_part_7",
+      "zone": "laces",
+      "label": "Lace loop"
+    },
+    {
+      "node": "tripo_part_8",
+      "zone": "laces",
+      "label": "Lace loop"
+    }
+  ],
+  "presets": [
+    {
+      "choiceId": "8880f2a8-31de-4ee5-a06d-ec8bf484767d",
+      "color": "Cloud White",
+      "zones": {
+        "upper": "#F4F4F1",
+        "sole": "#F4F4F1",
+        "laces": "#F4F4F1",
+        "accent": "#F4F4F1"
+      }
+    },
+    {
+      "choiceId": "a5e159c7-82a8-4bd5-a571-65d2c8df1539",
+      "color": "Coral Glow",
+      "zones": {
+        "upper": "#F08A7E",
+        "sole": "#F08A7E",
+        "laces": "#F08A7E",
+        "accent": "#F08A7E"
+      }
+    }
+  ]
+}

@@ -1,0 +1,68 @@
+{
+  "slug": "kix-summit-high",
+  "raw": "forest-gum.glb",
+  "madeFrom": "Forest / Gum",
+  "rotateY": 180,
+  "parts": [
+    {
+      "node": "tripo_part_0",
+      "zone": "upper",
+      "label": "Suede upper"
+    },
+    {
+      "node": "tripo_part_1",
+      "zone": "sole",
+      "label": "Gum sole"
+    },
+    {
+      "node": "tripo_part_2",
+      "zone": "accent",
+      "label": "Strap and collar"
+    },
+    {
+      "node": "tripo_part_3",
+      "zone": "accent",
+      "label": "Ankle strap"
+    },
+    {
+      "node": "tripo_part_4",
+      "zone": "accent",
+      "label": "Strap loop"
+    },
+    {
+      "node": "tripo_part_5",
+      "zone": "upper",
+      "label": "Collar lining"
+    },
+    {
+      "node": "tripo_part_6",
+      "zone": "accent",
+      "label": "Strap end"
+    },
+    {
+      "node": "tripo_part_7",
+      "zone": "accent",
+      "label": "Strap end"
+    }
+  ],
+  "presets": [
+    {
+      "choiceId": "4761d493-d816-4227-abdb-d483018aa635",
+      "color": "Forest / Gum",
+      "zones": {
+        "upper": "#4F6B45",
+        "sole": "#B5652E",
+        "accent": "#4F6B45"
+      }
+    },
+    {
+      "choiceId": "ff750395-bd41-447a-bc87-6b8de3b81dd4",
+      "color": "Navy / Gum",
+      "zones": {
+        "upper": "#262D52",
+        "sole": "#B5652E",
+        "accent": "#262D52"
+      }
+    }
+  ]
+}

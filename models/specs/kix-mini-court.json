@@ -1,0 +1,48 @@
+{
+  "slug": "kix-mini-court",
+  "raw": "sky-blue.glb",
+  "madeFrom": "Sky Blue",
+  "rotateY": -135,
+  "parts": [
+    {
+      "node": "tripo_part_0",
+      "zone": "upper",
+      "label": "Upper"
+    },
+    {
+      "node": "tripo_part_1",
+      "zone": "sole",
+      "label": "Sole"
+    },
+    {
+      "node": "tripo_part_2",
+      "zone": "accent",
+      "label": "Lower strap"
+    },
+    {
+      "node": "tripo_part_3",
+      "zone": "accent",
+      "label": "Upper strap"
+    }
+  ],
+  "presets": [
+    {
+      "choiceId": "619bf9f9-a297-4e20-914b-e9470b1d4a49",
+      "color": "Royal Purple",
+      "zones": {
+        "upper": "#4330A0",
+        "sole": "#4330A0",
+        "accent": "#4330A0"
+      }
+    },
+    {
+      "choiceId": "b62cddf2-8ac2-4d5e-aec9-871b01a25efb",
+      "color": "Sky Blue",
+      "zones": {
+        "upper": "#6DB3E3",
+        "sole": "#6DB3E3",
+        "accent": "#6DB3E3"
+      }
+    }
+  ]
+}

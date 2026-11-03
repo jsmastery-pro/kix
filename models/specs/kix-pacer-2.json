@@ -1,0 +1,53 @@
+{
+  "slug": "kix-pacer-2",
+  "raw": "ocean-blue.glb",
+  "madeFrom": "Ocean Blue",
+  "rotateY": 0,
+  "parts": [
+    {
+      "node": "tripo_part_0",
+      "zone": "upper",
+      "label": "Mesh upper and laces"
+    },
+    {
+      "node": "tripo_part_1",
+      "zone": "sole",
+      "label": "Outsole"
+    },
+    {
+      "node": "tripo_part_2",
+      "zone": "accent",
+      "label": "Heel counter"
+    },
+    {
+      "node": "tripo_part_3",
+      "zone": "sole",
+      "label": "Midsole"
+    },
+    {
+      "node": "tripo_part_4",
+      "zone": "accent",
+      "label": "Pull tab"
+    }
+  ],
+  "presets": [
+    {
+      "choiceId": "b612531c-80d3-4890-9cf5-bcf65a4ee10f",
+      "color": "Graphite / Volt",
+      "zones": {
+        "upper": "#4A4D52",
+        "sole": "#3A3D42",
+        "accent": "#4A4D52"
+      }
+    },
+    {
+      "choiceId": "b13e13e8-8dd5-4c18-925a-6233b3a73302",
+      "color": "Ocean Blue",
+      "zones": {
+        "upper": "#4C8BA0",
+        "sole": "#4C8BA0",
+        "accent": "#4C8BA0"
+      }
+    }
+  ]
+}
