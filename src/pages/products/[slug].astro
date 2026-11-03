@@ -2,8 +2,8 @@
 // The product page (plan 09). A Wix item page: wixMetadata + loadSEOTagsServiceConfig + <SEO.Tags>
 // as the kit's skeleton, read with allSettled so a failed SEO read never 404s the product (as the
 // category page does). The gallery and buy column are the ProductView island on the kit's
-// useProductDetail; everything below it renders here, on the server, with no JS. Reads are guarded
-// and logged; an unknown slug is a real 404 with a way back.
+// useProductDetail, plus the 3D model row (plan 11); everything below it renders here, on the
+// server, with no JS. Reads are guarded and logged; an unknown slug is a real 404 with a way back.
 import { Footprints, Lock, RotateCcw, Truck } from '@lucide/astro';
 import { WIX_APPS } from '@wix/essentials';
 import { seoTags } from '@wix/seo';
@@ -19,6 +19,8 @@ import SectionHeading from '../../components/ui/SectionHeading.astro';
 import SpecTable from '../../components/ui/SpecTable.astro';
 import type { TileTone } from '../../components/ui/tones';
 import SiteLayout from '../../layouts/SiteLayout.astro';
+import { fetchProductModel } from '../../wix/models/product-models';
+import type { ProductModel } from '../../wix/models/presets';
 import { fetchCategories, fetchProductBySlug, fetchProductsByCategory } from '../../wix/storefront/catalog';
 import type { Category, ProductDetail, ProductSummary } from '../../wix/storefront/types';
 
@@ -41,6 +43,7 @@ const relatedTones: TileTone[] = ['mint', 'peach', 'periwinkle', 'lilac'];
 let product: ProductDetail | null = null;
 let categories: Category[] = [];
 let related: ProductSummary[] = [];
+let model: ProductModel | null = null;
 let seoTagsServiceConfig = null;
 const [productRead, seoRead, categoriesRead] = await Promise.allSettled([
   fetchProductBySlug(slug),
@@ -57,7 +60,12 @@ if (product && page) {
   // fetchCategories() swallows its own errors and returns [], so an empty list is the failure signal.
   if (categories.length === 0) console.error('[product] categories read failed', slug);
   const scopes = [page.sportId, page.genderId].filter((id): id is string => id !== null);
-  const lists = await Promise.allSettled(scopes.map((id) => fetchProductsByCategory(id, { limit: 5 })));
+  // The 3D model row needs the product ID, so it rides this second wave (fetchProductModel never throws).
+  const [lists, modelRead] = await Promise.all([
+    Promise.allSettled(scopes.map((id) => fetchProductsByCategory(id, { limit: 5 }))),
+    fetchProductModel(product.id),
+  ]);
+  model = modelRead;
   for (const list of lists) if (list.status === 'rejected') console.error('[product] recommendations read failed', slug, list.reason);
   related = pickRelated(lists.flatMap((list) => (list.status === 'fulfilled' ? [list.value] : [])), product.id, 4);
 } else {
@@ -71,7 +79,7 @@ if (product && page) {
   <SiteLayout title={product.name}>
     {seoTagsServiceConfig && <SEO.Tags seoTagsServiceConfig={seoTagsServiceConfig} slot="seo-tags" />}
     <div class="pdp">
-      <ProductView client:load initial={product} eyebrow={page.eyebrow} summaryHtml={page.summaryHtml} />
+      <ProductView client:load initial={product} eyebrow={page.eyebrow} summaryHtml={page.summaryHtml} model={model} />
 
       <section class="pdp__perks" aria-labelledby="pdp-perks">
         <h2 id="pdp-perks" class="sr-only">Shopping with Kix</h2>

@@ -7,6 +7,7 @@ import { Heart, LoaderCircle, ShoppingBag } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { useProductDetail } from '../../hooks/storefront/useProductDetail';
 import { captureError, track } from '../../scripts/analytics';
+import type { ProductModel } from '../../wix/models/presets';
 import type { ProductDetail } from '../../wix/storefront/types';
 import OptionGroup from '../ui/OptionGroup';
 import ProductGallery from '../ui/ProductGallery';
@@ -17,11 +18,13 @@ interface Props {
   eyebrow: string | null;
   /** The description's first paragraph (merchant HTML). */
   summaryHtml: string | null;
+  /** The product's ProductModels row (plan 11); null disables the 3D view. */
+  model: ProductModel | null;
 }
 
 type Outcome = { tone: 'done' | 'error'; text: string } | null;
 
-export default function ProductView({ initial, eyebrow, summaryHtml }: Props) {
+export default function ProductView({ initial, eyebrow, summaryHtml, model }: Props) {
   const d = useProductDetail({ initial });
   const [outcome, setOutcome] = useState<Outcome>(null);
   // Counts color picks, so picking the current color again brings its photo back.

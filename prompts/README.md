@@ -10,3 +10,4 @@
 - [08 · Explore page: category list, price and color filters, search and the product grid](08-explore-page.md) — done
 - [09 · Product page: gallery, color and size pickers, add to cart, details and recommendations](09-product-page.md) — done
 - [10 · Product 3D models: shrink, upload to Wix Media, parts map and color presets in CMS](10-product-3d-models.md) — done (no laces zone on 9 models; 3 colorways lose their accent color)
+- [11 · Product 3D view: spin the shoe in the color the shopper picked](11-product-3d-view.md) — approved
