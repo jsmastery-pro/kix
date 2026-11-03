@@ -109,6 +109,11 @@ Status: approved
 - `order_completed { order_id }` is sent once per order (a `sessionStorage` guard, try/catch).
 - The page sends the headers `X-Robots-Tag: noindex` and `Cache-Control: private, no-store` (set in `thank-you.astro`; SiteLayout has no noindex prop).
 
+**Order IDs (found in step 8, decided by you).** Wix returns an order to **any** visitor holding its ID. A fresh anonymous token got the member's order #10001 with HTTP 200, while Search Orders was denied. Wix's docs say otherwise. So order IDs are treated as keys:
+- `/thank-you` reads `?orderId` once, removes it from the address bar, and keeps it in `sessionStorage` for a reload.
+- `PostHog.astro` masks `orderId` in URLs and referrers, as it does `q`.
+- `order_completed` and `order_paid` send `order_number`, not `order_id`. A guest's `order_paid` distinct ID is `order_<number>`.
+
 **Account orders.** An **Orders** card (`FormCard`, heading id `orders-title`, full width) sits above Saved Designs.
 - **Read** on the server by `src/wix/storefront/member-orders.ts` (server-only):
   - First try `orders.searchOrders` as the member, unelevated.
@@ -148,7 +153,7 @@ Status: approved
 - `coupon_submitted { outcome: 'applied' | 'rejected' }`.
 - `checkout_started { item_count, customized_count }`, sent with `{ beacon: true }` since the page navigates away right after.
 - `checkout_failed { reason }`.
-- `order_completed { order_id }` (browser, thank-you).
+- `order_completed { order_number }` (browser, thank-you).
 - `order_paid` (server; above).
 - `ErrorArea` gains `cart_update`, `checkout`, `order_load`, `order_list`, `design_code`.
 

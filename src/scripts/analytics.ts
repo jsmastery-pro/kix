@@ -42,8 +42,9 @@ export interface AnalyticsEvents {
   checkout_started: { item_count: number; customized_count: number };
   /** `reason` is a Wix error code or 'network'. */
   checkout_failed: { reason: string };
-  /** The thank-you page showed an order (plan 13). Revenue comes from the server's order_paid. */
-  order_completed: { order_id: string };
+  /** The thank-you page showed an order (plan 13). Revenue comes from the server's order_paid. The order
+   * number, never the order ID: Wix returns an order to anyone holding its ID. */
+  order_completed: { order_number: number | null };
 }
 
 /**
@@ -51,7 +52,7 @@ export interface AnalyticsEvents {
  * Same rules: no personal data. `order_paid` is the one revenue event, sent once per paid order.
  */
 export interface ServerAnalyticsEvents {
-  order_paid: { revenue: number; currency: string; order_id: string; order_number: number | null; item_count: number; customized_count: number };
+  order_paid: { revenue: number; currency: string; order_number: number | null; item_count: number; customized_count: number };
 }
 
 export type ErrorArea = 'auth_submit' | 'auth_code' | 'profile_save' | 'pending_name' | 'cart_add' | 'model_load' | 'design_save' | 'design_list' | 'design_load' | 'design_delete' | 'cart_update' | 'checkout' | 'order_load' | 'order_list' | 'design_code';

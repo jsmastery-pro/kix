@@ -3,6 +3,8 @@
 // no design for this page: design-system primitives in the cart's type. A missing or unreadable
 // order still thanks the shopper. The bag is re-read so its count drops to 0. Revenue is counted on
 // the server (order_paid); this page only marks the order as seen (order_completed), once.
+// Wix returns an order to anyone holding its ID, so the ID leaves the address bar as soon as it's
+// read (kept in sessionStorage for a reload) and never goes to analytics.
 import { useEffect, useState } from 'react';
 import { useMember } from '../../hooks/members/useMember';
 import { captureError, track } from '../../scripts/analytics';
@@ -14,6 +16,29 @@ import { fetchOrder, orderBadge, withSlugs, type OrderSummary } from '../../wix/
 type State = { kind: 'loading' } | { kind: 'ready'; order: OrderSummary } | { kind: 'fallback' };
 
 const SEEN_KEY = 'kix-order-completed:';
+const ORDER_KEY = 'kix-thank-you-order';
+
+/** The order ID from ?orderId= (then removed from the URL), else the one this tab saw last. */
+function takeOrderId(): string | null {
+  const params = new URLSearchParams(location.search);
+  const fromUrl = params.get('orderId');
+  if (fromUrl) {
+    params.delete('orderId');
+    const query = params.toString();
+    history.replaceState(history.state, '', `${location.pathname}${query ? `?${query}` : ''}${location.hash}`);
+    try {
+      sessionStorage.setItem(ORDER_KEY, fromUrl);
+    } catch {
+      /* storage off: a reload shows the plain thank-you */
+    }
+    return fromUrl;
+  }
+  try {
+    return sessionStorage.getItem(ORDER_KEY);
+  } catch {
+    return null;
+  }
+}
 
 function markSeen(orderId: string): boolean {
   try {
@@ -31,7 +56,7 @@ export default function ThankYouView() {
 
   useEffect(() => {
     void refreshCart();
-    const orderId = new URLSearchParams(location.search).get('orderId');
+    const orderId = takeOrderId();
     if (!orderId) {
       setState({ kind: 'fallback' });
       return;
@@ -42,7 +67,7 @@ export default function ThankYouView() {
         const [order] = await withSlugs([await fetchOrder(orderId)]);
         if (!live) return;
         setState({ kind: 'ready', order });
-        if (markSeen(order.id)) track('order_completed', { order_id: order.id });
+        if (markSeen(order.id)) track('order_completed', { order_number: order.number ? Number(order.number) : null });
       } catch (error) {
         captureError(error, 'order_load');
         if (live) setState({ kind: 'fallback' });
