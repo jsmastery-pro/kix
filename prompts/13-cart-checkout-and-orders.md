@@ -138,7 +138,7 @@ Status: approved
 - **No personal data:** no email, name, address or contact ID.
 - **Failures:** a 5 s timeout. A failure is logged and rethrown, so Wix can retry (deduplicated by `uuid`). It makes 1 sub-request.
 - **A second, server-side analytics door.** `track()` is browser-only, so `src/scripts/analytics-server.ts` exports `captureServer<E extends keyof ServerAnalyticsEvents>()`, typed by a `ServerAnalyticsEvents` catalog in `analytics.ts`. *This extends AGENTS' "one `track()` wrapper" rule to one wrapper per runtime, with one catalog file. Say so if you'd rather not.*
-- **Env:** the handler reads `PUBLIC_POSTHOG_*` from `astro:env/client`. If that import doesn't work in an event extension (step 10 spike), it falls back to `import.meta.env`, and I stop and ask before adding a server secret.
+- **Env (changed in step 10, approved by you):** in Wix's backend-extension build, `astro:env/client` fails to resolve, and `import.meta.env.PUBLIC_*` compiles to `undefined`. With `undefined`, `captureServer` became `return false`. So the handler reads the public token and host from a committed `src/scripts/posthog-public.ts`. They are public by design. The browser keeps the `PUBLIC_POSTHOG_*` env vars, so the two must change together.
 - **App permission:** the event and the elevated search need `SCOPE.DC-STORES.READ-ORDERS` on the app whose ID is in `wix.config.json`. `wix.config.json` doesn't list scopes, so you check it, and add it if missing, in the app dashboard: `https://manage.wix.com/apps/<appId>/home` → Develop → Permissions, then re-approve on the site. That happens before step 9 when spike 1c shows elevation is needed, else before step 10.
 
 **Analytics (catalog additions; no codes typed by shoppers, no coupon text, no personal data):**
@@ -330,7 +330,7 @@ Each step is committed when its check passes.
   - `src/components/storefront/CartView.tsx`, `src/components/storefront/ThankYouView.tsx`
   - `src/wix/storefront/checkout.ts`, `src/wix/storefront/orders.ts`, `src/wix/storefront/member-orders.ts`, `src/wix/storefront/line-links.ts`
   - `src/wix/models/design-code.ts`
-  - `src/scripts/analytics-server.ts`, `src/scripts/orders.ts` (account card's browser error report)
+  - `src/scripts/analytics-server.ts`, `src/scripts/posthog-public.ts`, `src/scripts/orders.ts` (account card's browser error report)
   - `src/extensions.ts`, `src/extensions/backend/events/order-paid/{order-paid.extension.ts,order-paid.ts}` (generated, then filled)
   - `.seed/design-code.mjs` (git-ignored)
 - **Change:**
