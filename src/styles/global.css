@@ -601,6 +601,12 @@ a.ui-button { text-decoration: none; }
 .ui-design-list__empty { color: var(--color-text-secondary); font-size: 16px; line-height: 1.5; }
 .ui-design-list__empty a { color: var(--color-black); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 .ui-design-list__empty[hidden] { display: none; }
+@media (max-width: 767px) {
+  /* Phones: the actions get their own line under the name, Open filling it. */
+  .ui-design-row { grid-template-columns: auto minmax(0, 1fr); }
+  .ui-design-row__actions, .ui-design-row__confirm { grid-column: 1 / -1; }
+  .ui-design-row__open { flex: 1; }
+}
 
 /* An underlined text action with a 44px target (Reset, Save as New, Retry). */
 .ui-text-button { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 4px; border: 0; background: none; color: var(--color-black); font: inherit; font-size: 15px; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }

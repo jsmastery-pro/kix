@@ -108,17 +108,18 @@ export default function CustomizePanel(p: Props) {
             style={{ '--swatch-color': original } as CSSProperties}
             aria-pressed={same(current, original)}
             aria-label={`Original${paletteName(original) ? `, ${paletteName(original)}` : ''}`}
-            title="Original"
+            title={`Original${paletteName(original) ? ` (${paletteName(original)})` : ''}`}
             onClick={() => p.onPick(p.zone, original)}
           />
         )}
-        {PALETTE.map((c) => (
+        {/* A palette color equal to the Original would be a twin swatch: Original stands for it. */}
+        {PALETTE.filter((c) => !same(c.hex, original)).map((c) => (
           <button
             key={c.hex}
             type="button"
             className="ui-swatch ui-swatch--sm"
             style={{ '--swatch-color': c.hex } as CSSProperties}
-            aria-pressed={same(current, c.hex) && !same(current, original)}
+            aria-pressed={same(current, c.hex)}
             aria-label={c.name}
             title={c.name}
             onClick={() => p.onPick(p.zone, c.hex)}
