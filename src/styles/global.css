@@ -521,11 +521,15 @@ a.ui-button { text-decoration: none; }
 .ui-gallery__arrow:active:not(:disabled) { transform: translateY(calc(-50% + 1px)); }
 .ui-gallery__arrow--prev { left: clamp(12px, 1.9vw, 27px); }
 .ui-gallery__arrow--next { right: clamp(12px, 1.9vw, 27px); }
-.ui-gallery__3d { position: absolute; bottom: clamp(12px, 1.9vw, 27px); left: 50%; display: inline-flex; align-items: center; gap: 10px; height: clamp(44px, 3.7vw, 53px); padding: 0 clamp(18px, 1.9vw, 28px); border: 0; border-radius: var(--radius-pill); background: var(--color-white); box-shadow: var(--shadow-arrow); color: var(--color-black); font-family: var(--font-display); font-size: clamp(17px, 1.39vw, 20px); font-weight: 700; transform: translateX(-50%); }
+/* The frame's pills (3D/Photos, and Customize in 3D, plan 12) sit centered at the bottom. */
+.ui-gallery__pills { position: absolute; bottom: clamp(12px, 1.9vw, 27px); left: 50%; display: flex; gap: var(--ds-space-2); transform: translateX(-50%); }
+.ui-gallery__3d { display: inline-flex; flex: none; align-items: center; gap: 10px; height: clamp(44px, 3.7vw, 53px); padding: 0 clamp(18px, 1.9vw, 28px); border: 0; border-radius: var(--radius-pill); background: var(--color-white); box-shadow: var(--shadow-arrow); color: var(--color-black); font-family: var(--font-display); font-size: clamp(17px, 1.39vw, 20px); font-weight: 700; }
 .ui-gallery__3d svg { width: 22px; height: 22px; stroke-width: 1.75; }
 .ui-gallery__3d:not([aria-disabled="true"]) { transition: background var(--ds-motion-fast), transform var(--ds-motion-fast); }
 .ui-gallery__3d:hover:not([aria-disabled="true"]) { background: var(--color-muted-fill); }
-.ui-gallery__3d:active:not([aria-disabled="true"]) { transform: translate(-50%, 1px); }
+.ui-gallery__3d:active:not([aria-disabled="true"]) { transform: translateY(1px); }
+.ui-gallery__3d[aria-expanded="true"] { background: var(--color-black); color: var(--color-white); }
+.ui-gallery__3d[aria-expanded="true"]:hover { background: var(--color-state-pressed); }
 
 /* The 3D view (plan 11): the canvas over the frame's fill, a loading pill over the dimmed photo,
    the drag hint and the fallback note. */
@@ -557,7 +561,7 @@ a.ui-button { text-decoration: none; }
 .ui-soon[aria-disabled="true"] { cursor: not-allowed; opacity: .6; }
 .ui-soon[aria-disabled="true"]:hover { background: var(--color-white); }
 .ui-soon[aria-disabled="true"]:active { transform: none; }
-.ui-gallery__3d.ui-soon[aria-disabled="true"]:active { transform: translateX(-50%); }
+.ui-gallery__3d.ui-soon[aria-disabled="true"]:active { transform: none; }
 
 .ui-pdp-eyebrow { font-size: clamp(14px, 1.1vw, 16px); line-height: 1.4; }
 .ui-pdp-title { font-family: var(--font-display); font-size: clamp(30px, 3.2vw, 46px); font-weight: 700; line-height: 1.06; text-transform: uppercase; overflow-wrap: anywhere; }

@@ -3,13 +3,15 @@
 // gallery; a color pick (the kit's imageUrl) moves it to the photo with the same media key, so
 // thumbnails and arrows keep working after a pick. The 3D tile and pill swap the frame for the lazy
 // ShoeViewer, colored by resolvePreset; no WebGL, a load error, a 20 s timeout or a lost context
-// fall back to photos and turn 3D off for the visit. The root is display: contents, so the rail and
-// the frame are grid items of the page layout (.pdp__top).
-import { ChevronLeft, ChevronRight, Images, LoaderCircle, Maximize, Rotate3d, X } from 'lucide-react';
-import { Component, Suspense, lazy, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+// fall back to photos and turn 3D off for the visit. In 3D, a Customize pill opens the buy column's
+// panel (plan 12): the parent passes the custom colors back as customZones and drives the deep link
+// through the handle. The root is display: contents, so the rail and the frame are grid items of the
+// page layout (.pdp__top).
+import { ChevronLeft, ChevronRight, Images, LoaderCircle, Maximize, Palette, Rotate3d, X } from 'lucide-react';
+import { Component, Suspense, forwardRef, lazy, useCallback, useEffect, useImperativeHandle, useRef, useState, type ReactNode } from 'react';
 import { captureError, track } from '../../scripts/analytics';
 import { imgAttrs, mediaKey } from '../../wix/media';
-import { resolvePreset, type ColorGroup, type ProductModel } from '../../wix/models/presets';
+import { resolvePreset, type ColorGroup, type Preset, type ProductModel, type ZoneColors } from '../../wix/models/presets';
 
 type ShoeViewerType = typeof import('../storefront/ShoeViewer').default;
 // Client only: the server build never bundles three.
@@ -29,9 +31,24 @@ interface Props {
   model: ProductModel | null;
   /** The color option group (selected choice, choice photos); null when the product has none. */
   colors: ColorGroup | null;
+  /** Colors shown instead of the preset (a design); null shows the preset. */
+  customZones: ZoneColors | null;
+  /** The Customize panel is open (the pill's pressed state). */
+  panelOpen: boolean;
+  onCustomize: () => void;
+  /** The preset the 3D view resolves, reported whenever it changes. */
+  onPresetChange: (preset: Preset | null) => void;
+  on3dChange: (mode: Mode) => void;
 }
 
-type Mode = 'photos' | 'loading' | '3d';
+export interface ProductGalleryHandle {
+  /** Opens 3D for a design; false when 3D can't open (no model, off for the visit, no WebGL). */
+  open3d: () => boolean;
+  /** Shows a short note in the frame ('' clears it). */
+  showNote: (text: string) => void;
+}
+
+export type Mode = 'photos' | 'loading' | '3d';
 type FailReason = 'no_webgl' | 'load_error' | 'timeout' | 'context_lost';
 
 const LOAD_TIMEOUT_MS = 20_000;
@@ -62,7 +79,10 @@ class ViewerBoundary extends Component<{ onError: (error: unknown) => void; chil
   }
 }
 
-export default function ProductGallery({ name, gallery, selectedImage, selectionKey, productId, model, colors }: Props) {
+export default forwardRef<ProductGalleryHandle, Props>(function ProductGallery(
+  { name, gallery, selectedImage, selectionKey, productId, model, colors, customZones, panelOpen, onCustomize, onPresetChange, on3dChange },
+  ref,
+) {
   const [active, setActive] = useState(0);
   // A picked photo that matches no gallery item; shown until the shopper next moves.
   const [unmatched, setUnmatched] = useState<string | null>(null);
@@ -117,21 +137,31 @@ export default function ProductGallery({ name, gallery, selectedImage, selection
     setMode('photos');
     setNote('');
   };
-  const open3d = (source: 'pill' | 'thumbnail') => {
-    if (!available || viewing3d) return;
-    if (!hasWebGL()) return fail('no_webgl');
+  const open3d = (source: 'pill' | 'thumbnail' | 'design'): boolean => {
+    if (!available) return false;
+    if (viewing3d) return true;
+    if (!hasWebGL()) {
+      fail('no_webgl');
+      return false;
+    }
     setOpenPhoto(src);
     setNote('');
     setMode('loading');
     track('product_3d_opened', { product_id: productId, source });
+    return true;
   };
+  useImperativeHandle(ref, () => ({ open3d: () => open3d('design'), showNote: setNote }));
   const onReady = useCallback(() => setMode((m) => (m === 'loading' ? '3d' : m)), []);
   const onSpin = useCallback(() => setSpun(true), []);
   const onContextLost = useCallback(() => { if (modeRef.current !== 'photos') fail('context_lost'); }, [fail]);
   const onViewerError = useCallback((error: unknown) => fail('load_error', error), [fail]);
 
   const preset = model ? resolvePreset(model, colors, openPhoto) : null;
-  const viewerLabel = `${name} in 3D${preset?.colorName ? `, ${preset.colorName}` : ''}. Drag or use arrow keys to spin.`;
+  // Keyed on the preset's fields: resolvePreset returns a new object each render.
+  useEffect(() => onPresetChange(preset), [preset?.choiceId, preset?.zones]);
+  useEffect(() => on3dChange(mode), [mode, on3dChange]);
+  const colorLabel = customZones ? 'custom colors' : preset?.colorName;
+  const viewerLabel = `${name} in 3D${colorLabel ? `, ${colorLabel}` : ''}. Drag or use arrow keys to spin.`;
   const offLabel = model ? "3D view isn't available right now" : '3D view not available';
 
   const alt = unmatched ? `${name}, selected color` : `${name}, photo ${active + 1} of ${total}`;
@@ -181,7 +211,7 @@ export default function ProductGallery({ name, gallery, selectedImage, selection
         {viewing3d && model && (
           <ViewerBoundary onError={onViewerError}>
             <Suspense fallback={null}>
-              <ShoeViewer url={model.modelUrl} parts={model.parts} zones={preset?.zones ?? null} label={viewerLabel} onReady={onReady} onSpin={onSpin} onContextLost={onContextLost} />
+              <ShoeViewer url={model.modelUrl} parts={model.parts} zones={customZones ?? preset?.zones ?? null} label={viewerLabel} onReady={onReady} onSpin={onSpin} onContextLost={onContextLost} />
             </Suspense>
           </ViewerBoundary>
         )}
@@ -207,19 +237,26 @@ export default function ProductGallery({ name, gallery, selectedImage, selection
             </button>
           </>
         )}
-        {!available ? (
-          <button ref={pillRef} type="button" className="ui-gallery__3d ui-soon" aria-disabled="true" aria-label={offLabel} title={offLabel}>
-            <Rotate3d aria-hidden="true" />3D
-          </button>
-        ) : viewing3d ? (
-          <button ref={pillRef} type="button" className="ui-gallery__3d" aria-label="Show photos" onClick={() => { setMode('photos'); setNote(''); }}>
-            <Images aria-hidden="true" />Photos
-          </button>
-        ) : (
-          <button ref={pillRef} type="button" className="ui-gallery__3d" aria-label="Show 3D view" onClick={() => open3d('pill')}>
-            <Rotate3d aria-hidden="true" />3D
-          </button>
-        )}
+        <div className="ui-gallery__pills">
+          {!available ? (
+            <button ref={pillRef} type="button" className="ui-gallery__3d ui-soon" aria-disabled="true" aria-label={offLabel} title={offLabel}>
+              <Rotate3d aria-hidden="true" />3D
+            </button>
+          ) : viewing3d ? (
+            <button ref={pillRef} type="button" className="ui-gallery__3d" aria-label="Show photos" onClick={() => { setMode('photos'); setNote(''); }}>
+              <Images aria-hidden="true" />Photos
+            </button>
+          ) : (
+            <button ref={pillRef} type="button" className="ui-gallery__3d" aria-label="Show 3D view" onClick={() => open3d('pill')}>
+              <Rotate3d aria-hidden="true" />3D
+            </button>
+          )}
+          {mode === '3d' && preset && (
+            <button type="button" id="pdp-customize-pill" className="ui-gallery__3d" aria-expanded={panelOpen} aria-controls="pdp-customize" onClick={onCustomize}>
+              <Palette aria-hidden="true" />Customize
+            </button>
+          )}
+        </div>
       </div>
 
       <dialog
@@ -236,4 +273,4 @@ export default function ProductGallery({ name, gallery, selectedImage, selection
       </dialog>
     </div>
   );
-}
+});

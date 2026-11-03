@@ -22,9 +22,21 @@ export interface ColorGroup {
 
 /**
  * The colors to show: the shopper's color pick, else the color whose photo is in the frame, else the
- * first choice with a preset. Null zones mean the GLB's own colors (its made color).
+ * first choice with a preset. Null means no preset: the GLB's own colors (its made color).
  */
-export function resolvePreset(model: ProductModel, colors: ColorGroup | null, framePhotoUrl: string | null): { zones: ZoneColors | null; colorName: string | null } {
+/** The stock color a design starts from (plan 12). */
+export interface Preset {
+  choiceId: string;
+  colorName: string;
+  zones: ZoneColors;
+}
+
+/** The zones the model has, in ZONES order: the parts the Customize panel offers (plan 12). */
+export function modelZones(model: ProductModel): Zone[] {
+  return ZONES.filter((zone) => model.parts.some((part) => part.zone === zone));
+}
+
+export function resolvePreset(model: ProductModel, colors: ColorGroup | null, framePhotoUrl: string | null): Preset | null {
   const presetFor = (choiceId: string) => model.presets.find((p) => p.choiceId === choiceId) ?? null;
   const choices = colors?.choices ?? [];
   const frameKey = framePhotoUrl ? mediaKey(framePhotoUrl) : '';
@@ -32,5 +44,5 @@ export function resolvePreset(model: ProductModel, colors: ColorGroup | null, fr
     choices.find((c) => c.selected && presetFor(c.choiceId)) ??
     (frameKey ? choices.find((c) => c.imageUrl && mediaKey(c.imageUrl) === frameKey && presetFor(c.choiceId)) : undefined) ??
     choices.find((c) => presetFor(c.choiceId));
-  return choice ? { zones: presetFor(choice.choiceId)!.zones, colorName: choice.name } : { zones: null, colorName: null };
+  return choice ? { choiceId: choice.choiceId, colorName: choice.name, zones: presetFor(choice.choiceId)!.zones } : null;
 }

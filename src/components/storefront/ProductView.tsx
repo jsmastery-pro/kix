@@ -4,13 +4,14 @@
 // can't add, it is aria-disabled, the kit's reason shows under it, and a press moves focus to the
 // first option with no pick. The add confirms inline; the header bag shows the new count.
 import { Heart, LoaderCircle, ShoppingBag } from 'lucide-react';
-import { useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import { useDesign } from '../../hooks/storefront/useDesign';
 import { useProductDetail } from '../../hooks/storefront/useProductDetail';
 import { captureError, track } from '../../scripts/analytics';
-import type { ProductModel } from '../../wix/models/presets';
+import { modelZones, type Preset, type ProductModel } from '../../wix/models/presets';
 import type { ProductDetail } from '../../wix/storefront/types';
 import OptionGroup from '../ui/OptionGroup';
-import ProductGallery from '../ui/ProductGallery';
+import ProductGallery, { type Mode, type ProductGalleryHandle } from '../ui/ProductGallery';
 
 interface Props {
   initial: ProductDetail;
@@ -30,6 +31,13 @@ export default function ProductView({ initial, eyebrow, summaryHtml, model }: Pr
   // Counts color picks, so picking the current color again brings its photo back.
   const [colorPicks, setColorPicks] = useState(0);
   const buyRef = useRef<HTMLDivElement>(null);
+  const galleryRef = useRef<ProductGalleryHandle>(null);
+  // The preset the 3D view resolves (the gallery owns the photo it falls back to).
+  const [preset, setPreset] = useState<Preset | null>(null);
+  const zonesOnModel = useMemo(() => (model ? modelZones(model) : []), [model]);
+  const design = useDesign(preset, zonesOnModel);
+  const { closePanel } = design;
+  const on3dChange = useCallback((mode: Mode) => { if (mode === 'photos') closePanel(); }, [closePanel]);
   const product = d.product ?? initial;
   const blocked = !d.canAdd || d.adding;
 
@@ -76,6 +84,12 @@ export default function ProductView({ initial, eyebrow, summaryHtml, model }: Pr
         productId={product.id}
         model={model}
         colors={d.optionGroups.find((g) => g.isColor) ?? null}
+        customZones={design.override}
+        panelOpen={design.open}
+        onCustomize={design.open ? design.closePanel : design.openPanel}
+        onPresetChange={setPreset}
+        on3dChange={on3dChange}
+        ref={galleryRef}
       />
 
       <div ref={buyRef} className="pdp__buy">
