@@ -153,7 +153,8 @@ export default function CartView() {
     }
     setPromoError(null);
     try {
-      await c.applyCoupon(promo);
+      // Wix matches codes case-insensitively; upper case reads as a code, as in the design.
+      await c.applyCoupon(promo.trim().toUpperCase());
       track('coupon_submitted', { outcome: 'applied' });
       setPromo('');
       setAnnouncement('Promo code applied.');

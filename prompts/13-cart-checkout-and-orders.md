@@ -293,7 +293,7 @@ Status: approved
   - Nightshift High gives a `KIX-xx--` code;
   - a loaded design with an unpickable stock color, after Reset, still adds with its code.)
 - [x] 5. **Checkout function and cart page.** Add `checkout.ts`, `/cart`, `CartView`, the CSS and recommendations. (check: quantity ±, cap, remove, empty state, loading skeleton, a busy dim, an unavailable line blocking Checkout (forced by a temporary status override, reverted), Checkout reaching Wix's checkout page.)
-- [ ] 6. **Coupon.** Create `KIXTEST` with the recipe. (check: apply shows the applied row and the discount in the totals; remove restores them; a bad code shows "That code doesn't exist…" and sends `coupon_submitted` `rejected` without the text.)
+- [x] 6. **Coupon.** Create `KIXTEST` with the recipe. (check: apply shows the applied row and the discount in the totals; remove restores them; a bad code shows "That code doesn't exist…" and sends `coupon_submitted` `rejected` without the text.)
 - [ ] 7. **You turn on manual payments.** I give you the link and wait.
 - [ ] 8. **Thank-you page.** Add `orders.ts` and `/thank-you`. (check:
   - as the member, a real checkout of a customized and a stock pair with manual payment lands on `/thank-you?orderId=…`;
