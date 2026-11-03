@@ -2,7 +2,8 @@
 // Account: the signed-in member's profile, a name form, a password reset link and sign out
 // (plan 05). Read on the server as the member; a visitor goes to sign in. Replaces the kit's
 // React shell (AccountPage/RequireAuth), which stays in src/components/members/ unused. Saved Designs
-// (plan 12) are read here as the member; Delete runs in the browser (saved-designs.ts).
+// (plan 12) are read here as the member; Delete runs in the browser (saved-designs.ts). Orders
+// (plan 13) are read here too, filtered to this member; orders.ts reports a failed read.
 import { Trash2 } from '@lucide/astro';
 import Avatar from '../components/ui/Avatar.astro';
 import Button from '../components/ui/Button.astro';
@@ -11,24 +12,38 @@ import FormCard from '../components/ui/FormCard.astro';
 import TextField from '../components/ui/TextField.astro';
 import SiteLayout from '../layouts/SiteLayout.astro';
 import { logoutAction } from '../scripts/return-to';
+import { designLink } from '../wix/models/design-code';
 import { fetchCurrentMember } from '../wix/members/members';
 import { listDesigns, type SavedDesign } from '../wix/models/designs';
 import { paletteName } from '../wix/models/palette';
 import { ZONES } from '../wix/models/presets';
+import { imgAttrs } from '../wix/media';
+import { fetchMemberOrders } from '../wix/storefront/member-orders';
+import { orderBadge, type OrderSummary } from '../wix/storefront/orders';
 
 Astro.response.headers.set('Cache-Control', 'private, no-store');
 const member = await fetchCurrentMember();
 if (!member) return Astro.redirect('/login?returnTo=%2Faccount');
 
-// One sub-request; a failure shows its message and is reported from the browser (no analytics here).
+// Designs and orders in parallel (1 + 2 sub-requests); a failure shows its message and is reported
+// from the browser (no analytics here).
 let designs: SavedDesign[] = [];
 let designsFailed = false;
-try {
-  designs = await listDesigns(member.id, { limit: 50 });
-} catch (error) {
+let orders: OrderSummary[] = [];
+let ordersFailed = false;
+const [designsRead, ordersRead] = await Promise.allSettled([listDesigns(member.id, { limit: 50 }), fetchMemberOrders(member.id, 10)]);
+if (designsRead.status === 'fulfilled') designs = designsRead.value;
+else {
   designsFailed = true;
-  console.error('[account] saved designs read failed', error);
+  console.error('[account] saved designs read failed', designsRead.reason);
 }
+if (ordersRead.status === 'fulfilled') orders = ordersRead.value;
+else {
+  ordersFailed = true;
+  console.error('[account] orders read failed', ordersRead.reason);
+}
+// UTC here; orders.ts rewrites each <time> in the shopper's time zone.
+const orderDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 // UTC here; saved-designs.ts rewrites each <time> in the shopper's time zone, as the product page shows it.
 const savedDate = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
 const zoneLabel = { upper: 'upper', sole: 'sole', laces: 'laces', accent: 'accent' } as const;
@@ -80,6 +95,61 @@ const memberSince = member.memberSince
           <Button type="submit" variant="secondary" size="form" label="Send reset link" busyLabel="Sending…" disabled className="auth-form__submit" />
           <p class="sr-only" aria-live="polite" data-form-status></p>
         </form>
+      </FormCard>
+
+      <FormCard title="Orders" level={2} className="account__orders">
+        <div data-orders data-orders-error={ordersFailed ? '' : undefined}>
+          {ordersFailed ? (
+            <p class="ui-design-list__empty">We couldn't load your orders. Refresh to try again.</p>
+          ) : orders.length === 0 ? (
+            <p class="ui-design-list__empty">No orders yet. <a href="/shop">Find your pair</a></p>
+          ) : (
+            <ul class="ui-order-list">
+              {orders.map((order) => {
+                const badge = orderBadge(order);
+                return (
+                  <li class="ui-order">
+                    <div class="ui-order-head">
+                      <div>
+                        <h3 class="ui-order-head__title">{order.number ? `Order #${order.number}` : 'Order'}</h3>
+                        {order.createdDate && <p class="ui-order-head__meta"><time datetime={order.createdDate} data-order-date>{orderDate.format(new Date(order.createdDate))}</time> · {order.itemCount} {order.itemCount === 1 ? 'item' : 'items'}</p>}
+                      </div>
+                      <span class={`ui-badge ui-badge--${badge.tone}`}>{badge.label}</span>
+                      <p class="ui-order-head__total"><span class="sr-only">Total </span>{order.total}</p>
+                    </div>
+                    <ul class="ui-order-lines">
+                      {order.lines.map((line) => {
+                        const image = imgAttrs(line.imageUrl, '72px');
+                        return (
+                          <li class="ui-order-line">
+                            <span class="ui-photo ui-order-line__media ui-tone--sand">
+                              {'src' in image ? <img {...image} alt="" /> : <span class="ui-photo__fallback">Image placeholder</span>}
+                            </span>
+                            <div class="ui-order-line__body">
+                              <p class="ui-order-line__name">
+                                {line.productSlug ? <a href={`/products/${encodeURIComponent(line.productSlug)}`}>{line.name}</a> : line.name}
+                                {line.quantity > 1 && <span class="ui-order-line__qty"> × {line.quantity}</span>}
+                                {line.designCode && <span class="ui-badge ui-badge--custom">Custom</span>}
+                              </p>
+                              <p class="ui-order-line__meta">{[line.color, ...line.details].filter(Boolean).join(' · ')}</p>
+                              {line.designCode && (
+                                <p class="ui-order-line__design">
+                                  Design {line.designCode}
+                                  {line.productSlug && <> · <a href={designLink(line.productSlug, line.designCode, line.color)}>See it in 3D</a></>}
+                                </p>
+                              )}
+                            </div>
+                            <p class="ui-order-line__price">{line.price}</p>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
       </FormCard>
 
       <FormCard title="Saved Designs" level={2} className="account__designs">
@@ -135,9 +205,12 @@ const memberSince = member.memberSince
 
 <script>
   import { initAccount } from '../scripts/account';
+  import { initOrders } from '../scripts/orders';
   import { initSavedDesigns } from '../scripts/saved-designs';
   const root = document.querySelector<HTMLElement>('[data-account]');
   if (root) initAccount(root);
   const designs = document.querySelector<HTMLElement>('[data-saved-designs]');
   if (designs) initSavedDesigns(designs);
+  const orders = document.querySelector<HTMLElement>('[data-orders]');
+  if (orders) initOrders(orders);
 </script>

@@ -1,0 +1,19 @@
+---
+// The thank-you page (plan 13): where Wix's hosted checkout returns a finished order (?orderId=).
+// The ThankYouView island reads the order as the shopper who placed it; nothing renders on the
+// server but the shell. Private and unindexed.
+import ThankYouView from '../components/storefront/ThankYouView';
+import SiteLayout from '../layouts/SiteLayout.astro';
+
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+Astro.response.headers.set('X-Robots-Tag', 'noindex');
+---
+
+<SiteLayout title="Thank You · Kix" description="Your Kix order.">
+  <ThankYouView client:only="react">
+    <div class="thanks" slot="fallback">
+      <h1 class="ui-page-title ui-page-title--lg">Thank You</h1>
+      <p class="ui-page-count"><span class="ui-skeleton-line thanks__skeleton" aria-hidden="true"></span><span class="sr-only">Loading your order</span></p>
+    </div>
+  </ThankYouView>
+</SiteLayout>
