@@ -37,3 +37,7 @@ pnpm-debug.log*
 
 # Reference photos for making 3D models in Tripo Studio (one folder per product)
 3d/
+
+# 3D models: Tripo exports and their optimized copies (stored in Wix Media). Specs in models/specs/ are committed.
+models/raw/
+models/web/

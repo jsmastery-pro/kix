@@ -9,3 +9,4 @@
 - [07 · Store data map, 12 Kix sneakers and the storefront data layer](07-store-catalog.md) — done (6 placeholder photos to regenerate when Wix AI credits allow)
 - [08 · Explore page: category list, price and color filters, search and the product grid](08-explore-page.md) — done
 - [09 · Product page: gallery, color and size pickers, add to cart, details and recommendations](09-product-page.md) — done
+- [10 · Product 3D models: shrink, upload to Wix Media, parts map and color presets in CMS](10-product-3d-models.md) — approved

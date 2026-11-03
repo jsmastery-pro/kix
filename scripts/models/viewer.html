@@ -1,0 +1,183 @@
+<!doctype html>
+<!-- 3D model viewer for mapping parts and checking presets (plan 10). Dev tooling, not site code.
+     Run: npm run models -- view, then open /scripts/models/viewer.html?slug=<slug>[&src=<model URL>][&view=side] -->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Model viewer</title>
+  <style>
+    :root { --bg: #f4f2ee; --panel: #ffffff; --ink: #111111; --muted: #6b6b6b; --line: #e3e0da; --accent: #d33918; }
+    * { box-sizing: border-box; }
+    body { margin: 0; height: 100vh; display: grid; grid-template-columns: 1fr 300px; background: var(--bg); color: var(--ink); font: 14px/1.4 system-ui, sans-serif; }
+    #stage { position: relative; }
+    canvas { display: block; width: 100%; height: 100%; }
+    #title { position: absolute; left: 20px; top: 16px; }
+    #title h1 { margin: 0; font-size: 20px; }
+    #title p { margin: 2px 0 0; color: var(--muted); }
+    aside { background: var(--panel); border-left: 1px solid var(--line); padding: 16px; overflow: auto; }
+    h2 { margin: 16px 0 8px; font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+    button { display: flex; gap: 8px; align-items: center; width: 100%; margin: 0 0 6px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+    button[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+    .chip { width: 14px; height: 14px; border-radius: 4px; border: 1px solid rgba(0,0,0,.15); flex: none; }
+    .zone { margin-left: auto; color: var(--muted); font-size: 12px; }
+    #error { color: var(--accent); white-space: pre-wrap; }
+  </style>
+  <script type="importmap">
+    { "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"
+    } }
+  </script>
+</head>
+<body>
+  <div id="stage"><div id="title"><h1 id="name">Loading…</h1><p id="stats"></p></div></div>
+  <aside>
+    <p id="error"></p>
+    <h2>Parts</h2><div id="parts"></div>
+    <h2>Colors</h2><div id="presets"></div>
+    <h2>View</h2><div id="views"></div>
+  </aside>
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+    import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
+
+    const params = new URLSearchParams(location.search);
+    const slug = params.get('slug');
+    const src = params.get('src') || `/models/web/${slug}.glb`;
+    const $ = (id) => document.getElementById(id);
+
+    const stage = $('stage');
+    const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.toneMapping = THREE.NeutralToneMapping;
+    stage.prepend(renderer.domElement);
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color('#f4f2ee');
+    scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+    const camera = new THREE.PerspectiveCamera(30, 1, 0.01, 100);
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+
+    const state = { parts: [], spec: null, highlighted: null, preset: null, radius: 1 };
+
+    function resize() {
+      const { clientWidth: w, clientHeight: h } = stage;
+      renderer.setSize(w, h, false);
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+    }
+    addEventListener('resize', resize);
+
+    const VIEWS = { side: [0, 0.15, 1], 'three-quarter': [-0.7, 0.35, 0.8], front: [-1, 0.2, 0], back: [1, 0.2, 0], top: [0, 1, 0.001], 'other side': [0, 0.15, -1] };
+    function setView(name) {
+      const d = new THREE.Vector3(...VIEWS[name]).normalize().multiplyScalar(state.radius * 3.6);
+      camera.position.copy(controls.target).add(d);
+      controls.update();
+      document.querySelectorAll('#views button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === name)));
+    }
+
+    function zoneOf(node) {
+      return state.spec?.parts.find((p) => p.node === node)?.zone ?? '';
+    }
+    function labelOf(node) {
+      return state.spec?.parts.find((p) => p.node === node)?.label ?? '';
+    }
+
+    function apply() {
+      const preset = state.preset == null ? null : state.spec?.presets[state.preset];
+      for (const part of state.parts) {
+        const m = part.material;
+        if (preset) m.color.set(preset.zones[zoneOf(part.name)] ?? '#ff00ff');
+        else m.color.copy(part.original);
+        const dim = state.highlighted && state.highlighted !== part.name;
+        m.transparent = dim;
+        m.opacity = dim ? 0.08 : 1;
+        m.depthWrite = !dim;
+        m.needsUpdate = true;
+      }
+      document.querySelectorAll('#parts button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.part === state.highlighted)));
+      document.querySelectorAll('#presets button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.preset === String(state.preset))));
+    }
+
+    function button(parent, label, dataset, onClick, chip) {
+      const b = document.createElement('button');
+      Object.assign(b.dataset, dataset);
+      if (chip) {
+        const c = document.createElement('span');
+        c.className = 'chip';
+        c.style.background = chip;
+        b.append(c);
+      }
+      b.append(label);
+      b.addEventListener('click', onClick);
+      parent.append(b);
+      return b;
+    }
+
+    async function main() {
+      if (!slug) throw new Error('Add ?slug=<product-slug> to the URL.');
+      state.spec = await fetch(`/models/specs/${slug}.json`).then((r) => (r.ok ? r.json() : null));
+      const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+      const response = await fetch(src);
+      if (!response.ok) throw new Error(`${src} → ${response.status}`);
+      const bytes = await response.arrayBuffer();
+      const gltf = await loader.parseAsync(bytes, '');
+      scene.add(gltf.scene);
+
+      let triangles = 0;
+      gltf.scene.traverse((o) => {
+        if (!o.isMesh) return;
+        o.material = o.material.clone();
+        triangles += o.geometry.index ? o.geometry.index.count / 3 : o.geometry.attributes.position.count / 3;
+        state.parts.push({ name: o.name || o.parent?.name, mesh: o, material: o.material, original: o.material.color.clone() });
+      });
+      state.parts.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }));
+
+      const box = new THREE.Box3().setFromObject(gltf.scene);
+      const sphere = box.getBoundingSphere(new THREE.Sphere());
+      state.radius = sphere.radius;
+      controls.target.copy(sphere.center);
+      resize();
+
+      $('name').textContent = slug;
+      $('stats').textContent = `${(bytes.byteLength / 1e6).toFixed(2)} MB · ${Math.round(triangles).toLocaleString()} triangles · ${state.parts.length} parts · ${src.startsWith('http') ? 'Wix Media' : 'local'}`;
+
+      button($('parts'), 'All parts', { part: '' }, () => { state.highlighted = null; apply(); });
+      for (const part of state.parts) {
+        const b = button($('parts'), part.name + (labelOf(part.name) ? ` · ${labelOf(part.name)}` : ''), { part: part.name }, () => { state.highlighted = part.name; apply(); });
+        const z = document.createElement('span');
+        z.className = 'zone';
+        z.textContent = zoneOf(part.name);
+        b.append(z);
+      }
+      button($('presets'), 'As in the file', { preset: 'null' }, () => { state.preset = null; apply(); });
+      (state.spec?.presets ?? []).forEach((p, i) => {
+        button($('presets'), p.color, { preset: String(i) }, () => { state.preset = i; apply(); }, Object.values(p.zones)[0]);
+      });
+      for (const name of Object.keys(VIEWS)) button($('views'), name, { view: name }, () => setView(name));
+
+      setView(params.get('view') || 'side');
+      apply();
+      renderer.setAnimationLoop(() => {
+        controls.update();
+        renderer.render(scene, camera);
+      });
+      // For scripted screenshots.
+      window.kix = {
+        parts: state.parts.map((p) => p.name),
+        presets: (state.spec?.presets ?? []).map((p) => p.color),
+        highlight: (name) => { state.highlighted = name; apply(); },
+        preset: (i) => { state.preset = i; apply(); },
+        view: setView,
+        ready: true,
+      };
+    }
+
+    main().catch((e) => { $('error').textContent = String(e?.message ?? e); $('name').textContent = 'Error'; window.kix = { ready: true, error: String(e) }; });
+  </script>
+</body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "slug": "kix-court-1-retro",
+  "raw": "team-red-white.glb",
+  "madeFrom": "Team Red / White",
+  "rotateY": -135,
+  "parts": [
+    { "node": "tripo_part_0", "zone": "sole", "label": "Midsole and outsole" },
+    { "node": "tripo_part_1", "zone": "upper", "label": "Side panels and collar" },
+    { "node": "tripo_part_2", "zone": "laces", "label": "Laces" },
+    { "node": "tripo_part_3", "zone": "accent", "label": "Heel overlay" },
+    { "node": "tripo_part_4", "zone": "upper", "label": "Perforated toe box" },
+    { "node": "tripo_part_5", "zone": "accent", "label": "Toe and eyestay overlay" }
+  ],
+  "presets": [
+    {
+      "choiceId": "948bf43c-2425-4962-9e25-3b69384073e3",
+      "color": "Team Red / White",
+      "zones": { "upper": "#F4F4F2", "sole": "#F4F4F2", "laces": "#B3202A", "accent": "#B3202A" }
+    },
+    {
+      "choiceId": "af9cdc00-17c8-4365-aa2a-3018ff9c0e9d",
+      "color": "Black / Sail",
+      "zones": { "upper": "#EDE6D6", "sole": "#EDE6D6", "laces": "#1F1F1F", "accent": "#1F1F1F" }
+    }
+  ]
+}
