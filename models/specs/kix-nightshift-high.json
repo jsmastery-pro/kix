@@ -1,0 +1,25 @@
+{
+  "slug": "kix-nightshift-high",
+  "raw": "black-white.glb",
+  "madeFrom": "Black / White",
+  "rotateY": 180,
+  "parts": [
+    { "node": "tripo_part_0", "zone": "upper", "label": "Upper, collar and laces" },
+    { "node": "tripo_part_1", "zone": "sole", "label": "Midsole" },
+    { "node": "tripo_part_2", "zone": "sole", "label": "Forefoot outsole" },
+    { "node": "tripo_part_3", "zone": "sole", "label": "Heel outsole" },
+    { "node": "tripo_part_4", "zone": "sole", "label": "Arch shank" }
+  ],
+  "presets": [
+    {
+      "choiceId": "92df63d5-166c-455b-9ef0-ccaed5fd7f64",
+      "color": "Black / White",
+      "zones": { "upper": "#151515", "sole": "#F4F4F2" }
+    },
+    {
+      "choiceId": "4f8042f1-5733-497a-9312-68774bab531d",
+      "color": "Black / Crimson",
+      "zones": { "upper": "#151515", "sole": "#1C1C1C" }
+    }
+  ]
+}

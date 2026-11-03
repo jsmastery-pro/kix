@@ -77,9 +77,21 @@ function wix() {
   return (session = { siteId, token });
 }
 
+/** fetch, retried on network failures (not on HTTP errors). */
+async function fetchRetry(url, init, attempts = 3) {
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await fetch(url, init);
+    } catch (error) {
+      if (attempt >= attempts) throw new Error(`${init?.method ?? "GET"} ${url}: ${error.cause?.code ?? error.message} after ${attempts} tries`);
+      await sleep(1500 * attempt);
+    }
+  }
+}
+
 async function api(method, path, body) {
   const { siteId, token } = wix();
-  const res = await fetch(`https://www.wixapis.com${path}`, {
+  const res = await fetchRetry(`https://www.wixapis.com${path}`, {
     method,
     headers: { Authorization: `Bearer ${token}`, "wix-site-id": siteId, ...(body ? { "Content-Type": "application/json" } : {}) },
     body: body ? JSON.stringify(body) : undefined,
@@ -393,7 +405,7 @@ async function publish(slug, dryRun) {
   if (checks.expires) fail(`${modelUrl} expires ${checks.expires}; not saving an expiring URL`);
 
   // The browser will fetch it cross-origin, and it must be our exact file.
-  const served = await fetch(modelUrl, { headers: { Origin: CORS_ORIGIN } });
+  const served = await fetchRetry(modelUrl, { headers: { Origin: CORS_ORIGIN } });
   const servedBytes = Buffer.from(await served.arrayBuffer());
   Object.assign(checks, {
     http: served.status,
