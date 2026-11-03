@@ -89,7 +89,7 @@ Status: approved
 - **The OR divider and Shop Pay button are dropped.** They're a real brand's mark (AGENTS brand rule).
 - **Perks under the promo box use plan 09's truthful copy:** Truck "Shipping · Calculated at checkout", Package "Returns · Per our store policy", ShieldCheck "Secure Checkout · Hosted by Wix". The design's "Free shipping over $50" and "30-day returns" have no data source.
 - **Line text:**
-  - The name links to the product page when `productUrl` resolves to a `/products/<slug>` path (step 1 checks the format). Otherwise the name is plain text.
+  - The name links to `/products/<slug>` once `line-links.ts` knows the line's slug. Until then, or if the lookup fails, the name is plain text.
   - The "Color: …" description line shows without its label (as in the design). Other lines show as `Label: value`.
   - The Design code line becomes a `ui-badge--custom` "Custom" badge next to the name, plus "Design KIX-D6S0 · See it in 3D" (link: `/products/<slug>?code=…&color=…`).
   - The struck price is `compareAtLinePrice`. A line not `IN_STOCK` shows the kit drawer's buyer copy in `--color-error`, and Checkout is disabled with "Remove or change the items marked above."
@@ -235,26 +235,39 @@ Status: approved
 - `src/wix/models/design-code.ts` (client-safe):
   - `encodeDesignCode(shown, stockZones, zonesOnModel): string | null`. Null means a zone can't be encoded.
   - `decodeDesignCode(code, stockZones, zonesOnModel): ZoneColors | null`.
-  - `isCustomCode(code)`: not all `S`.
+  - `isCustomCode(code)`: at least one character in `0-9A-F`.
   - `findDesignCode(descriptionLines): string | null`, matching `/(?:^|[\s:])(KIX-[0-9A-FS-]{4})(?=\s|$)/` on each line. No trailing `\b`, because a code can end in `-`.
   - `designLink(slug, code, colorName)`.
 - `src/wix/storefront/checkout.ts`: `checkoutUrlWithReturn()`.
 - `src/wix/storefront/orders.ts` (client-safe):
   - The `OrderSummary` DTO: `id`, `number`, `createdDate`, `paymentStatus`, `status`, `total`, `currency`, and `lines: { name, quantity, imageUrl, price, color, size, designCode, productSlug }`.
   - The `toOrder(raw)` mapper and `fetchOrder(id)`.
-  - `productSlug` comes from the line's `url` only when it resolves to `/products/<slug>`.
+  - Each line keeps `productId` (`catalogReference.catalogItemId`). `productSlug` is filled by `fetchProductSlugs` (below).
   - Images go through `imgSrc`; money through `formatMoney`.
+- `src/wix/storefront/line-links.ts` (client-safe; **added after spike 1e, approved by you**). Wix cart lines carry no product URL (the kit's `productUrl` is always `""`); a line only has `source.catalogReference.catalogItemId`. Two functions:
+  - `fetchCartLineProducts(): Map<lineItemId, productId>` reads the current cart once through `currentCartV2.getCurrentCart()`.
+  - `fetchProductSlugs(ids): Map<productId, slug>` runs one `productsV3.queryProducts().in("_id", ids)`, the call the kit's `cart.ts` uses for line images.
+  - Both results are cached in module scope for the session. `CartView` reads the lines' products only when a line ID is new.
+  - Line names and "See it in 3D" link only when a slug is known.
 - `src/wix/storefront/member-orders.ts` (server-only; imports `auth` from `@wix/essentials` only if the elevated path is needed): `fetchMemberOrders(memberId, limit)`.
 
 ### Sub-requests
 - `/cart`: 4 (`fetchCategories` 2 plus one product list 2), to find `popular` and read it. If the categories call fails, the section is hidden.
-- `/thank-you`: 0 on the server.
-- `/account`: from 2 to 3 (member, then designs and orders in parallel).
+- `/thank-you`: 0 on the server. The browser makes 1 slug query.
+- `/account`: from 2 to 4 (member, then designs and orders in parallel, then one slug query for the orders' products).
+- `/cart` in the browser: the kit's reads, plus 1 cart read and 1 slug query when a new line appears.
 - The event handler: 1.
 
 ## Steps
 
-- [ ] 1. **Spikes, before any UI.** The check for each is its printed output.
+- [x] 1. **Spikes, before any UI.** The check for each is its printed output.
+
+  **Results:**
+  - a. ✅ Customization `2d788cc3-…` was created. The modifier key is `Design code`.
+  - b. ✅ Two separate lines. The coded line's `descriptionLines` are `Color: Team Red / White`, `Size: 7`, `Design code: KIX-D6S0`.
+  - c. ⏸ The unelevated search returned 200 with 0 orders, since no orders exist yet. It's re-run in step 9.
+  - d. ✅ The session was created. Checkout carries `ecom-typ` = `/thank-you` and `home` = `/cart`, and the page loads both lines. It offers "I just want to place a test order".
+  - e. ❌ There is no URL on Wix's cart line. You approved `line-links.ts`.
   - a. Add the Design code field to one product (`node .seed/design-code.mjs --only kix-court-1-retro`) and read back the modifier's `freeTextSettings.key`.
   - b. On `localhost:4321`, through the kit's exports from the console:
     - add the same variant twice, once stock and once with a code;
@@ -315,7 +328,7 @@ Each step is committed when its check passes.
   - `prompts/13-cart-checkout-and-orders.md`
   - `src/pages/cart.astro`, `src/pages/thank-you.astro`
   - `src/components/storefront/CartView.tsx`, `src/components/storefront/ThankYouView.tsx`
-  - `src/wix/storefront/checkout.ts`, `src/wix/storefront/orders.ts`, `src/wix/storefront/member-orders.ts`
+  - `src/wix/storefront/checkout.ts`, `src/wix/storefront/orders.ts`, `src/wix/storefront/member-orders.ts`, `src/wix/storefront/line-links.ts`
   - `src/wix/models/design-code.ts`
   - `src/scripts/analytics-server.ts`, `src/scripts/orders.ts` (account card's browser error report)
   - `src/extensions.ts`, `src/extensions/backend/events/order-paid/{order-paid.extension.ts,order-paid.ts}` (generated, then filled)
