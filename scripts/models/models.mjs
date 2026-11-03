@@ -2,6 +2,7 @@
 // ProductModels CMS collection with its parts map and one color preset per Wix color choice.
 //
 //   npm run models -- setup                  create the ProductModels collection (idempotent)
+//   npm run models -- setup-designs          create the SavedDesigns collection (plan 12; idempotent, checks permissions)
 //   npm run models -- optimize <slug>        models/raw/<color>.glb → models/web/<slug>.glb (< 5 MB, parts kept)
 //   npm run models -- publish <slug> [--dry-run]   validate models/specs/<slug>.json, upload, save the row
 //   npm run models -- view                   viewer on http://localhost:4400/scripts/models/viewer.html?slug=<slug>
@@ -359,6 +360,39 @@ async function setup() {
   printCollection(collection);
 }
 
+// Shoppers' saved designs (plan 12). Members read and write their own items from the browser, so
+// Wix's permissions are the access check: an existing collection with other permissions or fields fails.
+const DESIGNS = "SavedDesigns";
+const DESIGN_PERMISSIONS = { read: "SITE_MEMBER_AUTHOR", insert: "SITE_MEMBER", update: "SITE_MEMBER_AUTHOR", remove: "SITE_MEMBER_AUTHOR" };
+const DESIGN_FIELDS = [
+  { key: "title", displayName: "Product", type: "TEXT" },
+  { key: "productId", displayName: "Product ID", type: "TEXT" },
+  { key: "productSlug", displayName: "Product slug", type: "TEXT" },
+  { key: "baseChoiceId", displayName: "Base color choice ID", type: "TEXT" },
+  { key: "baseColor", displayName: "Base color", type: "TEXT" },
+  { key: "zones", displayName: "Zone colors", type: "OBJECT" },
+];
+
+async function setupDesigns() {
+  const existing = await api("GET", `/wix-data/v2/collections/${DESIGNS}`);
+  let collection;
+  if (existing.ok) {
+    collection = existing.json.collection;
+    console.log(`${DESIGNS} exists:`);
+  } else {
+    if (existing.status !== 404) fail(`GET collection ${DESIGNS} → ${existing.status}: ${JSON.stringify(existing.json).slice(0, 300)}`);
+    ({ collection } = await call("POST", "/wix-data/v2/collections", {
+      collection: { id: DESIGNS, displayName: "Saved Designs", fields: DESIGN_FIELDS, permissions: DESIGN_PERMISSIONS },
+    }));
+    console.log(`created ${DESIGNS}:`);
+  }
+  printCollection(collection);
+  const wrongRoles = Object.entries(DESIGN_PERMISSIONS).filter(([action, role]) => collection.permissions?.[action] !== role);
+  if (wrongRoles.length) fail(`${DESIGNS} permissions differ from plan 12: ${wrongRoles.map(([a, r]) => `${a} should be ${r}`).join(", ")}`);
+  const wrongFields = DESIGN_FIELDS.filter((f) => !collection.fields.some((c) => c.key === f.key && c.type === f.type));
+  if (wrongFields.length) fail(`${DESIGNS} fields differ from plan 12: ${wrongFields.map((f) => `${f.key} ${f.type}`).join(", ")}`);
+}
+
 function printCollection(collection) {
   console.log(`  permissions ${JSON.stringify(collection.permissions)}`);
   console.table(collection.fields.filter((f) => !f.systemField).map((f) => ({ key: f.key, type: f.type })));
@@ -463,10 +497,11 @@ try {
   const [major, minor] = process.versions.node.split(".").map(Number);
   if (major < 24 || (major === 24 && minor < 18)) fail(`Node ${process.versions.node}: the Wix CLI needs 24.18+. Prefix PATH="$HOME/.nvm/versions/node/v24.18.0/bin:$PATH"`);
   if (command === "setup") await setup();
+  else if (command === "setup-designs") await setupDesigns();
   else if (command === "optimize") await optimize(needSlug());
   else if (command === "publish") await publish(needSlug(), flags.includes("--dry-run"));
   else if (command === "view") await view();
-  else fail("usage: npm run models -- setup | optimize <slug> | publish <slug> [--dry-run] | view");
+  else fail("usage: npm run models -- setup | setup-designs | optimize <slug> | publish <slug> [--dry-run] | view");
 } catch (error) {
   console.error(`✖ ${error.message}`);
   process.exitCode = 1;
