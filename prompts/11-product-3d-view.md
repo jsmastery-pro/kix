@@ -161,7 +161,7 @@ export function resolvePreset(model, colorGroup, framePhotoUrl): { zones; colorN
 ## Steps
 
 - [x] 1. **Read the row.** Write `src/wix/models/presets.ts` (types, `resolvePreset`) and `src/wix/models/product-models.ts` (`fetchProductModel(productId)`: Get Data Item through `wixFetch`, 404 → null, validate → DTO). Wire it into the second wave in `[slug].astro` and pass `model` to `ProductView` (unused for now). (check: `npm run check`. On the dev server, the page's SSR props for `kix-court-1-retro` carry its `modelUrl`, 6 parts and 2 presets. A Wix sample product's carry `model: null`, its page still renders, and the server log shows no error for the 404.)
-- [ ] 2. **Packages.** `npm i -E three@0.186.1 @react-three/fiber@8.18.0 @react-three/drei@9.122.0` and `npm i -D -E @types/three@0.186.0` (check: `npm ls` shows no peer-dependency errors; the only extra three is stats-gl's nested 0.170.0, see Decisions).
+- [x] 2. **Packages.** `npm i -E three@0.186.1 @react-three/fiber@8.18.0 @react-three/drei@9.122.0` and `npm i -D -E @types/three@0.186.0` (check: `npm ls` shows no peer-dependency errors; the only extra three is stats-gl's nested 0.170.0, see Decisions).
 - [ ] 3. **Viewer.** `src/components/storefront/ShoeViewer.tsx`, as in Approach:
   - the Canvas with Neutral tone mapping and RoomEnvironment;
   - `useGLTF(url, false)`;
