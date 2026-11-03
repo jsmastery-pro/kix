@@ -195,10 +195,13 @@ async function neutralShading(doc) {
 async function orient(doc, rotateY) {
   const half = (rotateY * Math.PI) / 360;
   const q = [0, Math.sin(half), 0, Math.cos(half)];
+  const [cos, sin] = [Math.cos((rotateY * Math.PI) / 180), Math.sin((rotateY * Math.PI) / 180)];
   for (const node of doc.getRoot().getDefaultScene().listChildren()) {
     const [x, y, z, w] = node.getRotation();
-    // q * existing
+    // q * existing, and the node's offset turned with it, so offset top nodes stay together.
     node.setRotation([q[3] * x + q[0] * w + q[1] * z - q[2] * y, q[3] * y - q[0] * z + q[1] * w + q[2] * x, q[3] * z + q[0] * y - q[1] * x + q[2] * w, q[3] * w - q[0] * x - q[1] * y - q[2] * z]);
+    const [tx, ty, tz] = node.getTranslation();
+    node.setTranslation([tx * cos + tz * sin, ty, -tx * sin + tz * cos]);
   }
   await doc.transform(center({ pivot: "below" }));
 }
@@ -263,6 +266,8 @@ function specProblems(spec, product, nodes) {
     for (const [zone, hex] of Object.entries(preset.zones ?? {})) if (!HEX.test(hex)) problems.push(`preset "${choice.name}" ${zone} "${hex}" isn't a #RRGGBB hex`);
   }
   for (const preset of spec.presets ?? []) if (!product.choices.some((c) => c.choiceId === preset.choiceId)) problems.push(`preset "${preset.color}" (${preset.choiceId}) isn't a visible color choice`);
+  const ids = (spec.presets ?? []).map((p) => p.choiceId);
+  if (new Set(ids).size !== ids.length) problems.push("two presets share a choiceId");
   return problems;
 }
 
@@ -305,6 +310,8 @@ async function optimize(slug) {
   }
   if (result.bytes.byteLength >= MAX_BYTES) fail(`${slug}: still ${mb(result.bytes.byteLength)} MB after every step; nothing written`);
 
+  const emptied = expected.nodes.filter((_, i) => result.after[i] === 0);
+  if (emptied.length) fail(`${slug}: simplifying left no triangles in ${emptied.join(", ")}; nothing written`);
   const got = partSignature(result.doc);
   for (const key of ["nodes", "meshes", "materials"]) {
     if (JSON.stringify(got[key]) !== JSON.stringify(expected[key])) fail(`${slug}: parts changed while optimizing (${key}: ${JSON.stringify(expected[key])} → ${JSON.stringify(got[key])}); nothing written`);
@@ -368,6 +375,9 @@ async function publish(slug, dryRun) {
   const problems = specProblems(spec, product, nodes);
   const built = doc.getRoot().getAsset().extras?.kix?.rotateY;
   if (built !== spec.rotateY) problems.push(`the model was optimized with rotateY ${built}, the spec says ${spec.rotateY}: run optimize again`);
+  // madeFrom decides which preset is baked in, so it must be the color the raw file was made in.
+  const { raw, madeFrom } = findRaw(product);
+  if (spec.raw !== raw || spec.madeFrom !== madeFrom) problems.push(`the model was made from models/raw/${raw} (${madeFrom}); the spec says ${spec.raw} (${spec.madeFrom})`);
   if (problems.length) fail(`${slug}: the spec has problems, nothing uploaded:\n  - ${problems.join("\n  - ")}`);
 
   // The made color's preset becomes the material colors, so the file looks right on its own.
@@ -378,10 +388,10 @@ async function publish(slug, dryRun) {
   }
   const bytes = Buffer.from(await io.writeBinary(doc));
   if (bytes.byteLength >= MAX_BYTES) fail(`${slug}: ${mb(bytes.byteLength)} MB, over 5 MB`);
-  writeFileSync(file, bytes);
   const sha = createHash("sha256").update(bytes).digest("hex");
   console.log(`${product.name}: spec valid, ${nodes.length} parts, ${spec.presets.length} presets, ${mb(bytes.byteLength)} MB`);
-  if (dryRun) return console.log("  --dry-run: nothing uploaded");
+  if (dryRun) return console.log("  --dry-run: nothing uploaded, nothing written");
+  writeFileSync(file, bytes);
 
   // Upload: Generate File Upload URL, then PUT the bytes.
   const { uploadUrl } = await call("POST", "/site-media/v1/files/generate-upload-url", { mimeType: "model/gltf-binary", fileName: `${slug}.glb`, sizeInBytes: String(bytes.byteLength) });
@@ -400,8 +410,9 @@ async function publish(slug, dryRun) {
   }
   const model = media.media?.model3d ?? {};
   const modelUrl = model.url || media.url;
-  const checks = { status: media.operationStatus, mediaType: media.mediaType, url: modelUrl, expires: model.urlExpirationDate ?? null };
+  const checks = { status: media.operationStatus, mediaType: media.mediaType, url: modelUrl, expires: model.urlExpirationDate ?? media.urlExpirationDate ?? null };
   if (!modelUrl) fail(`${fileId} has no URL: ${JSON.stringify(media).slice(0, 400)}`);
+  if (media.mediaType !== "MODEL3D") fail(`${fileId} is ${media.mediaType}, expected MODEL3D`);
   if (checks.expires) fail(`${modelUrl} expires ${checks.expires}; not saving an expiring URL`);
 
   // The browser will fetch it cross-origin, and it must be our exact file.
@@ -415,7 +426,8 @@ async function publish(slug, dryRun) {
     sameSha256: createHash("sha256").update(servedBytes).digest("hex") === sha,
   });
   console.log("  media:", checks);
-  if (!served.ok || !checks.cors || !checks.sameSize || !checks.sameSha256) fail(`${modelUrl} failed a check above; the CMS row was not written`);
+  const corsOk = checks.cors === "*" || checks.cors === CORS_ORIGIN;
+  if (!served.ok || !corsOk || !checks.sameSize || !checks.sameSha256) fail(`${modelUrl} failed a check above; the CMS row was not written`);
 
   // One row per product: the item id is the product id, and Bulk Save replaces it.
   const previous = await api("POST", "/wix-data/v2/items/query", { dataCollectionId: COLLECTION, query: { filter: { _id: product.id } }, consistentRead: true });
@@ -448,6 +460,8 @@ async function view() {
 const [command, slug, ...flags] = process.argv.slice(2);
 const needSlug = () => slug ?? fail(`usage: npm run models -- ${command} <product-slug>`);
 try {
+  const [major, minor] = process.versions.node.split(".").map(Number);
+  if (major < 24 || (major === 24 && minor < 18)) fail(`Node ${process.versions.node}: the Wix CLI needs 24.18+. Prefix PATH="$HOME/.nvm/versions/node/v24.18.0/bin:$PATH"`);
   if (command === "setup") await setup();
   else if (command === "optimize") await optimize(needSlug());
   else if (command === "publish") await publish(needSlug(), flags.includes("--dry-run"));

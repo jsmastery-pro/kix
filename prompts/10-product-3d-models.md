@@ -1,6 +1,6 @@
 # 10 · Product 3D models: shrink, upload to Wix Media, parts map and color presets in CMS
 
-Status: approved
+Status: done
 
 <!-- review → approved → done, or dropped. Only the user approves. -->
 
@@ -124,7 +124,7 @@ One script, `scripts/models/models.mjs`, run as `npm run models -- <command> <sl
 | `parts` | ARRAY | `[{ node, zone, label }]` |
 | `presets` | ARRAY | `[{ choiceId, color, zones: { upper, sole, laces, accent } }]` (only the model's zones) |
 
-**Viewer** (`scripts/models/viewer.html?slug=…&src=local|wix`): orbits the model; a part list highlights one part (others dimmed) for mapping; a preset picker applies a spec preset's zone colors to the materials; shows file size and triangle count. It's how I map zones, and how I show you parts and presets. Screenshots come from Chrome.
+**Viewer** (`scripts/models/viewer.html?slug=…&src=local|wix`; *built:* `src` takes the model URL itself, defaulting to `models/web/<slug>.glb`, plus `view=` and a `kix.sheet()` contact-sheet mode): orbits the model; a part list highlights one part (others dimmed) for mapping; a preset picker applies a spec preset's zone colors to the materials; shows file size and triangle count. It's how I map zones, and how I show you parts and presets. Screenshots come from Chrome.
 
 **Who owns what:** models in Wix Media, 3D data in Wix CMS (AGENTS.md: "Other data (3D model links…): Wix CMS collections, keyed by product ID as a text field"). Products stay in Stores. All 3D processing runs locally, never on the server.
 
@@ -141,7 +141,7 @@ One script, `scripts/models/models.mjs`, run as `npm run models -- <command> <sl
 - [x] 6. Write `publish`; run `--dry-run`, then publish kix-court-1-retro for real (check: the script's Media checks pass and are printed: `READY`, `mediaType: MODEL3D`, no `urlExpirationDate`, GET with `Origin` returns `access-control-allow-origin`, and size and sha256 match the local file; Query Data Items with `consistentRead: true` returns one row whose `_id` is the product ID and whose fields match the spec; the viewer loads the model from `modelUrl`).
 - [x] 7. Run steps 2–4 and 6 for Nightshift High too (the dark model). Then **stop and show you** both products' parts and presets: the screenshots, the zone maps and the preset tables. Wait for your OK or changes.
 - [x] 8. After your OK: `optimize`, map, author and `publish` the other 10, then show a contact sheet of every model in its made color, calling out any model missing zones (check: 12 rows in `ProductModels`, every file under 5 MB, every product's visible color choices have a preset).
-- [ ] 9. Verification below, then reviewer subagent, then close-out.
+- [x] 9. Verification below, then reviewer subagent, then close-out.
 
 ## Files
 
@@ -177,4 +177,50 @@ One script, `scripts/models/models.mjs`, run as `npm run models -- <command> <sl
 
 ## Result
 
-Filled at close-out.
+**Shipped.** All 12 Kix sneakers have a web model in Wix Media (`static.wixstatic.com/3d/…`, `MODEL3D`, no expiry, CORS `*`) and one `ProductModels` row: `_id` = product ID, model URL, file ID and size, the color it was made in, a parts map and one preset per visible color choice. `npm run models -- optimize|publish <slug>` redoes any product; `view` serves the dev viewer.
+
+| Product | Raw → web | Parts | Zones | Missing |
+| --- | --- | --- | --- | --- |
+| Circuit Trainer | 63.5 → 1.86 MB | 9 | upper, sole, laces, accent | none |
+| Court 1 Retro | 61.2 → 2.28 MB | 6 | upper, sole, laces, accent | collar fused into upper |
+| Drill TR | 73.6 → 3.59 MB | 4 | upper, sole, accent | laces; orange cage fused into upper |
+| Meridian Premium | 61.9 → 2.34 MB | 7 | upper, sole, laces, accent | none |
+| Mini Court | 61.4 → 1.98 MB | 4 | upper, sole, accent | laces (strap closure) |
+| Nightshift High | 61.4 → 1.99 MB | 5 | upper, sole | laces, accent; Black / Crimson's crimson can't show |
+| Orbit High | 60.4 → 2.04 MB | 6 | upper, sole, accent | laces; Grape / Teal's teal stripe can't show |
+| Pacer 2 | 70.6 → 4.75 MB | 5 | upper, sole, accent | laces; Graphite / Volt's volt can't show |
+| Sandlot Suede | 60.2 → 2.32 MB | 6 | upper, sole, accent | laces |
+| Strap High LX | 61.7 → 2.01 MB | 6 | upper, sole, accent | laces (strap closure) |
+| Summit High | 66.4 → 3.13 MB | 8 | upper, sole, accent | laces (strap closure) |
+| Tempo Run | 63.3 → 2.03 MB | 3 | upper, sole, accent | laces |
+
+**Differed from the plan, and why:**
+- **Neutral shading method** (step 4, allowed as tuning): the 95th-percentile method ghosted two-tone parts dark gray. The shipped method is max-channel brightness divided by a blurred copy (see Decisions → Recoloring).
+- **Normal maps stay JPEG,** not PNG, because the source is already JPEG.
+- **Zone choices that don't follow the part's label:** Drill TR's midsole and Tempo Run's outsole are `accent`, so the orange midsole (Black / Blaze) and the sky-blue outsole (Silver / Sky) can be colored separately from the sole.
+- **Presets follow the photos on the parts that exist.** Black / Crimson, Graphite / Volt and Grape / Teal render without their named accent color, because it sits on fused parts.
+- **`publish --dry-run`** first rewrote `models/web/<slug>.glb`; after review it writes nothing.
+- **Review hardening after the uploads:**
+  - `publish` checks `raw`/`madeFrom` against the raw file.
+  - Duplicate preset `choiceId`s fail.
+  - `MODEL3D` and the CORS value are required.
+  - A part simplified to 0 triangles fails.
+  - `orient()` turns top-node offsets too.
+  - A Node 24.18 guard was added.
+  - All 12 dry-runs pass with byte-identical files, so no re-upload was needed.
+- **A network error and a re-run test left 2 unused files in Wix Media:** `b8d82d_7cb51db94f7d45e1b2a7dee5013d528a.glb` and `b8d82d_6c2f48782b9d4da8b63ad2bc44fecfe7.glb`. The script never deletes.
+
+**Verification (run):**
+- `npm run check`: 0 errors. `npm run build`: Complete.
+- 12 rows by consistent read, each with `_id` = `productId` and fields deep-equal to their specs (reviewer).
+- Every model URL returns CORS `*` with a matching sha256, and every file is under 5 MB.
+- Forced failures stop before uploading: missing part, bad zone, bad hex, missing color, wrong `madeFrom`, duplicate preset.
+- Re-publishing Court 1 Retro left one row.
+- Contact sheet of all 12, loaded from Wix Media.
+
+**Lessons:**
+- Tripo fuses details by its own logic, so recolorable zones depend on the export; check parts before writing presets.
+- Gray-shading a texture needs local normalization: global scaling ghosts two-tone parts.
+- glTF Transform's `simplify` needs an explicit `error`, or it stops short of its budget.
+
+**One-pass prompt:** "Using wix-manage, write `npm run models` to shrink each `models/raw` GLB under 5 MB (glTF Transform + meshopt, explicit simplify error, parts kept, neutral detail shading, toe-left), upload it to Wix Media and save a `ProductModels` site collection row per product: parts map to upper/sole/laces/accent, one preset per color from its photo. Do Court 1 Retro and one dark model first and show me."
