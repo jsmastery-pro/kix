@@ -21,8 +21,8 @@ export interface AnalyticsEvents {
   catalog_filtered: { filter: 'category' | 'price' | 'color' | 'search' | 'clear'; category: string };
   /** A successful add from the product page (plan 09). `product_id` is the Wix catalog ID, not personal data. `customized`: added with a design code (plan 13). */
   product_added_to_cart: { product_id: string; customized: boolean };
-  /** The 3D view opened on the product page (plan 11), once per open. */
-  product_3d_opened: { product_id: string; source: 'pill' | 'thumbnail' | 'design' };
+  /** The 3D view opened on the product page (plan 11), once per open. `auto`: the 3D-first version opened it (plan 14). */
+  product_3d_opened: { product_id: string; source: 'pill' | 'thumbnail' | 'design' | 'auto' };
   /** The 3D view fell back to photos (plan 11). */
   product_3d_failed: { product_id: string; reason: 'no_webgl' | 'load_error' | 'timeout' | 'context_lost' };
   /** The Customize panel opened in the 3D view (plan 12). Designs never send their colors. */
@@ -55,6 +55,17 @@ export interface ServerAnalyticsEvents {
   order_paid: { revenue: number; currency: string; order_number: number | null; item_count: number; customized_count: number };
 }
 
+/**
+ * Experiment flags and their versions (plan 14), the one place keys and variants live. The server
+ * picks the version (flags-server.ts) and bootstraps it; the browser only records the exposure.
+ */
+export const EXPERIMENTS = {
+  /** control: photos first (the page before plan 14). test: the gallery opens in 3D. */
+  'product-3d-first-experiment': ['control', 'test'],
+} as const;
+
+export type ExperimentFlags = { [K in keyof typeof EXPERIMENTS]: (typeof EXPERIMENTS)[K][number] };
+
 export type ErrorArea = 'auth_submit' | 'auth_code' | 'profile_save' | 'pending_name' | 'cart_add' | 'model_load' | 'design_save' | 'design_list' | 'design_load' | 'design_delete' | 'cart_update' | 'checkout' | 'order_load' | 'order_list' | 'design_code';
 
 /** The part of posthog-js we call. The snippet's stub queues capture, identify and reset until
@@ -70,6 +81,7 @@ interface PostHogLike {
   identify(distinctId: string): void;
   reset(): void;
   captureException(error: unknown, properties?: Record<string, unknown>): void;
+  getFeatureFlag(key: string): string | boolean | undefined;
   get_property(name: string): unknown;
   get_distinct_id(): string;
 }
@@ -128,6 +140,17 @@ export function logPasswordResetRequested(source: 'forgot_password' | 'account')
 /** Sends a catalog event. `beacon` survives a navigation that starts in the same task. */
 export function track<E extends keyof AnalyticsEvents>(event: E, properties: AnalyticsEvents[E], options: { beacon?: boolean } = {}) {
   safely(() => window.posthog?.capture(event, { ...properties }, options.beacon ? { transport: 'sendBeacon' } : undefined));
+}
+
+/**
+ * Records that this visitor saw their bootstrapped version of an experiment (plan 14): reading the
+ * flag makes posthog-js send `$feature_flag_called`, the experiment's exposure. posthog-js sends it
+ * once per visitor and version, and again after sign-in.
+ */
+export function recordExposure(key: keyof ExperimentFlags) {
+  whenReady((posthog) => {
+    posthog.getFeatureFlag(key);
+  });
 }
 
 /** Links this browser to a member by Wix member ID only. Switching members resets first. */
