@@ -13,3 +13,4 @@
 - [11 · Product 3D view: spin the shoe in the color the shopper picked](11-product-3d-view.md) — done (3D chunk 247 KB gz, loaded on press; untested on real phones and Safari)
 - [12 · Customize in 3D and saved designs](12-customize-and-saved-designs.md) — done (member isolation checked with one account; untested on real phones and Safari)
 - [13 · Cart page, checkout, design codes on orders, order history and paid-order revenue](13-cart-checkout-and-orders.md) — approved
+- [14 · Experiment: product page opens in 3D first vs photos first](14-product-3d-first-experiment.md) — approved
