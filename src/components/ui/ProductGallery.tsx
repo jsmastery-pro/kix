@@ -5,8 +5,10 @@
 // ShoeViewer, colored by resolvePreset; no WebGL, a load error, a 20 s timeout or a lost context
 // fall back to photos and turn 3D off for the visit. In 3D, a Customize pill opens the buy column's
 // panel (plan 12): the parent passes the custom colors back as customZones and drives the deep link
-// through the handle. The root is display: contents, so the rail and the frame are grid items of the
-// page layout (.pdp__top).
+// through the handle. With startIn3d (the 3D-first experiment, plan 14) the server renders the
+// loading state and the browser opens 3D on mount; the viewer mounts only in the browser, so
+// hydration matches the server HTML. The root is display: contents, so the rail and the frame are
+// grid items of the page layout (.pdp__top).
 import { ChevronLeft, ChevronRight, Images, LoaderCircle, Maximize, Palette, Rotate3d, X } from 'lucide-react';
 import { Component, Suspense, forwardRef, lazy, useCallback, useEffect, useImperativeHandle, useRef, useState, type ReactNode } from 'react';
 import { captureError, track } from '../../scripts/analytics';
@@ -29,6 +31,8 @@ interface Props {
   productId: string;
   /** The ProductModels row; null disables the 3D controls. */
   model: ProductModel | null;
+  /** Open in 3D instead of photos (plan 14); ignored without a model. */
+  startIn3d: boolean;
   /** The color option group (selected choice, choice photos); null when the product has none. */
   colors: ColorGroup | null;
   /** Colors shown instead of the preset (a design); null shows the preset. */
@@ -80,19 +84,20 @@ class ViewerBoundary extends Component<{ onError: (error: unknown) => void; chil
 }
 
 export default forwardRef<ProductGalleryHandle, Props>(function ProductGallery(
-  { name, gallery, selectedImage, selectionKey, productId, model, colors, customZones, panelOpen, onCustomize, onPresetChange, on3dChange },
+  { name, gallery, selectedImage, selectionKey, productId, model, startIn3d, colors, customZones, panelOpen, onCustomize, onPresetChange, on3dChange },
   ref,
 ) {
   const [active, setActive] = useState(0);
   // A picked photo that matches no gallery item; shown until the shopper next moves.
   const [unmatched, setUnmatched] = useState<string | null>(null);
-  const [mode, setMode] = useState<Mode>('photos');
+  const [mode, setMode] = useState<Mode>(startIn3d && model ? 'loading' : 'photos');
+  const [mounted, setMounted] = useState(false);
   const [failed, setFailed] = useState(false);
   const [note, setNote] = useState('');
   const [spun, setSpun] = useState(false);
   // The photo in the frame when 3D opened: its color shows until the shopper picks one.
   const [openPhoto, setOpenPhoto] = useState<string | null>(null);
-  const modeRef = useRef<Mode>('photos');
+  const modeRef = useRef<Mode>(mode);
   modeRef.current = mode;
   const dialogRef = useRef<HTMLDialogElement>(null);
   const expandRef = useRef<HTMLButtonElement>(null);
@@ -130,6 +135,15 @@ export default forwardRef<ProductGalleryHandle, Props>(function ProductGallery(
   const src = unmatched ?? gallery[active] ?? '';
   const viewing3d = mode !== 'photos';
   const available = model !== null && !failed;
+
+  // 3D first: open3d() returns early once the mode is loading, so the first mount does its checks.
+  useEffect(() => {
+    setMounted(true);
+    if (modeRef.current !== 'loading') return;
+    if (!hasWebGL()) return fail('no_webgl');
+    setOpenPhoto(src);
+    track('product_3d_opened', { product_id: productId, source: 'auto' });
+  }, []); // runs once, on mount
 
   const show = (index: number) => {
     setActive((index + total) % total);
@@ -208,7 +222,7 @@ export default forwardRef<ProductGalleryHandle, Props>(function ProductGallery(
         ) : (
           <span className="ui-photo__fallback">Image placeholder</span>
         )}
-        {viewing3d && model && (
+        {viewing3d && model && mounted && (
           <ViewerBoundary onError={onViewerError}>
             <Suspense fallback={null}>
               <ShoeViewer url={model.modelUrl} parts={model.parts} zones={customZones ?? preset?.zones ?? null} label={viewerLabel} onReady={onReady} onSpin={onSpin} onContextLost={onContextLost} />

@@ -6,13 +6,14 @@
 // Customize panel (plan 12) sits under the Color picker; this island owns the design, its saves and
 // the ?design= / ?resume=design links, since the gallery and the buy column are siblings. A
 // customized pair goes into the cart with its design code in the products' "Design code" field, and
-// ?code= opens a code in 3D (plan 13).
+// ?code= opens a code in 3D (plan 13). In the 3D-first experiment (plan 14) the server passes the
+// visitor's version: `test` opens the gallery in 3D, and either version records the exposure.
 import { Heart, LoaderCircle, ShoppingBag } from 'lucide-react';
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useMember } from '../../hooks/members/useMember';
 import { storePendingDesign, takePendingDesign, useDesign, type LoadableDesign } from '../../hooks/storefront/useDesign';
 import { useProductDetail } from '../../hooks/storefront/useProductDetail';
-import { captureError, track } from '../../scripts/analytics';
+import { captureError, recordExposure, track, type ExperimentFlags } from '../../scripts/analytics';
 import { withReturnTo } from '../../scripts/return-to';
 import { DesignError, getDesign, listDesigns, saveDesign, toZones, type SavedDesign } from '../../wix/models/designs';
 import { modelZones, type Preset, type ProductModel, type ZoneColors } from '../../wix/models/presets';
@@ -30,13 +31,15 @@ interface Props {
   summaryHtml: string | null;
   /** The product's ProductModels row (plan 11); null disables the 3D view. */
   model: ProductModel | null;
+  /** This visitor's 3D-first version (plan 14); null when they aren't in the experiment. */
+  experiment: ExperimentFlags['product-3d-first-experiment'] | null;
 }
 
 type Outcome = { tone: 'done' | 'error'; text: string; link?: { href: string; label: string } } | null;
 
 const reasonOf = (error: unknown) => (error instanceof DesignError ? error.reason : 'unknown');
 
-export default function ProductView({ initial, eyebrow, summaryHtml, model }: Props) {
+export default function ProductView({ initial, eyebrow, summaryHtml, model, experiment }: Props) {
   const d = useProductDetail({ initial });
   const [outcome, setOutcome] = useState<Outcome>(null);
   // Counts color picks, so picking the current color again brings its photo back.
@@ -89,6 +92,9 @@ export default function ProductView({ initial, eyebrow, summaryHtml, model }: Pr
   useEffect(() => {
     if (design.open) headingRef.current?.focus();
   }, [design.open]);
+  useEffect(() => {
+    if (experiment) recordExposure('product-3d-first-experiment');
+  }, []); // once: the version can't change on this page
 
   /** Shows a design: picks its stock color when the product still offers it, else keeps its own colors as Original. */
   const applyDesign = (loaded: LoadableDesign) => {
@@ -330,6 +336,7 @@ export default function ProductView({ initial, eyebrow, summaryHtml, model }: Pr
         selectionKey={colorPicks}
         productId={product.id}
         model={model}
+        startIn3d={experiment === 'test'}
         colors={d.optionGroups.find((g) => g.isColor) ?? null}
         customZones={design.override}
         panelOpen={design.open}
