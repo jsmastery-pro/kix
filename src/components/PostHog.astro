@@ -5,10 +5,17 @@
 // redacted from exception text. Helpers and the event catalog live in src/scripts/analytics.ts.
 // The explore search lives in the URL as ?q= (plan 08): PostHog's own masking covers the current
 // URL, and before_send masks it in referrers, which PostHog sends raw. The thank-you page's ?orderId=
-// (plan 13) is masked the same way: Wix returns an order to anyone holding its ID.
+// (plan 13) is masked the same way: Wix returns an order to anyone holding its ID. `bootstrap`
+// carries a server-picked experiment version, and a first visit's new ID (plan 14).
 import { PUBLIC_POSTHOG_HOST, PUBLIC_POSTHOG_PROJECT_TOKEN } from 'astro:env/client';
+import type { PostHogBootstrap } from '../scripts/flags-server';
+
+interface Props {
+  bootstrap?: PostHogBootstrap;
+}
+const { bootstrap } = Astro.props;
 ---
-<script is:inline define:vars={{ token: PUBLIC_POSTHOG_PROJECT_TOKEN, host: PUBLIC_POSTHOG_HOST, dev: import.meta.env.DEV, environment: import.meta.env.MODE }}>
+<script is:inline define:vars={{ token: PUBLIC_POSTHOG_PROJECT_TOKEN, host: PUBLIC_POSTHOG_HOST, bootstrap, dev: import.meta.env.DEV, environment: import.meta.env.MODE }}>
   const missing = !token ? 'PUBLIC_POSTHOG_PROJECT_TOKEN' : !host ? 'PUBLIC_POSTHOG_HOST' : '';
   if (missing) {
     if (dev) throw new Error(missing + ' variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once ' + missing + ' is configured');
@@ -30,6 +37,7 @@ import { PUBLIC_POSTHOG_HOST, PUBLIC_POSTHOG_PROJECT_TOKEN } from 'astro:env/cli
     posthog.init(token, {
       api_host: host,
       defaults: '2026-08-30',
+      bootstrap,
       capture_exceptions: {
         capture_unhandled_errors: true,
         capture_unhandled_rejections: true,

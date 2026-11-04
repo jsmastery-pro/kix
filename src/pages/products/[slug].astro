@@ -4,6 +4,10 @@
 // category page does). The gallery and buy column are the ProductView island on the kit's
 // useProductDetail, plus the 3D model row (plan 11); everything below it renders here, on the
 // server, with no JS. Reads are guarded and logged; an unknown slug is a real 404 with a way back.
+// The 3D-first experiment (plan 14): the server picks the visitor's version beside the first reads
+// and bootstraps PostHog with it, so the gallery's first paint is already that version. Only a
+// product with a model, outside the deep links that open 3D anyway, takes part. The HTML is per
+// visitor, so it's never cached.
 import { Footprints, Lock, RotateCcw, Truck } from '@lucide/astro';
 import { WIX_APPS } from '@wix/essentials';
 import { seoTags } from '@wix/seo';
@@ -19,6 +23,8 @@ import SectionHeading from '../../components/ui/SectionHeading.astro';
 import SpecTable from '../../components/ui/SpecTable.astro';
 import type { TileTone } from '../../components/ui/tones';
 import SiteLayout from '../../layouts/SiteLayout.astro';
+import type { ExperimentFlags } from '../../scripts/analytics';
+import { getExperimentVariant, newAnonymousId, readPostHogIdentity, type PostHogBootstrap } from '../../scripts/flags-server';
 import { fetchProductModel } from '../../wix/models/product-models';
 import type { ProductModel } from '../../wix/models/presets';
 import { fetchCategories, fetchProductBySlug, fetchProductsByCategory } from '../../wix/storefront/catalog';
@@ -36,6 +42,19 @@ const pageUrl =
   forwardedUrl && URL.canParse(forwardedUrl) && /^https?:$/.test(new URL(forwardedUrl).protocol)
     ? forwardedUrl
     : Astro.url.href;
+Astro.response.headers.set('Cache-Control', 'private, no-store');
+
+const EXPERIMENT = 'product-3d-first-experiment';
+type Variant = ExperimentFlags[typeof EXPERIMENT];
+const params = new URL(pageUrl).searchParams;
+const deepLink = ['design', 'code', 'resume'].some((name) => params.has(name));
+// Dev only: ?pdp_variant= forces a version while the experiment's flag is still off.
+const forcedParam = import.meta.env.DEV ? params.get('pdp_variant') : null;
+const forced: Variant | null = forcedParam === 'control' || forcedParam === 'test' ? forcedParam : null;
+const cookieIdentity = readPostHogIdentity(Astro.cookies);
+// A first visit: this ID becomes posthog-js's distinct and device ID through the bootstrap.
+const freshId = cookieIdentity ? null : newAnonymousId();
+const identity = cookieIdentity ?? { distinctId: freshId!, deviceId: freshId };
 
 // The design's tile order for You Might Also Like.
 const relatedTones: TileTone[] = ['mint', 'peach', 'periwinkle', 'lilac'];
@@ -45,10 +64,15 @@ let categories: Category[] = [];
 let related: ProductSummary[] = [];
 let model: ProductModel | null = null;
 let seoTagsServiceConfig = null;
-const [productRead, seoRead, categoriesRead] = await Promise.allSettled([
-  fetchProductBySlug(slug),
-  loadSEOTagsServiceConfig({ pageUrl, itemType: seoTags.ItemType.STORES_PRODUCT, itemData: { slug } }),
-  fetchCategories(),
+let variant: Variant | null = null;
+// getExperimentVariant never throws, so it waits beside the settled reads.
+const [[productRead, seoRead, categoriesRead], flagRead] = await Promise.all([
+  Promise.allSettled([
+    fetchProductBySlug(slug),
+    loadSEOTagsServiceConfig({ pageUrl, itemType: seoTags.ItemType.STORES_PRODUCT, itemData: { slug } }),
+    fetchCategories(),
+  ]),
+  deepLink || forced ? null : getExperimentVariant(EXPERIMENT, identity),
 ]);
 if (productRead.status === 'fulfilled') product = productRead.value;
 if (categoriesRead.status === 'fulfilled') categories = categoriesRead.value;
@@ -66,6 +90,7 @@ if (product && page) {
     fetchProductModel(product.id),
   ]);
   model = modelRead;
+  if (model && !deepLink) variant = forced ?? flagRead;
   for (const list of lists) if (list.status === 'rejected') console.error('[product] recommendations read failed', slug, list.reason);
   related = pickRelated(lists.flatMap((list) => (list.status === 'fulfilled' ? [list.value] : [])), product.id, 4);
 } else {
@@ -73,13 +98,16 @@ if (product && page) {
   console.error('[product] not found or read failed:', slug);
   Astro.response.status = 404;
 }
+const posthogBootstrap: PostHogBootstrap | undefined = variant
+  ? { ...(freshId && { distinctID: freshId }), featureFlags: { [EXPERIMENT]: variant } }
+  : undefined;
 ---
 
 {product && page ? (
-  <SiteLayout title={product.name}>
+  <SiteLayout title={product.name} posthogBootstrap={posthogBootstrap}>
     {seoTagsServiceConfig && <SEO.Tags seoTagsServiceConfig={seoTagsServiceConfig} slot="seo-tags" />}
     <div class="pdp">
-      <ProductView client:load initial={product} eyebrow={page.eyebrow} summaryHtml={page.summaryHtml} model={model} />
+      <ProductView client:load initial={product} eyebrow={page.eyebrow} summaryHtml={page.summaryHtml} model={model} experiment={variant} />
 
       <section class="pdp__perks" aria-labelledby="pdp-perks">
         <h2 id="pdp-perks" class="sr-only">Shopping with Kix</h2>

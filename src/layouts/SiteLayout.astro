@@ -3,7 +3,8 @@
 // title/description props, global.css import). Wiring Wix adds the kit's CartButton and
 // CartDrawer mounts and reads the nav categories with fetchCategories() (plan 03). AccountMenu is
 // the member control (plan 05). PostHog loads analytics (plan 06). BagButton adds the live cart
-// count to the bag link, with the plain link as its fallback (plan 09).
+// count to the bag link, with the plain link as its fallback (plan 09). A page that picked an
+// experiment version on the server passes posthogBootstrap (plan 14).
 import { Font } from 'astro:assets';
 import { ShoppingBag } from '@lucide/astro';
 import AccountMenu from '../components/AccountMenu.astro';
@@ -15,13 +16,15 @@ import SiteNav from '../components/ui/SiteNav.astro';
 import Wordmark from '../components/ui/Wordmark.astro';
 import { navCategories } from '../data/mock';
 import '../styles/global.css';
+import type { PostHogBootstrap } from '../scripts/flags-server';
 import '../styles/site.css';
 
 interface Props {
   title: string;
   description?: string;
+  posthogBootstrap?: PostHogBootstrap;
 }
-const { title, description } = Astro.props;
+const { title, description, posthogBootstrap } = Astro.props;
 const navItems = [
   ...navCategories.map((category) => ({ label: category.name, href: `/category/${category.slug}` })),
   { label: 'Customize', href: '/customize' },
@@ -38,7 +41,7 @@ const navItems = [
     {!Astro.slots.has('seo-tags') && <title>{title}</title>}
     {description && <meta name="description" content={description} />}
     <Font cssVariable="--font-barlow" preload={[{ weight: '700', style: 'normal' }]} />
-    <PostHog />
+    <PostHog bootstrap={posthogBootstrap} />
     <slot name="seo-tags" />
   </head>
   <body class="site">
