@@ -131,18 +131,18 @@ browser: posthog.init({ bootstrap }) → island mounts → recordExposure(key) �
   - Then `experiment-create` with that key, no `feature_flag` object, the hypothesis in `description` and `running_time_calculation` from Step 1.
   - Then `experiment-update` with the metrics in Decisions, reusing shared metrics where they match.
   - Check: `experiment-get` shows a draft, the flag inactive, device bucketing, five metrics, and the experiment URL.
-- [ ] 3. **`flags-server.ts` and the `analytics.ts` additions.** Check: `npm run check` gives 0 errors, and a `curl` of `/flags/?v=2` with the same body returns the response shape the parser expects (flag inactive: no version, so `null`).
-- [ ] 4. **Bootstrap through the layout.** Change `PostHog.astro` (`bootstrap` prop into `init`) and `SiteLayout.astro` (`posthogBootstrap` prop).
+- [x] 3. **`flags-server.ts` and the `analytics.ts` additions.** Check: `npm run check` gives 0 errors, and a `curl` of `/flags/?v=2` with the same body returns the response shape the parser expects (flag inactive: no version, so `null`).
+- [x] 4. **Bootstrap through the layout.** Change `PostHog.astro` (`bootstrap` prop into `init`) and `SiteLayout.astro` (`posthogBootstrap` prop).
   - Check: the home page's inline script is unchanged apart from `bootstrap: undefined`.
   - Check: in the dev server, `posthog.get_distinct_id()` on `/` is the same before and after.
-- [ ] 5. **Product page wiring** in `[slug].astro`: identity, the wave-1 flag call, `Cache-Control`, the deep-link and model gates, the dev override, and the props. Checks with `curl` against `astro dev`:
+- [x] 5. **Product page wiring** in `[slug].astro`: identity, the wave-1 flag call, `Cache-Control`, the deep-link and model gates, the dev override, and the props. Checks with `curl` against `astro dev`:
   - with no cookie and `?pdp_variant=test`, the HTML has `data-mode="loading"`, and the bootstrap holds a UUIDv7 `distinctID` and `featureFlags`;
   - with a PostHog cookie, the bootstrap has no `distinctID`;
   - `?pdp_variant=control` gives today's HTML;
   - with no override (flag inactive), there's no bootstrap;
   - `?code=…&pdp_variant=test` gives no bootstrap;
   - the `-I` headers show `Cache-Control: private, no-store`.
-- [ ] 6. **Gallery and island.** `ProductGallery` gets `startIn3d` (initial `loading` mode, the `mounted` gate, auto-open with `source: 'auto'`). `ProductView` gets `experiment`, passes `startIn3d` and calls `recordExposure` on mount. Checks in Chrome:
+- [x] 6. **Gallery and island.** `ProductGallery` gets `startIn3d` (initial `loading` mode, the `mounted` gate, auto-open with `source: 'auto'`). `ProductView` gets `experiment`, passes `startIn3d` and calls `recordExposure` on mount. Checks in Chrome:
   - **Test:** the first paint is the loading state, with no photos→3D swap (a performance trace's first screenshot), and the model then shows.
   - **Control:** today's page.
   - **Fallbacks:** a `getContext` stub that returns `null` falls back to photos with the note and sends `product_3d_failed` `no_webgl`.
@@ -150,9 +150,9 @@ browser: posthog.init({ bootstrap }) → island mounts → recordExposure(key) �
   - **Deep links:** `?code=` still opens the design.
   - **Clean console:** no hydration warning in either version.
   - **Exposure:** with `?pdp_variant=test` in a fresh profile, the Network panel's `/e/` payload has `$feature_flag_called` with `$feature_flag: "product-3d-first-experiment"` and `$feature_flag_response: "test"`. A second product page sends no new one, and its `$pageview` carries `$feature/product-3d-first-experiment: "test"`.
-- [ ] 7. **Layouts.** Compare `/products/<slug>` in both versions at 1440 and 390 (390 through a same-origin iframe) with today's page. The only difference should be the frame's starting state. Check: screenshots, and no horizontal overflow at 390.
-- [ ] 8. **Checks.** Check: `npm run check` and `npm run build` both pass, and `dist/server` doesn't contain three.
-- [ ] 9. **Review.** A reviewer subagent compares the work with this plan, and I fix the real gaps.
+- [x] 7. **Layouts.** Compare `/products/<slug>` in both versions at 1440 and 390 (390 through a same-origin iframe) with today's page. The only difference should be the frame's starting state. Check: screenshots, and no horizontal overflow at 390.
+- [x] 8. **Checks.** Check: `npm run check` and `npm run build` both pass, and `dist/server` doesn't contain three.
+- [x] 9. **Review.** A reviewer subagent compares the work with this plan, and I fix the real gaps.
 - [ ] 10. **Release, after you approve it.** Run `npm run release -- --version-type minor --comment "Product page 3D-first experiment wiring (plan 14)"`. Check, on the live site with the flag still inactive:
   - every product page is today's page;
   - the response has `Cache-Control: private, no-store`;
@@ -210,6 +210,7 @@ browser: posthog.init({ bootstrap }) → island mounts → recordExposure(key) �
 - **Revenue counts members only** (guest `order_paid` can't be joined to a browser).
 - **Visitors who block cookies** get a new ID on every product page view and inflate exposures slightly. **Visitors who block PostHog** still see their version but record no exposure, so they're simply not in the results.
 - **Page weight and speed in `test`.** The 3D chunk (~247 KB gz) and the model (< 5 MB) download on every 3D-first visit, phones included, and the main photo starts dimmed. LCP may rise. PostHog's web vitals (already captured) can be compared by version.
+- **Visitors and crawlers that don't run JS.** Those bucketed into `test` see the server's loading state ("Loading 3D…" over the dimmed photo) and never the model. The photo keeps its alt text until 3D actually shows. Crawlers send no cookie, so about half are bucketed into `test`. Google renders JS, but it would then see the 3D view first.
 - **No cache for product pages.** If Wix's CDN was caching product HTML, pages now render per request. They already read live stock, so this is probably no change, but it's unverified.
 - **Cost.** One extra PostHog `/flags` request per product page view (PostHog bills flag requests past the free monthly allowance). No Wix AI credits. The release (Step 10) and the launch (Step 12) each wait for your OK.
 - **Bootstrap override edge.** This happens with no cookie (or an unparseable one) while localStorage still holds PostHog state, for example cookies cleared and storage kept. The anonymous bootstrap ID then replaces both the stored distinct ID and `$device_id`, which has three effects:

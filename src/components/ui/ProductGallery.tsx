@@ -218,7 +218,7 @@ export default forwardRef<ProductGalleryHandle, Props>(function ProductGallery(
 
       <div ref={frameRef} className="ui-gallery__frame" data-mode={mode}>
         {'src' in photo ? (
-          <img {...photo} loading="eager" alt={viewing3d ? '' : alt} />
+          <img {...photo} loading="eager" alt={mode === '3d' ? '' : alt} />
         ) : (
           <span className="ui-photo__fallback">Image placeholder</span>
         )}
