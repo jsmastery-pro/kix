@@ -320,6 +320,8 @@ Status: approved
   - the order turns Paid in `/account` on the live site;
   - one `order_paid` with `revenue` equal to the order total, `currency`, and `distinct_id` = the member ID is in PostHog. You see it in Activity, since the MCP is unauthorized. The delivery shows in the app dashboard's Webhooks → Logs;
   - a second payment-status update sends nothing. To trigger one, a second test order is placed and left unpaid, then marked paid twice: Add Payments for half the total (PARTIALLY_PAID, no event), then for the rest (PAID, one event).)
+
+  Released 2026-11-04 together with plan 14: https://my-site-1-sujata03-0908.wix-site-host.com (`/cart` and `/thank-you` 200, `private, no-store`). Open: the test order and the `order_paid` checks.
 - [ ] 14. **Review.** A reviewer subagent compares the work with this plan; fix real gaps.
 - [ ] 15. **Close out.** Write the Result, set `Status: done`, update the index, and propose AGENTS.md edits:
   - "Who owns what": cart page, checkout return, the Design code field and format, orders, the event extension and the server analytics door.

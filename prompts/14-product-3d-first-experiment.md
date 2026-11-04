@@ -158,6 +158,8 @@ browser: posthog.init({ bootstrap }) → island mounts → recordExposure(key) �
   - the response has `Cache-Control: private, no-store`;
   - a `?code=` design link still opens in 3D;
   - `?pdp_variant=test` is ignored.
+
+  Ran 2026-11-04 as one major release with plan 13 (its event extension needs major): https://my-site-1-sujata03-0908.wix-site-host.com. Live: `/products/kix-mini-court` is 200, `private, no-store`, `data-mode="photos"`, no bootstrap; `?pdp_variant=test` the same. Open: the `?code=` check, which needs a real design code.
 - [ ] 11. **Pre-launch gate.** Plan 13 must be released, and `order_completed` and `order_paid` seen in PostHog for a test order. Otherwise completed orders can't be measured. I report the state and wait.
 - [ ] 12. **Launch, only when you say so.** Run `experiment-launch`. Check on the live site:
   - in two fresh browser profiles, the first product page's version matches its `$feature_flag_called` variant in PostHog's activity, and later product pages and a reload show the same version and carry it as `$feature/product-3d-first-experiment`;
