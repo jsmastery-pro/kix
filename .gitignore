@@ -41,3 +41,6 @@ pnpm-debug.log*
 # 3D models: Tripo exports and their optimized copies (stored in Wix Media). Specs in models/specs/ are committed.
 models/raw/
 models/web/
+
+# Catalog asset export for reuse on another site (not committed)
+exports/
