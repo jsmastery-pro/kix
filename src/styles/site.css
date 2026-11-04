@@ -18,7 +18,7 @@
 .home-hero, .home-banner { width: min(var(--site-wide-max), 100% - 2 * var(--site-wide-inset)); margin-inline: auto; }
 .home-hero { margin-top: 7px; }
 .home-banner { margin-top: clamp(72px, 7.4vw, 106px); }
-.home-section { width: min(var(--site-max), 100% - 2 * var(--site-inset)); margin: var(--site-section-gap) auto 0; }
+.home-section { width: min(var(--site-wide-max), 100% - 2 * var(--site-wide-inset)); margin: var(--site-section-gap) auto 0; }
 .home-section--first { margin-top: clamp(40px, 3.8vw, 55px); }
 .home-section--after-banner { margin-top: clamp(48px, 5.5vw, 80px); }
 
